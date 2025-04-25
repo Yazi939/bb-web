@@ -38,9 +38,16 @@
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
+            margin: 10px;
         }
         .download-button:hover {
             background-color: #0055aa;
+        }
+        .download-button.secondary {
+            background-color: #28a745;
+        }
+        .download-button.secondary:hover {
+            background-color: #218838;
         }
         .features {
             display: grid;
@@ -59,6 +66,12 @@
             font-size: 0.9em;
             color: #666;
         }
+        .installation-steps {
+            margin-top: 30px;
+        }
+        .installation-steps li {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -70,12 +83,23 @@
 
     <section class="download-section">
         <h2>Скачать приложение</h2>
-        <p>Выберите версию для вашей операционной системы:</p>
-        <p>
-            <a href="https://github.com/Yazi939/application/releases/latest/download/BunkerBoats-Setup.exe" class="download-button">Скачать для Windows</a>
-            <a href="https://github.com/Yazi939/application/releases" class="download-button">Версия для macOS</a>
-        </p>
-        <p><small>Или <a href="https://github.com/Yazi939/application">перейти к репозиторию</a> для ручной установки</small></p>
+        <p>Выберите один из следующих способов установки:</p>
+        
+        <div style="margin: 20px 0;">
+            <a href="https://github.com/Yazi939/application/archive/refs/heads/master.zip" class="download-button">Скачать исходный код (ZIP)</a>
+            <a href="https://github.com/Yazi939/application/raw/master/optimize_build.bat" class="download-button secondary" download>Скачать скрипт установки</a>
+        </div>
+        
+        <div style="text-align: left;" class="installation-steps">
+            <h3>Простая установка:</h3>
+            <ol>
+                <li>Скачайте исходный код (кнопка ZIP выше)</li>
+                <li>Распакуйте архив в любую папку</li>
+                <li>Скачайте и сохраните скрипт установки в ту же папку</li>
+                <li>Запустите скрипт установки (optimize_build.bat)</li>
+                <li>После завершения установки запустите приложение через созданный ярлык</li>
+            </ol>
+        </div>
     </section>
 
     <h2>Основные возможности</h2>
@@ -104,21 +128,22 @@
         <li><strong>macOS:</strong> macOS 10.13 или новее, 2 ГБ ОЗУ, 500 МБ свободного места</li>
     </ul>
 
-    <h2>Инструкции по установке</h2>
-    <h3>Для Windows:</h3>
+    <h2>Альтернативные способы установки</h2>
+    <h3>Для Windows с Node.js:</h3>
     <ol>
-        <li>Скачайте файл установщика BunkerBoats-Setup.exe</li>
-        <li>Запустите файл для установки приложения</li>
-        <li>Следуйте инструкциям установщика</li>
-        <li>Если Node.js не обнаружен, установщик предложит автоматически скачать и установить его</li>
-        <li>После установки запустите приложение через созданный ярлык</li>
+        <li>Убедитесь, что у вас установлен <a href="https://nodejs.org/" target="_blank">Node.js</a> (рекомендуется версия 16 или выше)</li>
+        <li>Скачайте и распакуйте ZIP с исходным кодом</li>
+        <li>Откройте командную строку в папке с распакованным кодом</li>
+        <li>Выполните команду: <code>npm install</code></li>
+        <li>После установки зависимостей выполните: <code>npm start</code></li>
     </ol>
 
-    <h3>Для macOS:</h3>
+    <h3>Для опытных пользователей:</h3>
     <ol>
-        <li>Скачайте DMG-файл приложения</li>
-        <li>Откройте DMG-файл и перетащите приложение в папку Applications</li>
-        <li>Запустите приложение из Launchpad или папки Applications</li>
+        <li>Клонируйте репозиторий: <code>git clone https://github.com/Yazi939/application.git</code></li>
+        <li>Перейдите в папку проекта: <code>cd application</code></li>
+        <li>Установите зависимости: <code>npm install</code></li>
+        <li>Запустите приложение: <code>npm start</code></li>
     </ol>
 
     <footer>
