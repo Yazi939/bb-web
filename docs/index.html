@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bunker Boats - Приложение для учета топлива</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .download-section {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+        .download-button {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .download-button:hover {
+            background-color: #0055aa;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://raw.githubusercontent.com/Yazi939/application/master/public/bunker-boats-logo.png" alt="Bunker Boats Logo" class="logo">
+        <h1>Bunker Boats</h1>
+        <p>Приложение для учета и анализа операций с топливом для водного транспорта</p>
+    </header>
+
+    <section class="download-section">
+        <h2>Скачать приложение</h2>
+        <p>Выберите версию для вашей операционной системы:</p>
+        <p>
+            <a href="https://github.com/Yazi939/application/releases/latest/download/BunkerBoats-Setup.exe" class="download-button">Скачать для Windows</a>
+            <a href="https://github.com/Yazi939/application/releases" class="download-button">Версия для macOS</a>
+        </p>
+        <p><small>Или <a href="https://github.com/Yazi939/application">перейти к репозиторию</a> для ручной установки</small></p>
+    </section>
+
+    <h2>Основные возможности</h2>
+    <div class="features">
+        <div class="feature">
+            <h3>Учет операций</h3>
+            <p>Добавление и управление операциями покупки и продажи топлива</p>
+        </div>
+        <div class="feature">
+            <h3>Аналитика</h3>
+            <p>Анализ прибыльности и маржинальности операций с топливом</p>
+        </div>
+        <div class="feature">
+            <h3>Экспорт в Excel</h3>
+            <p>Экспорт данных и отчетов в формат Excel для дальнейшей обработки</p>
+        </div>
+        <div class="feature">
+            <h3>Статистика</h3>
+            <p>Подробная статистика по видам топлива с визуализацией</p>
+        </div>
+    </div>
+
+    <h2>Системные требования</h2>
+    <ul>
+        <li><strong>Windows:</strong> Windows 10 или 11, 2 ГБ ОЗУ, 500 МБ свободного места</li>
+        <li><strong>macOS:</strong> macOS 10.13 или новее, 2 ГБ ОЗУ, 500 МБ свободного места</li>
+    </ul>
+
+    <h2>Инструкции по установке</h2>
+    <h3>Для Windows:</h3>
+    <ol>
+        <li>Скачайте файл установщика BunkerBoats-Setup.exe</li>
+        <li>Запустите файл для установки приложения</li>
+        <li>Следуйте инструкциям установщика</li>
+        <li>Если Node.js не обнаружен, установщик предложит автоматически скачать и установить его</li>
+        <li>После установки запустите приложение через созданный ярлык</li>
+    </ol>
+
+    <h3>Для macOS:</h3>
+    <ol>
+        <li>Скачайте DMG-файл приложения</li>
+        <li>Откройте DMG-файл и перетащите приложение в папку Applications</li>
+        <li>Запустите приложение из Launchpad или папки Applications</li>
+    </ol>
+
+    <footer>
+        <p>&copy; 2024 Bunker Boats. Все права защищены.</p>
+        <p><a href="https://github.com/Yazi939/application">GitHub Репозиторий</a></p>
+    </footer>
+</body>
+</html> 
