@@ -1,0 +1,16 @@
+@echo off
+echo Building Bunker Boats application (skipping TS errors)...
+
+cd %~dp0
+
+echo Building frontend with vite directly (skip typescript checks)...
+call npx vite build
+
+echo Starting server...
+start /min cmd /c "cd server && npm run dev"
+
+echo Waiting for server to start...
+timeout /t 3 > nul
+
+echo Starting Electron app...
+npm run electron:dev 

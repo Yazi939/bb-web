@@ -1,36 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Form, Input, Button, Table, Space, Typography, Row, Col, Divider, Select, DatePicker, Statistic, notification, Radio } from 'antd';
+import { Card, Form, Input, Button, Table, Space, Typography, Row, Col, Divider, Select, DatePicker, Statistic, notification, Radio, Modal, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { FileExcelOutlined, DeleteOutlined, FilterOutlined } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 import { exportFuelDataToExcel } from '../../utils/excelExport';
+import type { FuelTransaction } from '../../types/electron';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-interface FuelTransaction {
-  key: string;
-  type: 'purchase' | 'sale';
-  volume: number;
-  price: number;
-  totalCost: number;
-  date: string;
-  timestamp: number;
-  fuelType: string;
-  supplier?: string;
-  customer?: string;
-  notes?: string;
-}
+// Иконки без событий pointer capture
+const iconProps: AntdIconProps = {
+  style: { color: 'white' }
+};
 
 const FUEL_TYPES = [
   { value: 'diesel', label: 'Дизельное топливо' },
-  { value: 'gasoline_92', label: 'Бензин АИ-92' },
-  { value: 'gasoline_95', label: 'Бензин АИ-95' },
-  { value: 'gasoline_98', label: 'Бензин АИ-98' },
-  { value: 'gas', label: 'Газ' }
+  { value: 'gasoline_95', label: 'Бензин АИ-95' }
 ];
 
 // Добавим имя файла для экспорта Excel
@@ -44,26 +33,52 @@ const FuelTrading: React.FC = () => {
   const [filterFuelType, setFilterFuelType] = useState<string | null>(null);
   const [filterTransactionType, setFilterTransactionType] = useState<string | null>(null);
   const [advancedMode, setAdvancedMode] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<FuelTransaction | null>(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editForm] = Form.useForm();
   
-  // Загрузка данных из localStorage при первой загрузке
+  // Загрузка данных из electron-store при первой загрузке
   useEffect(() => {
-    const savedTransactions = localStorage.getItem('fuelTransactions');
-    const savedLastKey = localStorage.getItem('fuelLastKey');
+    const loadTransactions = async () => {
+      try {
+        const result = await window.electronAPI.transactions.getAll();
+        setTransactions(result);
+        // Set last key based on the highest existing key
+        const maxKey = result.reduce((max, t) => {
+          const keyNum = parseInt(t.key.replace('transaction-', ''));
+          return Math.max(max, keyNum);
+        }, 0);
+        setLastKey(maxKey);
+      } catch (error) {
+        console.error('Failed to load transactions:', error);
+        notification.error({
+          message: 'Ошибка загрузки',
+          description: 'Не удалось загрузить данные транзакций'
+        });
+      }
+    };
     
-    if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions));
-    }
-    
-    if (savedLastKey) {
-      setLastKey(parseInt(savedLastKey));
-    }
+    loadTransactions();
   }, []);
   
-  // Сохранение данных в localStorage при изменении
+  // Обновление данных в electron-store при изменении
   useEffect(() => {
-    localStorage.setItem('fuelTransactions', JSON.stringify(transactions));
-    localStorage.setItem('fuelLastKey', lastKey.toString());
-  }, [transactions, lastKey]);
+    const saveTransactions = async () => {
+      try {
+        await window.electronAPI.transactions.update(transactions);
+      } catch (error) {
+        console.error('Failed to save transactions:', error);
+        notification.error({
+          message: 'Ошибка сохранения',
+          description: 'Не удалось сохранить изменения'
+        });
+      }
+    };
+    
+    if (transactions.length > 0) {
+      saveTransactions();
+    }
+  }, [transactions]);
   
   // Фильтрация транзакций
   const filteredTransactions = transactions.filter(transaction => {
@@ -89,20 +104,27 @@ const FuelTrading: React.FC = () => {
     return matchesDateRange && matchesFuelType && matchesTransactionType;
   });
   
-  // Расчетные данные по фильтрованным транзакциям
-  const totalPurchased = filteredTransactions
+  // Фильтрация транзакций с учетом замороженных для расчетов
+  const activeTransactions = filteredTransactions.filter(t => !t.frozen);
+  
+  // Расчетные данные по активным транзакциям
+  const totalPurchased = activeTransactions
     .filter(t => t.type === 'purchase')
     .reduce((sum, t) => sum + t.volume, 0);
     
-  const totalSold = filteredTransactions
+  const totalSold = activeTransactions
     .filter(t => t.type === 'sale')
     .reduce((sum, t) => sum + t.volume, 0);
+  
+  const totalDrained = activeTransactions
+    .filter(t => t.type === 'drain')
+    .reduce((sum, t) => sum + t.volume, 0);
     
-  const totalPurchaseCost = filteredTransactions
+  const totalPurchaseCost = activeTransactions
     .filter(t => t.type === 'purchase')
     .reduce((sum, t) => sum + t.totalCost, 0);
     
-  const totalSaleIncome = filteredTransactions
+  const totalSaleIncome = activeTransactions
     .filter(t => t.type === 'sale')
     .reduce((sum, t) => sum + t.totalCost, 0);
     
@@ -142,42 +164,74 @@ const FuelTrading: React.FC = () => {
     };
   }).filter(data => data.purchased > 0 || data.sold > 0); // Показываем только используемые типы топлива
 
-  const handleAddTransaction = (values: any) => {
-    const { type, volume, price, fuelType, supplier, customer, notes } = values;
+  const handleAddTransaction = async (values: any) => {
+    const { type, volume, price, fuelType, supplier, customer, vessel, paymentMethod, notes } = values;
     const volNumber = parseFloat(volume);
     const priceNumber = parseFloat(price);
     const now = new Date();
+    
+    // Get user info from context or default values
+    const currentUser = { id: 'user1', role: 'worker' };
     
     const newTransaction: FuelTransaction = {
       key: `transaction-${lastKey + 1}`,
       type,
       volume: volNumber,
       price: priceNumber,
-      totalCost: volNumber * priceNumber,
+      totalCost: type === 'drain' ? 0 : volNumber * priceNumber,
       date: now.toLocaleString(),
       timestamp: now.getTime(),
       fuelType,
-      supplier: supplier || undefined,
-      customer: customer || undefined,
+      supplier: type === 'purchase' ? supplier : undefined,
+      customer: type === 'sale' ? customer : undefined,
+      vessel: type === 'sale' ? vessel : undefined,
+      paymentMethod: type === 'sale' ? paymentMethod : undefined,
+      userId: currentUser.id,
+      userRole: currentUser.role,
+      frozen: false,
       notes: notes || undefined
     };
     
-    setTransactions([...transactions, newTransaction]);
-    setLastKey(lastKey + 1);
-    form.resetFields();
-    
-    notification.success({
-      message: type === 'purchase' ? 'Покупка добавлена' : 'Продажа добавлена',
-      description: `${volNumber.toFixed(2)} л топлива по цене ${priceNumber.toFixed(2)} ₽/л`
-    });
+    try {
+      const updatedTransactions = await window.electronAPI.transactions.add(newTransaction);
+      setTransactions(updatedTransactions);
+      setLastKey(lastKey + 1);
+      form.resetFields();
+      
+      let message = '';
+      if (type === 'purchase') message = 'Покупка добавлена';
+      else if (type === 'sale') message = 'Продажа добавлена';
+      else if (type === 'drain') message = 'Слив топлива зарегистрирован';
+      
+      notification.success({
+        message,
+        description: `${volNumber.toFixed(2)} л топлива ${type !== 'drain' ? `по цене ${priceNumber.toFixed(2)} ₽/л` : ''}`
+      });
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      notification.error({
+        message: 'Ошибка добавления',
+        description: 'Не удалось добавить транзакцию'
+      });
+    }
   };
 
-  const handleDeleteTransaction = (key: string) => {
-    setTransactions(transactions.filter(t => t.key !== key));
-    notification.info({
-      message: 'Транзакция удалена',
-      description: 'Запись удалена из истории операций'
-    });
+  const handleDeleteTransaction = async (key: string) => {
+    try {
+      const updatedTransactions = await window.electronAPI.transactions.delete(key);
+      setTransactions(updatedTransactions);
+      
+      notification.success({
+        message: 'Транзакция удалена',
+        description: 'Запись успешно удалена из истории операций'
+      });
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+      notification.error({
+        message: 'Ошибка удаления',
+        description: 'Не удалось удалить транзакцию'
+      });
+    }
   };
 
   const exportToExcel = () => {
@@ -186,6 +240,7 @@ const FuelTrading: React.FC = () => {
       fuelTypeData,
       totalPurchased,
       totalSold,
+      totalDrained,
       totalPurchaseCost,
       totalSaleIncome,
       averagePurchasePrice,
@@ -213,15 +268,101 @@ const FuelTrading: React.FC = () => {
     setFilterTransactionType(null);
   };
 
+  const handleEditTransaction = (transaction: FuelTransaction) => {
+    setEditingTransaction(transaction);
+    editForm.setFieldsValue({
+      type: transaction.type,
+      fuelType: transaction.fuelType,
+      volume: transaction.volume,
+      price: transaction.price,
+      supplier: transaction.supplier,
+      customer: transaction.customer,
+      vessel: transaction.vessel,
+      paymentMethod: transaction.paymentMethod,
+      notes: transaction.notes
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = () => {
+    editForm.validateFields().then(values => {
+      const { volume, price, supplier, customer, vessel, paymentMethod, notes } = values;
+      const volNumber = parseFloat(volume);
+      const priceNumber = parseFloat(price);
+      
+      if (editingTransaction) {
+        const updatedTransaction: FuelTransaction = {
+          ...editingTransaction,
+          volume: volNumber,
+          price: priceNumber,
+          totalCost: editingTransaction.type === 'drain' ? 0 : volNumber * priceNumber,
+          supplier: supplier || undefined,
+          customer: customer || undefined,
+          vessel: vessel || undefined,
+          paymentMethod: paymentMethod || undefined,
+          notes: notes || undefined,
+          edited: true,
+          editTimestamp: Date.now()
+        };
+        
+        setTransactions(transactions.map(t => 
+          t.key === editingTransaction.key ? updatedTransaction : t
+        ));
+        
+        setEditModalVisible(false);
+        setEditingTransaction(null);
+        editForm.resetFields();
+        
+        notification.success({
+          message: 'Транзакция изменена',
+          description: 'Изменения сохранены успешно'
+        });
+      }
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditModalVisible(false);
+    setEditingTransaction(null);
+    editForm.resetFields();
+  };
+
+  const handleFreezeTransaction = (transaction: FuelTransaction) => {
+    const updatedTransaction = {
+      ...transaction,
+      frozen: !transaction.frozen,
+      frozenDate: transaction.frozen ? undefined : Date.now()
+    };
+    
+    setTransactions(transactions.map(t => 
+      t.key === transaction.key ? updatedTransaction : t
+    ));
+    
+    notification.info({
+      message: transaction.frozen ? 'Топливо разморожено' : 'Топливо заморожено',
+      description: transaction.frozen 
+        ? 'Топливо снова учитывается в остатках и влияет на прибыль' 
+        : 'Топливо не учитывается в остатках и не влияет на прибыль'
+    });
+  };
+
   const columns: ColumnsType<FuelTransaction> = [
     {
       title: 'Тип',
       dataIndex: 'type',
       key: 'type',
-      render: (type) => type === 'purchase' ? 'Покупка' : 'Продажа',
+      render: (type) => {
+        switch(type) {
+          case 'purchase': return 'Покупка';
+          case 'sale': return 'Продажа';
+          case 'drain': return 'Слив';
+          default: return type;
+        }
+      },
       filters: [
         { text: 'Покупка', value: 'purchase' },
-        { text: 'Продажа', value: 'sale' }
+        { text: 'Продажа', value: 'sale' },
+        { text: 'Слив', value: 'drain' }
       ],
       onFilter: (value, record) => record.type === value,
     },
@@ -244,35 +385,101 @@ const FuelTrading: React.FC = () => {
       title: 'Цена (₽/л)',
       dataIndex: 'price',
       key: 'price',
-      render: (price) => price.toFixed(2),
+      render: (price, record) => record.type === 'drain' ? '-' : price.toFixed(2),
       sorter: (a, b) => a.price - b.price,
     },
     {
       title: 'Стоимость (₽)',
       dataIndex: 'totalCost',
       key: 'totalCost',
-      render: (totalCost) => totalCost.toFixed(2),
+      render: (totalCost, record) => record.type === 'drain' ? '-' : totalCost.toFixed(2),
       sorter: (a, b) => a.totalCost - b.totalCost,
+    },
+    {
+      title: 'Катер',
+      dataIndex: 'vessel',
+      key: 'vessel',
+      render: (vessel, record) => record.type === 'sale' ? vessel || '-' : '-',
+    },
+    {
+      title: 'Оплата',
+      dataIndex: 'paymentMethod',
+      key: 'paymentMethod',
+      render: (payment, record) => {
+        if (record.type !== 'sale' || !payment) return '-';
+        
+        switch(payment) {
+          case 'cash': return 'Наличные';
+          case 'card': return 'Терминал';
+          case 'transfer': return 'Перевод';
+          case 'deferred': return 'Отложенный платеж';
+          default: return payment;
+        }
+      },
+    },
+    {
+      title: 'Статус',
+      key: 'status',
+      render: (_, record) => {
+        if (record.frozen) {
+          return <Tag color="blue">Заморожено</Tag>;
+        }
+        if (record.edited) {
+          return <Tag color="orange">Изменено</Tag>;
+        }
+        return <Tag color="green">Активно</Tag>;
+      }
     },
     {
       title: 'Дата',
       dataIndex: 'date',
       key: 'date',
-      sorter: (a, b) => a.timestamp - b.timestamp,
+      sorter: (a, b) => b.timestamp - a.timestamp, // Newer first
+      defaultSortOrder: 'descend',
     },
     {
       title: 'Действия',
       key: 'actions',
-      render: (_, record: FuelTransaction) => (
-        <Button 
-          icon={<DeleteOutlined 
-            onPointerEnterCapture={() => {}} 
-            onPointerLeaveCapture={() => {}} 
-          />} 
-          danger
-          onClick={() => handleDeleteTransaction(record.key)}
-        />
-      ),
+      render: (_, record: FuelTransaction) => {
+        // Check if transaction is within 24 hours and user is admin
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{"role": "worker"}');
+        const isAdmin = currentUser.role === 'admin';
+        const canEdit = isAdmin && (Date.now() - record.timestamp < 24 * 60 * 60 * 1000);
+        
+        return (
+          <Space>
+            {canEdit && (
+              <Button 
+                size="small"
+                type="primary"
+                onClick={() => handleEditTransaction(record)}
+              >
+                Изменить
+              </Button>
+            )}
+            {isAdmin && (
+              <Button 
+                size="small"
+                type={record.frozen ? "default" : "dashed"}
+                onClick={() => handleFreezeTransaction(record)}
+              >
+                {record.frozen ? 'Разморозить' : 'Заморозить'}
+              </Button>
+            )}
+            {isAdmin && (
+              <Button 
+                size="small"
+                icon={<DeleteOutlined 
+                  onPointerEnterCapture={() => {}} 
+                  onPointerLeaveCapture={() => {}} 
+                />} 
+                danger
+                onClick={() => handleDeleteTransaction(record.key)}
+              />
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -291,6 +498,17 @@ const FuelTrading: React.FC = () => {
     },
     columns[columns.length - 1] // Последний столбец (действия)
   ];
+
+  useEffect(() => {
+    // If no user exists in localStorage, create a default admin
+    if (!localStorage.getItem('currentUser')) {
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: 'admin1',
+        name: 'Администратор',
+        role: 'admin'
+      }));
+    }
+  }, []);
 
   return (
     <div style={{ padding: '24px' }}>
@@ -325,6 +543,7 @@ const FuelTrading: React.FC = () => {
                 <Select placeholder="Выберите тип операции">
                   <Option value="purchase">Покупка топлива</Option>
                   <Option value="sale">Продажа топлива</Option>
+                  <Option value="drain">Слив топлива</Option>
                 </Select>
               </Form.Item>
               
@@ -349,42 +568,66 @@ const FuelTrading: React.FC = () => {
               </Form.Item>
               
               <Form.Item
-                name="price"
-                label="Цена (₽/л)"
-                rules={[{ required: true, message: 'Введите цену' }]}
+                noStyle
+                shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
               >
-                <Input type="number" min="0" step="0.01" placeholder="Введите цену" />
+                {({ getFieldValue }) => {
+                  const type = getFieldValue('type');
+                  return type !== 'drain' ? (
+                    <Form.Item
+                      name="price"
+                      label="Цена (₽/л)"
+                      rules={[{ required: type !== 'drain', message: 'Введите цену' }]}
+                    >
+                      <Input type="number" min="0" step="0.01" placeholder="Введите цену" />
+                    </Form.Item>
+                  ) : null;
+                }}
               </Form.Item>
 
-              {advancedMode && (
-                <>
-                  <Form.Item
-                    noStyle
-                    shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
-                  >
-                    {({ getFieldValue }) => 
-                      getFieldValue('type') === 'purchase' ? (
-                        <Form.Item name="supplier" label="Поставщик">
-                          <Input placeholder="Введите название поставщика" />
-                        </Form.Item>
-                      ) : (
-                        <Form.Item name="customer" label="Клиент">
-                          <Input placeholder="Введите название клиента" />
-                        </Form.Item>
-                      )
-                    }
-                  </Form.Item>
-                  
-                  <Form.Item name="notes" label="Примечания">
-                    <Input.TextArea placeholder="Дополнительная информация" />
-                  </Form.Item>
-                </>
-              )}
-              
-              <Form.Item>
-                <Button type="link" onClick={() => setAdvancedMode(!advancedMode)}>
-                  {advancedMode ? 'Скрыть дополнительные поля' : 'Показать дополнительные поля'}
-                </Button>
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+              >
+                {({ getFieldValue }) => {
+                  const type = getFieldValue('type');
+                  return type === 'purchase' ? (
+                    <Form.Item name="supplier" label="Поставщик">
+                      <Input placeholder="Укажите поставщика" />
+                    </Form.Item>
+                  ) : null;
+                }}
+              </Form.Item>
+
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+              >
+                {({ getFieldValue }) => {
+                  const type = getFieldValue('type');
+                  return type === 'sale' ? (
+                    <>
+                      <Form.Item name="customer" label="Покупатель">
+                        <Input placeholder="Укажите покупателя" />
+                      </Form.Item>
+                      <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}>
+                        <Input placeholder="Укажите название катера" />
+                      </Form.Item>
+                      <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true, message: 'Укажите способ оплаты' }]}>
+                        <Select placeholder="Выберите способ оплаты">
+                          <Option value="cash">Наличные</Option>
+                          <Option value="card">Терминал</Option>
+                          <Option value="transfer">Перевод</Option>
+                          <Option value="deferred">Отложенный платеж</Option>
+                        </Select>
+                      </Form.Item>
+                    </>
+                  ) : null;
+                }}
+              </Form.Item>
+
+              <Form.Item name="notes" label="Примечания">
+                <Input.TextArea rows={2} placeholder="Дополнительные примечания" />
               </Form.Item>
               
               <Form.Item>
@@ -530,6 +773,7 @@ const FuelTrading: React.FC = () => {
                   >
                     <Option value="purchase">Покупка</Option>
                     <Option value="sale">Продажа</Option>
+                    <Option value="drain">Слив</Option>
                   </Select>
                 </Col>
               </Row>
@@ -544,6 +788,114 @@ const FuelTrading: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      <Modal
+        title="Редактировать операцию"
+        open={editModalVisible}
+        onOk={handleSaveEdit}
+        onCancel={handleCancelEdit}
+        width={600}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+        >
+          <Form.Item
+            name="type"
+            label="Тип операции"
+            rules={[{ required: true }]}
+          >
+            <Select disabled>
+              <Option value="purchase">Покупка топлива</Option>
+              <Option value="sale">Продажа топлива</Option>
+              <Option value="drain">Слив топлива</Option>
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            name="fuelType"
+            label="Тип топлива"
+            rules={[{ required: true }]}
+          >
+            <Select disabled>
+              {FUEL_TYPES.map(option => (
+                <Option key={option.value} value={option.value}>{option.label}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          
+          <Form.Item
+            name="volume"
+            label="Объем топлива (л)"
+            rules={[{ required: true }]}
+          >
+            <Input type="number" min="0" step="0.01" />
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+          >
+            {({ getFieldValue }) => {
+              const type = getFieldValue('type');
+              return type !== 'drain' ? (
+                <Form.Item
+                  name="price"
+                  label="Цена (₽/л)"
+                  rules={[{ required: type !== 'drain' }]}
+                >
+                  <Input type="number" min="0" step="0.01" />
+                </Form.Item>
+              ) : null;
+            }}
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+          >
+            {({ getFieldValue }) => {
+              const type = getFieldValue('type');
+              return type === 'purchase' ? (
+                <Form.Item name="supplier" label="Поставщик">
+                  <Input />
+                </Form.Item>
+              ) : null;
+            }}
+          </Form.Item>
+
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) => prevValues.type !== currentValues.type}
+          >
+            {({ getFieldValue }) => {
+              const type = getFieldValue('type');
+              return type === 'sale' ? (
+                <>
+                  <Form.Item name="customer" label="Покупатель">
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="vessel" label="Название катера" rules={[{ required: true }]}>
+                    <Input />
+                  </Form.Item>
+                  <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true }]}>
+                    <Select>
+                      <Option value="cash">Наличные</Option>
+                      <Option value="card">Терминал</Option>
+                      <Option value="transfer">Перевод</Option>
+                      <Option value="deferred">Отложенный платеж</Option>
+                    </Select>
+                  </Form.Item>
+                </>
+              ) : null;
+            }}
+          </Form.Item>
+
+          <Form.Item name="notes" label="Примечания">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

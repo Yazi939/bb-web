@@ -1,0 +1,88 @@
+<!DOCTYPE html> 
+<html lang="ru"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Fuel Manager (Static)</title> 
+    <style> 
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; } 
+        h1 { color: #1890ff; } 
+        .container { border: 1px solid #ddd; border-radius: 5px; padding: 20px; margin: 20px 0; } 
+        button { background-color: #1890ff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; } 
+        button:hover { background-color: #40a9ff; } 
+        input { padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px; margin: 5px 0; } 
+        label { display: block; margin-top: 10px; } 
+    </style> 
+</head> 
+<body> 
+    <h1>Fuel Manager - Статическая версия</h1> 
+    <div class="container"> 
+        <h2>Калькулятор расхода топлива</h2> 
+        <div> 
+            <label for="distance">Расстояние (км):</label> 
+            <input type="number" id="distance" value="100"> 
+        </div> 
+        <div> 
+            <label for="consumption">Расход (л/100 км):</label> 
+            <input type="number" id="consumption" value="10"> 
+        </div> 
+        <div> 
+            <label for="fuelPrice">Цена топлива (руб/л):</label> 
+            <input type="number" id="fuelPrice" value="50"> 
+        </div> 
+        <div style="margin-top: 15px;"> 
+            <button id="calculate">Рассчитать</button> 
+        </div> 
+        <div id="result" style="margin-top: 15px;"></div> 
+    </div> 
+    <div class="container"> 
+        <h2>Информация</h2> 
+        <p>Версия Electron: <span id="version">Загрузка...</span></p> 
+        <p>Это статическая версия приложения (без Vite/HMR), которая решает проблему бесконечной перезагрузки.</p> 
+    </div> 
+    <script> 
+        // Получаем версию приложения через preload API 
+        document.addEventListener('DOMContentLoaded', function() { 
+            try { 
+                if (window.electronAPI) { 
+                    document.getElementById('version').textContent = window.electronAPI.getAppVersion(); 
+                } else { 
+                    document.getElementById('version').textContent = 'Electron API недоступен'; 
+                } 
+            } catch (e) { 
+                document.getElementById('version').textContent = 'Ошибка: ' + e.message; 
+            } 
+        }); 
+ 
+        // Обработка нажатия на кнопку расчета 
+        document.getElementById('calculate').addEventListener('click', async function() { 
+            try { 
+                const distance = document.getElementById('distance').value; 
+                const consumption = document.getElementById('consumption').value; 
+                const fuelPrice = document.getElementById('fuelPrice').value; 
+ 
+                if (!window.electronAPI) { 
+                    document.getElementById('result').innerHTML = 'Electron API недоступен'; 
+                    return; 
+                } 
+ 
+                const result = await window.electronAPI.calculateFuel({ 
+                    distance, 
+                    consumption, 
+                    fuelPrice 
+                }); 
+ 
+                if (result.success) { 
+                    document.getElementById('result').innerHTML = 
+                        '<p>Необходимо топлива: ' + result.fuelNeeded + ' л</p>' + 
+                        '<p>Стоимость: ' + result.cost + ' руб</p>'; 
+                } else { 
+                    document.getElementById('result').innerHTML = 'Ошибка: ' + result.error; 
+                } 
+            } catch (e) { 
+                document.getElementById('result').innerHTML = 'Ошибка: ' + e.message; 
+            } 
+        }); 
+    </script> 
+</body> 
+</html> 

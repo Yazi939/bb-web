@@ -1,8 +1,8 @@
 {
-  "name": "fuel",
+  "name": "bunker-boats",
   "private": true,
   "version": "1.0.0",
-  "description": "Fuel Calculator",
+  "description": "Fuel management system for boats",
   "author": "Your Name",
   "type": "commonjs",
   "main": "main.js",
@@ -12,35 +12,39 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "electron:dev": "electron .",
-    "start": "electron .",
+    "electron:build": "electron-builder",
+    "start": "npx concurrently \"npm run dev\" \"npm run electron:dev\"",
+    "server": "cd server && npm run dev",
+    "start:all": "concurrently \"npm run start\" \"npm run server\" \"npm run electron:dev\"",
     "pack": "electron-builder --dir",
     "dist": "npm run build && electron-builder --dir",
     "package": "electron-builder --win --x64",
     "package:mac": "electron-builder --mac",
     "make-exe": "npm run build && npm run package",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "test": "echo \"No tests specified\" && exit 0",
+    "eject": "react-scripts eject"
   },
   "build": {
-    "appId": "com.fuel.calculator",
+    "appId": "com.bunkerboats.app",
     "productName": "Bunker Boats",
     "directories": {
-      "output": "dist"
+      "output": "release"
     },
     "files": [
       "dist/**/*",
-      "main.js",
-      "preload.js"
+      "package.json"
     ],
     "asar": true,
     "compression": "maximum",
     "win": {
-      "target": [
-        "nsis"
-      ],
+      "target": "nsis",
       "icon": "assets/icon.png"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.utilities",
       "darkModeSupport": true
@@ -62,38 +66,41 @@
       "additionalConfigurations": {
         "include": "installer.nsh"
       }
-    },
-    "extraResources": [
-      {
-        "from": "node_modules/nsis-pluggins/Plugins/x86-unicode",
-        "to": "nsis-plugins/Plugins/x86-unicode"
-      }
-    ]
+    }
   },
   "dependencies": {
-    "@ant-design/icons": "5.3.1",
-    "antd": "5.15.2",
-    "dayjs": "^1.11.13",
+    "@ant-design/icons": "^5.3.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.89",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "antd": "^5.15.2",
+    "better-sqlite3": "^9.4.3",
+    "concurrently": "^8.2.2",
+    "dayjs": "^1.11.10",
+    "electron-store": "^8.1.0",
+    "node-fetch": "^2.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.30.0",
     "recharts": "^2.12.2",
+    "typescript": "^5.2.2",
+    "wait-on": "^7.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/react": "^18.2.67",
-    "@types/react-dom": "^18.2.22",
-    "@types/recharts": "^1.8.29",
+    "@types/react": "^18.2.56",
+    "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
-    "electron": "^25.0.0",
-    "electron-builder": "^24.5.0",
+    "electron": "^29.1.4",
+    "electron-builder": "^24.13.3",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "nsis-plugin-helper": "^1.0.0",
-    "typescript": "^5.2.2",
     "vite": "^5.1.4"
   }
 }

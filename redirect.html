@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bunker Boats</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #1890ff;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #1890ff;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        button {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bunker Boats</h1>
+        <div class="spinner"></div>
+        <p id="message">Загрузка приложения...</p>
+        <button id="redirect-btn" onclick="window.location.href='http://localhost:3000'">Открыть приложение</button>
+    </div>
+
+    <script>
+        // Немедленное перенаправление на React
+        window.location.href = 'http://localhost:3000';
+    </script>
+</body>
+</html> 

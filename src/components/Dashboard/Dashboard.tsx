@@ -15,7 +15,11 @@ import {
   Select,
   Alert,
   Button,
-  Tag
+  Tag,
+  Form,
+  Input,
+  Modal,
+  message
 } from 'antd';
 import {
   BarChart,
@@ -34,9 +38,12 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { ArrowUpOutlined, ArrowDownOutlined, ReloadOutlined, FileExcelOutlined } from '@ant-design/icons';
+import { ArrowUpOutlined, ArrowDownOutlined, ReloadOutlined, FileExcelOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { getCurrentUser, checkPermission } from '../../utils/users';
 import styles from './Dashboard.module.css';
+import { ipcRenderer } from 'electron';
+import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
@@ -45,10 +52,7 @@ const { Option } = Select;
 // Типы топлива
 const FUEL_TYPES = [
   { value: 'diesel', label: 'Дизельное топливо' },
-  { value: 'gasoline_92', label: 'Бензин АИ-92' },
-  { value: 'gasoline_95', label: 'Бензин АИ-95' },
-  { value: 'gasoline_98', label: 'Бензин АИ-98' },
-  { value: 'gas', label: 'Газ' }
+  { value: 'gasoline_95', label: 'Бензин АИ-95' }
 ];
 
 // Данные для графика расхода топлива
@@ -86,7 +90,7 @@ interface VehicleData {
 // Интерфейс для транзакций топлива
 interface FuelTransaction {
   key: string;
-  type: 'purchase' | 'sale';
+  type: 'purchase' | 'sale' | 'drain';
   volume: number;
   price: number;
   totalCost: number;
@@ -95,7 +99,15 @@ interface FuelTransaction {
   fuelType: string;
   supplier?: string;
   customer?: string;
+  vessel?: string;
+  frozen?: boolean;
+  frozenDate?: number;
+  paymentMethod?: 'cash' | 'card' | 'transfer' | 'deferred';
+  userId?: string;
+  userRole?: string;
   notes?: string;
+  edited?: boolean;
+  editTimestamp?: number;
 }
 
 // Интерфейс для данных по типам топлива
@@ -233,6 +245,14 @@ const Dashboard: React.FC = () => {
   const [fuelTypeData, setFuelTypeData] = useState<FuelTypeData[]>([]);
   const [periodData, setPeriodData] = useState<PeriodData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [vehicles, setVehicles] = useState<VehicleData[]>(vehiclesData);
+  const [isEditModalVisible, setIsEditModalVisible] = useState<boolean>(false);
+  const [isAddModalVisible, setIsAddModalVisible] = useState<boolean>(false);
+  const [editingVehicle, setEditingVehicle] = useState<VehicleData | null>(null);
+  const [editForm] = Form.useForm();
+  const [addForm] = Form.useForm();
+  const currentUser = getCurrentUser();
+  const canEditVehicles = currentUser?.role === 'admin';
 
   // Обработчики фильтров
   const handlePeriodChange = (e: RadioChangeEvent) => {
@@ -275,62 +295,104 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  // Загрузка данных из localStorage
-  const loadData = () => {
+  // Загрузка данных из базы данных
+  const loadData = async () => {
     setIsLoading(true);
     
     try {
-      const savedTransactions = localStorage.getItem('fuelTransactions');
-      
-      if (savedTransactions) {
-        const allTransactions = JSON.parse(savedTransactions);
-        setTransactions(allTransactions);
-        
-        // Применяем фильтры
-        const filteredTransactions = filterTransactions(allTransactions);
-        
-        // Рассчитываем данные по типам топлива
-        const typesData = FUEL_TYPES.map(fuelType => {
-          const fuelTransactions = filteredTransactions.filter(
-            (t: FuelTransaction) => t.fuelType === fuelType.value
-          );
-          const purchased = fuelTransactions
-            .filter((t: FuelTransaction) => t.type === 'purchase')
-            .reduce((sum: number, t: FuelTransaction) => sum + t.volume, 0);
-          const sold = fuelTransactions
-            .filter((t: FuelTransaction) => t.type === 'sale')
-            .reduce((sum: number, t: FuelTransaction) => sum + t.volume, 0);
-          const purchaseCost = fuelTransactions
-            .filter((t: FuelTransaction) => t.type === 'purchase')
-            .reduce((sum: number, t: FuelTransaction) => sum + t.totalCost, 0);
-          const saleIncome = fuelTransactions
-            .filter((t: FuelTransaction) => t.type === 'sale')
-            .reduce((sum: number, t: FuelTransaction) => sum + t.totalCost, 0);
-          
-          return {
-            fuelType: fuelType.value,
-            fuelName: fuelType.label,
-            purchased,
-            sold,
-            balance: purchased - sold,
-            purchaseCost,
-            saleIncome,
-            profit: saleIncome - purchaseCost
-          };
-        }).filter(data => data.purchased > 0 || data.sold > 0);
-        
-        setFuelTypeData(typesData);
-        
-        // Группируем транзакции по периодам
-        const periodData = groupByMonth(filteredTransactions);
-        setPeriodData(periodData);
+      if (!window.electronAPI?.transactions?.getAll) {
+        console.error('API не инициализирован');
+        message.error('API не инициализирован');
+        return;
       }
+
+      // Получаем все транзакции из базы данных
+      const allTransactions = await window.electronAPI.transactions.getAll();
+      
+      if (!allTransactions) {
+        console.error('Нет данных о транзакциях');
+        setTransactions([]);
+        return;
+      }
+
+      setTransactions(allTransactions);
+      
+      // Применяем фильтры
+      const filteredTransactions = filterTransactions(allTransactions);
+      
+      // Рассчитываем данные по типам топлива
+      const typesData = FUEL_TYPES.map(fuelType => {
+        const fuelTransactions = filteredTransactions.filter(
+          (t: FuelTransaction) => t.fuelType === fuelType.value
+        );
+        const purchased = fuelTransactions
+          .filter((t: FuelTransaction) => t.type === 'purchase')
+          .reduce((sum: number, t: FuelTransaction) => sum + t.volume, 0);
+        const sold = fuelTransactions
+          .filter((t: FuelTransaction) => t.type === 'sale')
+          .reduce((sum: number, t: FuelTransaction) => sum + t.volume, 0);
+        const purchaseCost = fuelTransactions
+          .filter((t: FuelTransaction) => t.type === 'purchase')
+          .reduce((sum: number, t: FuelTransaction) => sum + t.totalCost, 0);
+        const saleIncome = fuelTransactions
+          .filter((t: FuelTransaction) => t.type === 'sale')
+          .reduce((sum: number, t: FuelTransaction) => sum + t.totalCost, 0);
+        
+        return {
+          fuelType: fuelType.value,
+          fuelName: fuelType.label,
+          purchased,
+          sold,
+          balance: purchased - sold,
+          purchaseCost,
+          saleIncome,
+          profit: saleIncome - purchaseCost
+        };
+      }).filter(data => data.purchased > 0 || data.sold > 0);
+      
+      setFuelTypeData(typesData);
+      
+      // Группируем транзакции по периодам
+      const periodData = groupByMonth(filteredTransactions);
+      setPeriodData(periodData);
     } catch (error) {
       console.error('Ошибка при загрузке данных:', error);
+      message.error('Не удалось загрузить данные');
+      setTransactions([]);
+      setFuelTypeData([]);
+      setPeriodData([]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Load vehicles from database
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        if (!window.electronAPI?.vehicles?.getAll) {
+          console.error('API транспортных средств не инициализирован');
+          message.error('API не инициализирован');
+          return;
+        }
+
+        const dbVehicles = await window.electronAPI.vehicles.getAll();
+        
+        if (!dbVehicles) {
+          setVehicles(vehiclesData); // Используем тестовые данные если API недоступен
+          return;
+        }
+
+        setVehicles(dbVehicles);
+      } catch (error) {
+        console.error('Ошибка при загрузке транспортных средств:', error);
+        message.error('Не удалось загрузить список транспортных средств');
+        setVehicles(vehiclesData); // Используем тестовые данные в случае ошибки
+      }
+    };
+    
+    loadVehicles();
+  }, []);
 
   // Загрузка данных при первой загрузке и изменении фильтров
   useEffect(() => {
@@ -425,6 +487,115 @@ const Dashboard: React.FC = () => {
 
   const transactionsTimeData = getTransactionsTimeData();
 
+  const handleEditVehicle = (vehicle: VehicleData) => {
+    setEditingVehicle(vehicle);
+    editForm.setFieldsValue({
+      id: vehicle.id,
+      type: vehicle.type,
+      model: vehicle.model,
+      fuelType: vehicle.fuelType,
+      consumption: vehicle.consumption,
+      lastRefuel: vehicle.lastRefuel
+    });
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdateVehicle = async (values: any) => {
+    if (!editingVehicle) return;
+    
+    try {
+      await window.electronAPI.vehicles.update({
+        ...values,
+        key: editingVehicle.key
+      });
+      
+      const updatedVehicles = await window.electronAPI.vehicles.getAll();
+      setVehicles(updatedVehicles);
+      setIsEditModalVisible(false);
+      setEditingVehicle(null);
+      message.success('Транспортное средство обновлено');
+    } catch (error) {
+      console.error('Ошибка при обновлении ТС:', error);
+      message.error('Не удалось обновить транспортное средство');
+    }
+  };
+
+  const handleAddVehicle = async (values: any) => {
+    try {
+      const newVehicle = {
+        id: values.id,
+        type: values.type,
+        model: values.model,
+        fuelType: values.fuelType,
+        consumption: parseFloat(values.consumption),
+        lastRefuel: values.lastRefuel
+      };
+      
+      await window.electronAPI.vehicles.add(newVehicle);
+      const updatedVehicles = await window.electronAPI.vehicles.getAll();
+      setVehicles(updatedVehicles);
+      setIsAddModalVisible(false);
+      addForm.resetFields();
+      message.success('Транспортное средство добавлено');
+    } catch (error) {
+      console.error('Ошибка при добавлении ТС:', error);
+      message.error('Не удалось добавить транспортное средство');
+    }
+  };
+
+  const handleDeleteVehicle = async (id: string) => {
+    Modal.confirm({
+      title: 'Вы уверены, что хотите удалить это транспортное средство?',
+      content: 'Это действие нельзя отменить.',
+      okText: 'Да, удалить',
+      okType: 'danger',
+      cancelText: 'Отмена',
+      onOk: async () => {
+        try {
+          await window.electronAPI.vehicles.delete(id);
+          const updatedVehicles = await window.electronAPI.vehicles.getAll();
+          setVehicles(updatedVehicles);
+          message.success('Транспортное средство удалено');
+        } catch (error) {
+          console.error('Ошибка при удалении ТС:', error);
+          message.error('Не удалось удалить транспортное средство');
+        }
+      }
+    });
+  };
+
+  // Update the columns to include an Actions column
+  const vehicleColumns: ColumnsType<VehicleData> = [
+    ...columns,
+    {
+      title: 'Действия',
+      key: 'actions',
+      render: (_, record) => (
+        <Space>
+          <Button 
+            icon={<EditOutlined />}
+            size="small" 
+            type="primary"
+            onClick={() => handleEditVehicle(record)}
+            disabled={!canEditVehicles}
+            style={{ color: 'white' }}
+          />
+          <Button 
+            icon={<DeleteOutlined />}
+            size="small" 
+            type="primary"
+            danger
+            onClick={() => handleDeleteVehicle(record.id)}
+            disabled={!canEditVehicles}
+          />
+        </Space>
+      ),
+    },
+  ];
+
+  const iconStyle = { color: 'white' };
+  const deleteIconStyle = { color: 'red' };
+
   return (
     <div className={styles.dashboard}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -452,11 +623,11 @@ const Dashboard: React.FC = () => {
             <Radio.Button value="year">Год</Radio.Button>
             </Radio.Group>
           <Button 
-            icon={<ReloadOutlined onPointerEnterCapture={() => {}} onPointerLeaveCapture={() => {}} />} 
             onClick={handleResetFilters}
             disabled={!dateRange && !filterFuelType}
+            style={{ color: 'white' }}
           >
-            Сбросить
+            <ReloadOutlined style={{ color: 'white' }} />
           </Button>
           </Space>
       </div>
@@ -637,8 +808,13 @@ const Dashboard: React.FC = () => {
               <Card 
                 title="Остаток топлива по типам" 
                 extra={
-                  <Button type="text" onClick={loadData} icon={<ReloadOutlined onPointerEnterCapture={() => {}} onPointerLeaveCapture={() => {}} />} loading={isLoading}>
-                    Обновить
+                  <Button 
+                    type="text" 
+                    onClick={loadData} 
+                    loading={isLoading}
+                    style={{ color: 'white' }}
+                  >
+                    <ReloadOutlined style={{ color: 'white' }} />
                   </Button>
                 }
               >
@@ -759,9 +935,165 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Card title="Транспортные средства" style={{ marginTop: '16px' }}>
-        <Table columns={columns} dataSource={vehiclesData} />
-          </Card>
+      <Card title="Транспортные средства" style={{ marginTop: '16px' }}
+        extra={
+          <Button 
+            type="primary" 
+            onClick={() => setIsAddModalVisible(true)}
+            disabled={!canEditVehicles}
+          >
+            Добавить ТС
+          </Button>
+        }
+      >
+        <Table columns={vehicleColumns} dataSource={vehicles} />
+      </Card>
+
+      <Modal
+        title="Редактировать транспортное средство"
+        open={isEditModalVisible}
+        footer={null}
+        onCancel={() => setIsEditModalVisible(false)}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={handleUpdateVehicle}
+        >
+          <Form.Item
+            name="id"
+            label="ID"
+            rules={[{ required: true, message: 'Введите ID' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="Тип ТС"
+            rules={[{ required: true, message: 'Введите тип ТС' }]}
+          >
+            <Select>
+              <Option value="Катер">Катер</Option>
+              <Option value="Яхта">Яхта</Option>
+              <Option value="Баржа">Баржа</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="model"
+            label="Модель"
+            rules={[{ required: true, message: 'Введите модель' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="fuelType"
+            label="Тип топлива"
+            rules={[{ required: true, message: 'Выберите тип топлива' }]}
+          >
+            <Select>
+              <Option value="АИ-95">Бензин АИ-95</Option>
+              <Option value="Дизель">Дизельное топливо</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="consumption"
+            label="Расход л/100км"
+            rules={[{ required: true, message: 'Введите расход топлива' }]}
+          >
+            <Input type="number" step="0.1" />
+          </Form.Item>
+          <Form.Item
+            name="lastRefuel"
+            label="Последняя заправка"
+            rules={[{ required: true, message: 'Введите дату последней заправки' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Сохранить
+              </Button>
+              <Button onClick={() => setIsEditModalVisible(false)}>
+                Отмена
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Добавить транспортное средство"
+        open={isAddModalVisible}
+        footer={null}
+        onCancel={() => setIsAddModalVisible(false)}
+      >
+        <Form
+          form={addForm}
+          layout="vertical"
+          onFinish={handleAddVehicle}
+        >
+          <Form.Item
+            name="id"
+            label="ID"
+            rules={[{ required: true, message: 'Введите ID' }]}
+          >
+            <Input placeholder="ТС-XXX" />
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="Тип ТС"
+            rules={[{ required: true, message: 'Выберите тип ТС' }]}
+          >
+            <Select placeholder="Выберите тип">
+              <Option value="Катер">Катер</Option>
+              <Option value="Яхта">Яхта</Option>
+              <Option value="Баржа">Баржа</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="model"
+            label="Модель"
+            rules={[{ required: true, message: 'Введите модель' }]}
+          >
+            <Input placeholder="Модель ТС" />
+          </Form.Item>
+          <Form.Item
+            name="fuelType"
+            label="Тип топлива"
+            rules={[{ required: true, message: 'Выберите тип топлива' }]}
+          >
+            <Select placeholder="Выберите тип топлива">
+              <Option value="АИ-95">Бензин АИ-95</Option>
+              <Option value="Дизель">Дизельное топливо</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="consumption"
+            label="Расход л/100км"
+            rules={[{ required: true, message: 'Введите расход топлива' }]}
+          >
+            <Input type="number" step="0.1" placeholder="0.0" />
+          </Form.Item>
+          <Form.Item
+            name="lastRefuel"
+            label="Последняя заправка"
+            rules={[{ required: true, message: 'Введите дату последней заправки' }]}
+          >
+            <Input placeholder="YYYY-MM-DD" />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Добавить
+              </Button>
+              <Button onClick={() => setIsAddModalVisible(false)}>
+                Отмена
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
