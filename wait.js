@@ -1,10 +1,10 @@
-// CommonJS модуль для создания задержки
-module.exports = function wait(ms) {
+// ES модуль для создания задержки
+export default function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-};
+}
 
-if (require.main === module) {
-    // Если файл запущен напрямую
+// Если файл запущен напрямую
+if (import.meta.url === `file://${process.argv[1]}`) {
     setTimeout(() => {
         process.exit(0);
     }, 5000);

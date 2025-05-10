@@ -176,7 +176,7 @@ export const exportTransactionsToExcel = (transactions: FinancialTransaction[]):
       'Метод оплаты': item.paymentMethod || '',
       'Получатель/Плательщик': item.recipientOrPayer || '',
       'Ссылка на документ': item.documentRef || '',
-      'Теги': item.tags ? item.tags.join(', ') : ''
+      'Теги': Array.isArray(item.tags) ? item.tags.join(', ') : ''
     }));
     
     // Создаем лист с транзакциями

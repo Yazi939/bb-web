@@ -1,117 +1,138 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Form, Input, Button, DatePicker, Select, Table, Space, 
-  Typography, Row, Col, message, Statistic, Tag, Radio
+  Typography, Row, Col, message, Statistic, Tag, Radio, Modal, InputNumber
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SaveOutlined, DeleteOutlined, CalculatorOutlined } from '@ant-design/icons';
+import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
 import dayjs from 'dayjs';
-import { getCurrentUser, checkPermission } from '../../utils/users';
+import type { Dayjs } from 'dayjs';
+import { getCurrentUser, checkPermission, rolePermissions } from '../../utils/users';
+import type { Shift } from '../../types/shift';
 import styles from './ShiftManagement.module.css';
+import { shiftService } from '../../services/api';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const IconProps = {
-  onPointerEnterCapture: () => {},
-  onPointerLeaveCapture: () => {}
+const IconProps: Partial<AntdIconProps> = {
+  onPointerOverCapture: () => {},
+  onPointerOutCapture: () => {}
 };
 
-interface Shift {
-  id: string;
-  employeeName: string;
-  date: string;
-  timestamp: number;
-  shiftType: 'day' | 'night';
-  fuelSaved: number;
-  bonus: number;
-  baseSalary: number;
-  totalSalary: number;
-  notes?: string;
-}
+const BASE_SALARY = {
+  day: 5500,
+  night: 6500,
+};
 
 const ShiftManagement: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [form] = Form.useForm();
-  const currentUser = getCurrentUser();
-  const canManageShifts = checkPermission('canManageShifts');
-  
-  // Базовые ставки оплаты
-  const DAY_SHIFT_RATE = 5500; // Дневная смена, рублей
-  const NIGHT_SHIFT_RATE = 6500; // Ночная смена, рублей
-  const FUEL_SAVING_BONUS_RATE = 0.1; // 10% от стоимости сэкономленного топлива
-  
-  // Load shifts from localStorage
-  useEffect(() => {
-    const savedShifts = localStorage.getItem('shifts');
-    if (savedShifts) {
-      setShifts(JSON.parse(savedShifts));
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+
+  // Константы для расчета бонуса
+  const BONUS_PERCENT = 10; // 10% от стоимости сэкономленного топлива
+
+  const fetchShifts = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page,
+        pageSize,
+        startDate: dateRange?.[0]?.format('YYYY-MM-DD'),
+        endDate: dateRange?.[1]?.format('YYYY-MM-DD')
+      };
+      const response = await shiftService.getShifts(params);
+      setShifts(Array.isArray(response) ? response : response.shifts);
+      setTotal(Array.isArray(response) ? response.length : response.total);
+      console.log('shifts after fetch:', Array.isArray(response) ? response : response.shifts);
+    } catch (error) {
+      message.error('Ошибка при загрузке смен');
+    } finally {
+      setLoading(false);
     }
-  }, []);
-  
-  // Save shifts to localStorage when they change
+  };
+
   useEffect(() => {
-    localStorage.setItem('shifts', JSON.stringify(shifts));
+    fetchShifts();
+  }, [dateRange, page, pageSize]);
+
+  useEffect(() => {
+    console.log('shifts in render:', shifts);
   }, [shifts]);
-  
-  const handleSubmit = (values: any) => {
-    const { employeeName, date, shiftType, fuelSaved, notes } = values;
-    const fuelSavedNum = parseFloat(fuelSaved) || 0;
-    const timestamp = date.valueOf();
-    
-    // Calculate bonus (10% of saved fuel value)
-    const averageFuelPrice = 65; // Average fuel price
-    const bonus = fuelSavedNum * averageFuelPrice * FUEL_SAVING_BONUS_RATE;
-    
-    // Base salary based on shift type
-    const baseSalary = shiftType === 'day' ? DAY_SHIFT_RATE : NIGHT_SHIFT_RATE;
-    
-    // Total salary = base + bonus
-    const totalSalary = baseSalary + bonus;
-    
-    const newShift: Shift = {
-      id: `shift-${Date.now()}`,
-      employeeName,
-      date: date.format('YYYY-MM-DD'),
-      timestamp,
-      shiftType,
-      fuelSaved: fuelSavedNum,
-      bonus,
-      baseSalary,
-      totalSalary,
-      notes
-    };
-    
-    setShifts([...shifts, newShift]);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await shiftService.deleteShift(id);
+      message.success('Смена успешно удалена');
+      fetchShifts();
+    } catch (error) {
+      message.error('Ошибка при удалении смены');
+    }
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      const baseSalary = BASE_SALARY[values.shiftType as 'day' | 'night'];
+      const submitValues = { ...values, baseSalary };
+      if (editingShift) {
+        await shiftService.updateShift(editingShift.id, submitValues);
+        message.success('Смена успешно обновлена');
+      } else {
+        await shiftService.createShift(submitValues);
+        message.success('Смена успешно создана');
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      fetchShifts();
+    } catch (error) {
+      message.error('Ошибка при сохранении смены');
+    }
+  };
+
+  const handleEdit = (shift: Shift) => {
+    setEditingShift(shift);
+    form.setFieldsValue({
+      ...shift,
+      date: dayjs(shift.date)
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleAdd = () => {
+    setEditingShift(null);
     form.resetFields();
-    message.success('Смена добавлена и зарплата рассчитана');
+    setIsModalVisible(true);
   };
-  
-  const handleDeleteShift = (id: string) => {
-    setShifts(shifts.filter(shift => shift.id !== id));
-    message.success('Смена удалена');
+
+  const handleDateRangeChange = (dates: [Dayjs | null, Dayjs | null] | null) => {
+    if (dates && dates[0] && dates[1]) {
+      setDateRange([dates[0], dates[1]]);
+    } else {
+      setDateRange(null);
+    }
+    setPage(1);
   };
-  
-  // Filter shifts based on date range
-  const filteredShifts = shifts.filter(shift => {
-    if (!dateRange || !dateRange[0] || !dateRange[1]) return true;
-    
-    const shiftDate = shift.timestamp;
-    const startDate = dateRange[0].startOf('day').valueOf();
-    const endDate = dateRange[1].endOf('day').valueOf();
-    
-    return shiftDate >= startDate && shiftDate <= endDate;
-  });
-  
-  // Calculate totals
-  const totalBaseSalary = filteredShifts.reduce((sum, shift) => sum + shift.baseSalary, 0);
-  const totalBonus = filteredShifts.reduce((sum, shift) => sum + shift.bonus, 0);
-  const totalSalary = filteredShifts.reduce((sum, shift) => sum + shift.totalSalary, 0);
-  const dayShifts = filteredShifts.filter(shift => shift.shiftType === 'day').length;
-  const nightShifts = filteredShifts.filter(shift => shift.shiftType === 'night').length;
-  
+
+  // Обработчик изменения значений в форме
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    if (changedValues.fuelSaved || changedValues.fuelPrice) {
+      const fuelSaved = allValues.fuelSaved || 0;
+      const fuelPrice = allValues.fuelPrice || 0;
+      const bonus = (fuelSaved * fuelPrice * BONUS_PERCENT) / 100;
+      form.setFieldsValue({ bonus: Math.round(bonus) });
+    }
+  };
+
   const columns: ColumnsType<Shift> = [
     {
       title: 'Сотрудник',
@@ -122,221 +143,233 @@ const ShiftManagement: React.FC = () => {
       title: 'Дата',
       dataIndex: 'date',
       key: 'date',
-      sorter: (a: Shift, b: Shift) => a.timestamp - b.timestamp,
+      render: (date: string) => dayjs(date).format('DD.MM.YYYY'),
     },
     {
       title: 'Тип смены',
       dataIndex: 'shiftType',
       key: 'shiftType',
-      render: (shiftType: 'day' | 'night') => (
-        <Tag color={shiftType === 'day' ? 'blue' : 'purple'}>
-          {shiftType === 'day' ? 'Дневная' : 'Ночная'}
+      render: (type: 'day' | 'night') => (
+        <Tag color={type === 'day' ? 'blue' : 'purple'}>
+          {type === 'day' ? 'Дневная' : 'Ночная'}
         </Tag>
       ),
-      filters: [
-        { text: 'Дневная', value: 'day' },
-        { text: 'Ночная', value: 'night' }
-      ],
-      onFilter: (value, record) => record.shiftType === value.toString(),
     },
     {
-      title: 'Сэкономлено топлива (л)',
+      title: 'Сэкономлено топлива',
       dataIndex: 'fuelSaved',
       key: 'fuelSaved',
-      render: (val: number) => val.toFixed(2),
+      render: (value: number) => `${value} л`,
     },
     {
-      title: 'Базовая ставка (₽)',
-      dataIndex: 'baseSalary',
-      key: 'baseSalary',
-      render: (val: number) => val.toFixed(2),
-    },
-    {
-      title: 'Бонус (₽)',
+      title: 'Бонус',
       dataIndex: 'bonus',
       key: 'bonus',
-      render: (val: number) => val.toFixed(2),
+      render: (value: number) => `${value} ₽`,
     },
     {
-      title: 'Итого (₽)',
+      title: 'Базовая зарплата',
+      dataIndex: 'baseSalary',
+      key: 'baseSalary',
+      render: (value: number) => `${value} ₽`,
+    },
+    {
+      title: 'Общая зарплата',
       dataIndex: 'totalSalary',
       key: 'totalSalary',
-      render: (val: number) => val.toFixed(2),
+      render: (value: number) => `${value} ₽`,
     },
     {
       title: 'Действия',
       key: 'actions',
-      render: (_: any, record: Shift) => (
-        <Button 
-          icon={<DeleteOutlined {...IconProps} />} 
-          danger
-          size="small" 
-          onClick={() => handleDeleteShift(record.id)}
-          disabled={!checkPermission('canManageShifts')}
-        />
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<SaveOutlined {...IconProps} />}
+            onClick={() => handleEdit(record)}
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined {...IconProps} />}
+            onClick={() => handleDelete(record.id)}
+          />
+        </Space>
       ),
     },
   ];
-  
-  // If user doesn't have permission
-  if (!canManageShifts && currentUser?.role !== 'worker') {
-    return (
-      <Card>
-        <Title level={4}>Доступ запрещен</Title>
-        <p>У вас нет прав для расчёта заработной платы.</p>
-      </Card>
-    );
-  }
-  
+
+  const salaryStats = React.useMemo(() => {
+    const total = shifts.reduce((sum, s) => sum + (s.baseSalary || 0) + (s.bonus || 0), 0);
+    const count = shifts.length;
+    const avg = count ? total / count : 0;
+    return { total, count, avg };
+  }, [shifts]);
+
+  const salaryByDate = React.useMemo(() => {
+    const map = new Map<string, number>();
+    shifts.forEach(s => {
+      const date = dayjs(s.date).format('YYYY-MM-DD');
+      const sum = (s.baseSalary || 0) + (s.bonus || 0);
+      map.set(date, (map.get(date) || 0) + sum);
+    });
+    return Array.from(map.entries()).map(([date, value]) => ({ date, value }));
+  }, [shifts]);
+
   return (
     <div className={styles.shiftManagement}>
-      <Title level={3}>Расчёт заработной платы капитанов</Title>
-      
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
-          <Card title="Добавить рабочую смену" className={styles.addShiftCard}>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleSubmit}
-              initialValues={{
-                date: dayjs(),
-                shiftType: 'day',
-                fuelSaved: 0
-              }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="employeeName"
-                    label="Имя сотрудника"
-                    rules={[{ required: true, message: 'Выберите сотрудника' }]}
-                  >
-                    <Select placeholder="Выберите капитана">
-                      <Option value="Юра">Юра</Option>
-                      <Option value="Вадим">Вадим</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="date"
-                    label="Дата смены"
-                    rules={[{ required: true, message: 'Выберите дату' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-                  </Form.Item>
-                </Col>
-              </Row>
-              
-              <Form.Item
-                name="shiftType"
-                label="Тип смены"
-                rules={[{ required: true, message: 'Выберите тип смены' }]}
-              >
-                <Radio.Group>
-                  <Radio.Button value="day">Дневная ({DAY_SHIFT_RATE} ₽)</Radio.Button>
-                  <Radio.Button value="night">Ночная ({NIGHT_SHIFT_RATE} ₽)</Radio.Button>
-                </Radio.Group>
-              </Form.Item>
-              
-              <Form.Item
-                name="fuelSaved"
-                label="Сэкономлено топлива (л)"
-                rules={[{ required: true, message: 'Введите объем сэкономленного топлива' }]}
-              >
-                <Input type="number" min="0" step="0.1" />
-              </Form.Item>
-              
-              <Form.Item
-                name="notes"
-                label="Примечания"
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-              
-              <Form.Item>
-                <Button type="primary" htmlType="submit" icon={<SaveOutlined {...IconProps} />}>
-                  Добавить смену
-                </Button>
-              </Form.Item>
-            </Form>
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col>
+          <Card>
+            <Statistic title="Всего к выплате" value={salaryStats.total} suffix="₽" precision={2} />
           </Card>
         </Col>
-        
-        <Col xs={24} lg={8}>
-          <Card 
-            title={
-              <Space>
-                <CalculatorOutlined {...IconProps} />
-                <span>Расчёт зарплаты</span>
-              </Space>
-            } 
-            className={styles.statsCard}
-          >
-            <Statistic
-              title="Дневные смены"
-              value={dayShifts}
-              suffix="смен"
-              style={{ marginBottom: 16 }}
-            />
-            <Statistic
-              title="Ночные смены"
-              value={nightShifts}
-              suffix="смен"
-              style={{ marginBottom: 16 }}
-            />
-            <Statistic
-              title="Базовая зарплата"
-              value={totalBaseSalary}
-              suffix="₽"
-              precision={2}
-              style={{ marginBottom: 16 }}
-            />
-            <Statistic
-              title="Бонусы за экономию"
-              value={totalBonus}
-              suffix="₽"
-              precision={2}
-              style={{ marginBottom: 16 }}
-            />
-            <Statistic
-              title="Итого зарплата"
-              value={totalSalary}
-              suffix="₽"
-              precision={2}
-              valueStyle={{ color: '#3f8600' }}
-            />
+        <Col>
+          <Card>
+            <Statistic title="Количество смен" value={salaryStats.count} />
+          </Card>
+        </Col>
+        <Col>
+          <Card>
+            <Statistic title="Средняя зарплата за смену" value={salaryStats.avg} suffix="₽" precision={2} />
+          </Card>
+        </Col>
+        <Col span={24} style={{ marginTop: 16 }}>
+          <Card title="Выплаты по датам" style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={salaryByDate}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#1890ff" />
+              </BarChart>
+            </ResponsiveContainer>
           </Card>
         </Col>
       </Row>
-      
-      <Card 
-        title="Учёт рабочих смен" 
-        style={{ marginTop: 16 }}
-        extra={
-          <Space>
-            <RangePicker 
-              value={dateRange}
-              onChange={(dates) => setDateRange(dates)}
-            />
-            <Button 
-              type="default"
-              onClick={() => setDateRange(null)}
-              disabled={!dateRange}
-            >
-              Сбросить
+      <Card>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+          <Col>
+            <Title level={4}>Управление сменами</Title>
+          </Col>
+          <Col>
+            <Button type="primary" onClick={handleAdd}>
+              Добавить смену
             </Button>
-          </Space>
-        }
-      >
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col>
+            <RangePicker
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              allowClear
+            />
+          </Col>
+        </Row>
+
         <Table
-          dataSource={filteredShifts}
           columns={columns}
+          dataSource={shifts}
+          loading={loading}
+          pagination={{
+            current: page,
+            pageSize,
+            total,
+            onChange: (page, pageSize) => {
+              setPage(page);
+              setPageSize(pageSize);
+            },
+          }}
           rowKey="id"
-          pagination={{ pageSize: 10 }}
         />
       </Card>
+
+      <Modal
+        title={editingShift ? 'Редактировать смену' : 'Добавить смену'}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          onValuesChange={handleValuesChange}
+          initialValues={{
+            shiftType: 'day',
+            fuelSaved: 0,
+            fuelPrice: 0,
+            bonus: 0,
+          }}
+        >
+          <Form.Item
+            name="employeeName"
+            label="Сотрудник"
+            rules={[{ required: true, message: 'Введите имя сотрудника' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="date"
+            label="Дата"
+            rules={[{ required: true, message: 'Выберите дату' }]}
+          >
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="shiftType"
+            label="Тип смены"
+            rules={[{ required: true, message: 'Выберите тип смены' }]}
+          >
+            <Radio.Group>
+              <Radio value="day">Дневная <span style={{color:'#888',fontSize:12}}>(5500 ₽)</span></Radio>
+              <Radio value="night">Ночная <span style={{color:'#888',fontSize:12}}>(6500 ₽)</span></Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item
+            name="fuelSaved"
+            label="Сэкономлено топлива (л)"
+            rules={[{ required: true, message: 'Введите количество топлива' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="fuelPrice"
+            label="Цена топлива (₽/л)"
+            rules={[{ required: true, message: 'Введите цену топлива' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="bonus"
+            label="Бонус (₽)"
+            rules={[{ required: true, message: 'Введите бонус' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="notes"
+            label="Примечания"
+          >
+            <Input.TextArea />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              {editingShift ? 'Сохранить' : 'Добавить'}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

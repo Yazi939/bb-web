@@ -1,16 +1,17 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
-import './main/ipc'; // Импортируем IPC-обработчики
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { initUpdater, registerUpdaterHandlers } from './services/updaterService';
+import path from 'path';
+import { autoUpdater } from 'electron-updater';
+import electronLog from 'electron-log';
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = false;
 const baseDir = isDev ? __dirname : path.join(process.resourcesPath, 'app');
 
 // Функция для логирования
-function log(message: string) {
+function logMessage(message: string) {
   const timestamp = new Date().toISOString();
   const logMessage = `${timestamp}: ${message}\n`;
-  fs.appendFileSync(path.join(app.getPath('userData'), 'electron_log.txt'), logMessage, { encoding: 'utf8' });
+  electronLog.info(logMessage);
 }
 
 // Проверка порта
@@ -25,12 +26,12 @@ async function checkPort(port: number): Promise<boolean> {
 
 // Поиск порта Vite
 async function findVitePort(): Promise<number | null> {
-  log('Поиск сервера Vite...');
+  logMessage('Поиск сервера Vite...');
   for (let port = 5173; port <= 5183; port++) {
-    log(`Проверка порта ${port}...`);
+    logMessage(`Проверка порта ${port}...`);
     const isAvailable = await checkPort(port);
     if (isAvailable) {
-      log(`Найден сервер на порту ${port}`);
+      logMessage(`Найден сервер на порту ${port}`);
       return port;
     }
   }
@@ -44,7 +45,7 @@ async function checkViteServer(): Promise<number> {
   
   while (attempts < maxAttempts) {
     attempts++;
-    log(`Попытка ${attempts} найти сервер...`);
+    logMessage(`Попытка ${attempts} найти сервер...`);
     
     const port = await findVitePort();
     if (port) {
@@ -58,67 +59,100 @@ async function checkViteServer(): Promise<number> {
   throw new Error('Не удалось найти сервер Vite');
 }
 
-let mainWindow: BrowserWindow | null;
+let mainWindow: BrowserWindow | null = null;
+
+// Регистрируем IPC обработчики до создания окна
+function registerIpcHandlers() {
+  logMessage('=== Начало регистрации всех IPC обработчиков ===');
+  try {
+    // Регистрируем обработчики обновлений
+    registerUpdaterHandlers();
+    logMessage('=== Регистрация всех IPC обработчиков завершена ===');
+  } catch (error) {
+    logMessage('Ошибка при регистрации IPC обработчиков:');
+    electronLog.error(error);
+    throw error;
+  }
+}
 
 async function createWindow() {
-  log('Создание главного окна...');
+  logMessage('=== Начало создания главного окна ===');
+  
+  const preloadPath = path.join(__dirname, 'preload.cjs');
+  logMessage(`Путь к preload скрипту: ${preloadPath}`);
   
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    fullscreen: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(baseDir, 'preload.js')
+      preload: preloadPath
     }
   });
 
-  log('Главное окно создано');
+  // Проверяем существование preload скрипта
+  if (!require('fs').existsSync(preloadPath)) {
+    logMessage('Preload script not found at:');
+    electronLog.error(preloadPath);
+  } else {
+    logMessage('Preload script found at:');
+    electronLog.info(preloadPath);
+  }
+
+  logMessage('Главное окно создано');
   
-  if (isDev) {
-    // В режиме разработки загружаем через Vite
-    log('Ожидание сервера Vite...');
+  if (process.env.NODE_ENV === 'development') {
+    // В режиме разработки загружаем localhost
+    logMessage('Ожидание сервера Vite...');
     try {
       const port = await checkViteServer();
       const url = `http://localhost:${port}/index.html`;
-      log(`Загрузка приложения с ${url}`);
+      logMessage(`Загрузка приложения с ${url}`);
       await mainWindow.loadURL(url);
     } catch (error) {
-      log(`Ошибка при загрузке URL: ${error}`);
+      logMessage('Ошибка при загрузке URL:');
+      electronLog.error(error);
       throw error;
     }
   } else {
-    // В production загружаем локальный файл
+    // В продакшене загружаем собранное приложение
     const indexPath = path.join(baseDir, 'index.html');
-    log(`Загрузка приложения из ${indexPath}`);
+    logMessage(`Загрузка приложения из ${indexPath}`);
     await mainWindow.loadFile(indexPath);
   }
 
-  // Открываем DevTools в режиме разработки
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
+  // Инициализируем систему обновлений
+  logMessage('=== Начало инициализации системы обновлений ===');
+  initUpdater(mainWindow);
+  logMessage('=== Инициализация системы обновлений завершена ===');
 
   mainWindow.on('closed', () => {
+    logMessage('Главное окно закрыто');
     mainWindow = null;
   });
 }
 
 // Логируем запуск приложения
-log('Запуск приложения...');
+logMessage('=== Запуск приложения ===');
 
 // Обработка ошибок
 process.on('uncaughtException', (error) => {
-  log(`Необработанное исключение: ${error}`);
+  logMessage('Необработанное исключение:');
+  electronLog.error(error);
 });
 
 process.on('unhandledRejection', (error) => {
-  log(`Необработанное отклонение промиса: ${error}`);
+  logMessage('Необработанное отклонение промиса:');
+  electronLog.error(error);
 });
 
 // Запуск приложения
 app.whenReady().then(() => {
-  log('Приложение готово');
+  logMessage('=== Приложение готово ===');
+  // Регистрируем обработчики перед созданием окна
+  registerIpcHandlers();
   createWindow();
 
   app.on('activate', () => {

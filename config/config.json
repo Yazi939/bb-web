@@ -1,0 +1,14 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./fuel-app-db/database.sqlite"
+  },
+  "test": {
+    "dialect": "sqlite",
+    "storage": "./fuel-app-db/database.sqlite"
+  },
+  "production": {
+    "dialect": "sqlite",
+    "storage": "./fuel-app-db/database.sqlite"
+  }
+} 

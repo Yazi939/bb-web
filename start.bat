@@ -1,5 +1,6 @@
 @echo off
-echo Starting Bunker Boats...
+
+echo Starting Bunker Boats (PRODUCTION MODE)...
 cd /d "%~dp0"
 
 REM Проверяем наличие node_modules
@@ -13,18 +14,13 @@ if not exist "node_modules" (
     )
 )
 
-REM Запускаем Vite и Electron
-echo Starting Vite server...
-start /B cmd /c "npm run dev"
+REM Собираем фронтенд
+echo Building frontend...
+call npm run build
 
-REM Ждем 5 секунд используя Node.js
-node wait.js
-
-echo Starting Electron...
-start /B cmd /c "npm run electron:dev"
+REM Запускаем Electron в production-режиме
+echo Starting Electron in production mode...
+start /B cmd /c "set NODE_ENV=production && electron ."
 
 echo Application started!
-echo If you see a white screen, please wait a few seconds for the application to load.
-echo Check electron_log.txt for more information if needed.
-
 pause

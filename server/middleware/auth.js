@@ -1,48 +1,59 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { User } = require('../models');
 
 // Защита маршрутов
 exports.protect = async (req, res, next) => {
   let token;
 
-  // Проверяем наличие токена в заголовке Authorization
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
+    // Установка токена из Bearer токена в заголовке
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.token) {
+    // Установка токена из cookie
+    token = req.cookies.token;
   }
 
-  // Проверяем наличие токена
+  // Проверка наличия токена
   if (!token) {
     return res.status(401).json({
       success: false,
-      error: 'Для доступа к этому ресурсу необходима авторизация'
+      error: 'Не авторизован для доступа к этому маршруту'
     });
   }
 
   try {
-    // Верификация токена
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Проверка токена
+    const decoded = jwt.verify(token, 'your-super-secret-key-here');
 
     // Получаем пользователя по ID из токена
-    req.user = await User.findById(decoded.id);
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Пользователь не найден'
+      });
+    }
+
+    req.user = user;
     next();
   } catch (err) {
     return res.status(401).json({
       success: false,
-      error: 'Для доступа к этому ресурсу необходима авторизация'
+      error: 'Не авторизован для доступа к этому маршруту'
     });
   }
 };
 
-// Проверка прав доступа
+// Предоставление доступа к определенным ролям
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: `Роль ${req.user.role} не имеет доступа к этому ресурсу`
+        error: 'У вас нет прав для выполнения этого действия'
       });
     }
     next();

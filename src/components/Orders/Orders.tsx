@@ -8,8 +8,10 @@ import {
   EditOutlined, DeleteOutlined, ExportOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { getCurrentUser, checkPermission } from '../../utils/users';
+import { orderService, userService } from '../../services/api';
 import styles from './Orders.module.css';
+import { mockOrders } from '../../utils/mockData';
+import SocketService from '../../services/socketService';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -46,24 +48,92 @@ const Orders: React.FC = () => {
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [searchText, setSearchText] = useState('');
   const [form] = Form.useForm();
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null);
+  const [canManageOrders, setCanManageOrders] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const currentUser = getCurrentUser();
-  const canManageOrders = checkPermission('canManageOrders');
-  
-  // Load orders from localStorage
   useEffect(() => {
-    const savedOrders = localStorage.getItem('orders');
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
-    }
+    const fetchUser = async () => {
+      try {
+        const response = await userService.getCurrentUser();
+        const user = response.data;
+        setCurrentUser(user);
+        setCanManageOrders(user && user.role === 'admin');
+        console.log('Текущий пользователь:', user);
+      } catch (error) {
+        setCanManageOrders(false);
+        setCurrentUser(null);
+        console.error('Ошибка получения пользователя:', error);
+      }
+    };
+    fetchUser();
   }, []);
   
-  // Save orders to localStorage when they change
   useEffect(() => {
-    localStorage.setItem('orders', JSON.stringify(orders));
-  }, [orders]);
+    const loadOrders = async () => {
+      try {
+        let orders;
+        if (process.env.NODE_ENV === 'development') {
+          orders = mockOrders;
+        } else {
+          const response = await orderService.getOrders();
+          orders = Array.isArray(response.data) ? response.data : response.data.orders || [];
+        }
+        setOrders(orders);
+        setError(null);
+        console.log('Загруженные заказы:', orders);
+      } catch (error) {
+        setError('Не удалось загрузить заказы.');
+        setOrders([]);
+        console.error('Ошибка загрузки заказов:', error);
+      }
+    };
+
+    loadOrders();
+
+    // Подключаемся к Socket.IO
+    const socket = SocketService.getInstance();
+    socket.connect();
+
+    // Подписываемся на общее событие обновления данных
+    socket.onDataUpdated((data) => {
+      console.log('Получено обновление данных:', data);
+      if (data.type === 'orders') {
+        if (data.action === 'created') {
+          setOrders(prev => [...prev, data.data]);
+        } else if (data.action === 'updated') {
+          setOrders(prev => prev.map(o => o.id === data.data.id ? data.data : o));
+        } else if (data.action === 'deleted') {
+          setOrders(prev => prev.filter(o => o.id !== data.id));
+        }
+      }
+    });
+
+    // Подписываемся на события заказов
+    socket.onOrderCreated((order: Order) => {
+      console.log('Новый заказ создан:', order);
+      setOrders(prev => [...prev, order]);
+    });
+
+    socket.onOrderUpdated((order: Order) => {
+      console.log('Заказ обновлен:', order);
+      setOrders(prev => prev.map(o => o.id === order.id ? order : o));
+    });
+
+    socket.onOrderDeleted((orderId: string) => {
+      console.log('Заказ удален:', orderId);
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+    });
+
+    // Отписываемся от событий при размонтировании компонента
+    return () => {
+      socket.removeDataUpdatedListener();
+      socket.removeOrderListeners();
+      socket.disconnect();
+    };
+  }, []);
   
-  const handleAddOrder = () => {
+  const handleAddOrder = async () => {
     setEditingOrder(null);
     form.resetFields();
     form.setFieldsValue({
@@ -90,30 +160,33 @@ const Orders: React.FC = () => {
     setModalVisible(true);
   };
   
-  const handleDeleteOrder = (id: string) => {
+  const handleDeleteOrder = async (id: string) => {
     Modal.confirm({
       title: 'Удаление заказа',
       content: 'Вы уверены, что хотите удалить этот заказ?',
       okText: 'Да',
       okType: 'danger',
       cancelText: 'Нет',
-      onOk() {
-        setOrders(orders.filter(order => order.id !== id));
+      async onOk() {
+        await orderService.deleteOrder(id);
+        const response = await orderService.getOrders();
+        const orders = Array.isArray(response.data) ? response.data : response.data.orders || [];
+        setOrders(orders);
         message.success('Заказ удален');
       }
     });
   };
   
-  const handleSubmit = (values: any) => {
-    const { 
+  const handleSubmit = async (values: any) => {
+    const {
       customerName, customerContact, vesselName, fuelType,
       volume, price, status, createdAt, deliveryDate, notes
     } = values;
-    
+
     const volumeNum = parseFloat(volume);
     const priceNum = parseFloat(price);
     const totalCost = volumeNum * priceNum;
-    
+
     if (editingOrder) {
       // Update existing order
       const updatedOrder = {
@@ -132,11 +205,10 @@ const Orders: React.FC = () => {
         deliveryTimestamp: deliveryDate ? deliveryDate.valueOf() : undefined,
         notes
       };
-      
-      setOrders(orders.map(order => 
-        order.id === editingOrder.id ? updatedOrder : order
-      ));
-      
+      await orderService.updateOrder(updatedOrder.id, updatedOrder);
+      const response = await orderService.getOrders();
+      const orders = Array.isArray(response.data) ? response.data : response.data.orders || [];
+      setOrders(orders);
       message.success('Заказ обновлен');
     } else {
       // Create new order
@@ -156,11 +228,12 @@ const Orders: React.FC = () => {
         deliveryTimestamp: deliveryDate ? deliveryDate.valueOf() : undefined,
         notes
       };
-      
-      setOrders([newOrder, ...orders]); // New orders go at the top
+      await orderService.createOrder(newOrder);
+      const response = await orderService.getOrders();
+      const orders = Array.isArray(response.data) ? response.data : response.data.orders || [];
+      setOrders(orders);
       message.success('Заказ добавлен');
     }
-    
     setModalVisible(false);
   };
   
@@ -212,19 +285,19 @@ const Orders: React.FC = () => {
         { text: 'Дизельное топливо', value: 'diesel' },
         { text: 'Бензин АИ-95', value: 'gasoline_95' }
       ],
-      onFilter: (value: string, record: Order) => record.fuelType === value,
+      onFilter: (value: any, record: Order) => record.fuelType === value,
     },
     {
       title: 'Объем (л)',
       dataIndex: 'volume',
       key: 'volume',
-      render: (volume: number) => volume.toFixed(2),
+      render: (volume: number | undefined) => volume ? volume.toFixed(2) : '0.00',
     },
     {
       title: 'Стоимость (₽)',
       dataIndex: 'totalCost',
       key: 'totalCost',
-      render: (totalCost: number) => totalCost.toFixed(2),
+      render: (totalCost: number | undefined) => totalCost ? totalCost.toFixed(2) : '0.00',
     },
     {
       title: 'Статус',
@@ -235,7 +308,7 @@ const Orders: React.FC = () => {
         return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
       },
       filters: ORDER_STATUSES.map(status => ({ text: status.label, value: status.value })),
-      onFilter: (value: string, record: Order) => record.status === value,
+      onFilter: (value: any, record: Order) => record.status === value,
     },
     {
       title: 'Дата создания',
@@ -278,162 +351,169 @@ const Orders: React.FC = () => {
   const completedOrders = orders.filter(o => o.status === 'completed').length;
   
   return (
-    <div className={styles.orders}>
-      <div className={styles.header}>
-        <Title level={3}>
-          <ShoppingCartOutlined /> Управление заказами
-        </Title>
-        
-        <Space className={styles.headerActions}>
-          <Space>
-            <Badge count={newOrders} offset={[5, 0]}>
-              <Tag color="blue" style={{ marginRight: 4 }}>Новые: {newOrders}</Tag>
-            </Badge>
-            <Tag color="orange">В обработке: {processingOrders}</Tag>
-            <Tag color="green">Выполнено: {completedOrders}</Tag>
-          </Space>
+    <div className={styles.ordersPage}>
+      <div className={styles.orders}>
+        <div className={styles.header}>
+          <Title level={3}>
+            <ShoppingCartOutlined /> Управление заказами
+          </Title>
           
-          <Input.Search
-            placeholder="Поиск заказов"
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            allowClear
-            style={{ width: 250 }}
-          />
-          
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={handleAddOrder}
-            disabled={!canManageOrders && currentUser?.role !== 'worker'}
-          >
-            Новый заказ
-          </Button>
-        </Space>
-      </div>
-      
-      <Card>
-        <Table 
-          dataSource={filteredOrders} 
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-        />
-      </Card>
-      
-      <Modal
-        title={editingOrder ? 'Редактировать заказ' : 'Новый заказ'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={700}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <div className={styles.formGrid}>
-            <Form.Item
-              name="customerName"
-              label="Имя клиента"
-              rules={[{ required: true, message: 'Введите имя клиента' }]}
-            >
-              <Input />
-            </Form.Item>
-            
-            <Form.Item
-              name="customerContact"
-              label="Контактная информация"
-              rules={[{ required: true, message: 'Введите контактную информацию' }]}
-            >
-              <Input />
-            </Form.Item>
-            
-            <Form.Item
-              name="vesselName"
-              label="Название судна"
-              rules={[{ required: true, message: 'Введите название судна' }]}
-            >
-              <Input />
-            </Form.Item>
-            
-            <Form.Item
-              name="fuelType"
-              label="Тип топлива"
-              rules={[{ required: true, message: 'Выберите тип топлива' }]}
-            >
-              <Select>
-                <Option value="diesel">Дизельное топливо</Option>
-                <Option value="gasoline_95">Бензин АИ-95</Option>
-              </Select>
-            </Form.Item>
-            
-            <Form.Item
-              name="volume"
-              label="Объем (л)"
-              rules={[{ required: true, message: 'Введите объем' }]}
-            >
-              <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
-            </Form.Item>
-            
-            <Form.Item
-              name="price"
-              label="Цена за литр (₽)"
-              rules={[{ required: true, message: 'Введите цену' }]}
-            >
-              <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
-            </Form.Item>
-            
-            <Form.Item
-              name="status"
-              label="Статус"
-              rules={[{ required: true, message: 'Выберите статус' }]}
-            >
-              <Select>
-                {ORDER_STATUSES.map(status => (
-                  <Option key={status.value} value={status.value}>{status.label}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-            
-            <Form.Item
-              name="createdAt"
-              label="Дата создания"
-              rules={[{ required: true, message: 'Выберите дату создания' }]}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-            
-            <Form.Item
-              name="deliveryDate"
-              label="Дата доставки"
-              className={styles.spanFull}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </Form.Item>
-            
-            <Form.Item
-              name="notes"
-              label="Примечания"
-              className={styles.spanFull}
-            >
-              <TextArea rows={3} />
-            </Form.Item>
-          </div>
-          
-          <Form.Item>
+          <Space className={styles.headerActions}>
             <Space>
-              <Button type="primary" htmlType="submit">
-                {editingOrder ? 'Сохранить' : 'Добавить'}
-              </Button>
-              <Button onClick={() => setModalVisible(false)}>
-                Отмена
-              </Button>
+              <Badge count={newOrders} offset={[5, 0]}>
+                <Tag color="blue" style={{ marginRight: 4 }}>Новые: {newOrders}</Tag>
+              </Badge>
+              <Tag color="orange">В обработке: {processingOrders}</Tag>
+              <Tag color="green">Выполнено: {completedOrders}</Tag>
             </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+            
+            <Input.Search
+              placeholder="Поиск заказов"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              allowClear
+              style={{ width: 250 }}
+            />
+            
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={handleAddOrder}
+              disabled={!canManageOrders && currentUser?.role !== 'worker'}
+            >
+              Новый заказ
+            </Button>
+          </Space>
+        </div>
+        
+        <Card>
+          {error ? (
+            <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>
+          ) : orders.length === 0 ? (
+            <div style={{ marginBottom: 16 }}>Нет заказов.</div>
+          ) : null}
+          <Table 
+            dataSource={filteredOrders} 
+            columns={columns}
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+          />
+        </Card>
+        
+        <Modal
+          title={editingOrder ? 'Редактировать заказ' : 'Новый заказ'}
+          open={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+          width={700}
+        >
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+          >
+            <div className={styles.formGrid}>
+              <Form.Item
+                name="customerName"
+                label="Имя клиента"
+                rules={[{ required: true, message: 'Введите имя клиента' }]}
+              >
+                <Input />
+              </Form.Item>
+              
+              <Form.Item
+                name="customerContact"
+                label="Контактная информация"
+                rules={[{ required: true, message: 'Введите контактную информацию' }]}
+              >
+                <Input />
+              </Form.Item>
+              
+              <Form.Item
+                name="vesselName"
+                label="Название судна"
+                rules={[{ required: true, message: 'Введите название судна' }]}
+              >
+                <Input />
+              </Form.Item>
+              
+              <Form.Item
+                name="fuelType"
+                label="Тип топлива"
+                rules={[{ required: true, message: 'Выберите тип топлива' }]}
+              >
+                <Select>
+                  <Option value="diesel">Дизельное топливо</Option>
+                  <Option value="gasoline_95">Бензин АИ-95</Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item
+                name="volume"
+                label="Объем (л)"
+                rules={[{ required: true, message: 'Введите объем' }]}
+              >
+                <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
+              </Form.Item>
+              
+              <Form.Item
+                name="price"
+                label="Цена за литр (₽)"
+                rules={[{ required: true, message: 'Введите цену' }]}
+              >
+                <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
+              </Form.Item>
+              
+              <Form.Item
+                name="status"
+                label="Статус"
+                rules={[{ required: true, message: 'Выберите статус' }]}
+              >
+                <Select>
+                  {ORDER_STATUSES.map(status => (
+                    <Option key={status.value} value={status.value}>{status.label}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              
+              <Form.Item
+                name="createdAt"
+                label="Дата создания"
+                rules={[{ required: true, message: 'Выберите дату создания' }]}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+              
+              <Form.Item
+                name="deliveryDate"
+                label="Дата доставки"
+                className={styles.spanFull}
+              >
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+              
+              <Form.Item
+                name="notes"
+                label="Примечания"
+                className={styles.spanFull}
+              >
+                <TextArea rows={3} />
+              </Form.Item>
+            </div>
+            
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit">
+                  {editingOrder ? 'Сохранить' : 'Добавить'}
+                </Button>
+                <Button onClick={() => setModalVisible(false)}>
+                  Отмена
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     </div>
   );
 };

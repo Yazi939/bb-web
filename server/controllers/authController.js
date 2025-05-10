@@ -1,111 +1,124 @@
-const User = require('../models/User');
+const { User } = require('../models');
 
-// @desc    Регистрация пользователя
-// @route   POST /api/users/register
-// @access  Public
-exports.register = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+const authController = {
+  // @desc    Регистрация пользователя
+  // @route   POST /api/users/register
+  // @access  Public
+  register: async (req, res) => {
+    try {
+      const { username, password, role } = req.body;
 
-    // Проверка, существует ли пользователь
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({
+      // Проверка, существует ли пользователь
+      const userExists = await User.findOne({ where: { username } });
+      if (userExists) {
+        return res.status(400).json({
+          success: false,
+          error: 'Пользователь с таким именем уже существует'
+        });
+      }
+
+      // Создание пользователя
+      const user = await User.create({
+        username,
+        password,
+        role: role || 'worker'
+      });
+
+      sendTokenResponse(user, 201, res);
+    } catch (error) {
+      res.status(400).json({
         success: false,
-        error: 'Пользователь с таким email уже существует'
+        error: error.message
       });
     }
+  },
 
-    // Создание пользователя
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: role || 'worker'
-    });
+  // @desc    Авторизация пользователя
+  // @route   POST /api/users/login
+  // @access  Public
+  login: async (req, res) => {
+    try {
+      const { username, password } = req.body;
 
-    sendTokenResponse(user, 201, res);
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
+      // Проверка наличия username и пароля
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Пожалуйста, укажите имя пользователя и пароль'
+        });
+      }
+
+      // Поиск пользователя по username
+      const user = await User.findOne({ where: { username } });
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверное имя пользователя или пароль'
+        });
+      }
+
+      // Проверка пароля
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверное имя пользователя или пароль'
+        });
+      }
+
+      sendTokenResponse(user, 200, res);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+  },
+
+  // @desc    Получить текущего пользователя
+  // @route   GET /api/users/me
+  // @access  Private
+  getMe: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.user.id);
+      res.status(200).json({
+        success: true,
+        data: user
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
   }
 };
 
-// @desc    Авторизация пользователя
-// @route   POST /api/users/login
-// @access  Public
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Проверка наличия email и пароля
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Пожалуйста, укажите email и пароль'
-      });
-    }
-
-    // Поиск пользователя с паролем
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Неверные учетные данные'
-      });
-    }
-
-    // Проверка пароля
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        error: 'Неверные учетные данные'
-      });
-    }
-
-    sendTokenResponse(user, 200, res);
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Получение текущего пользователя
-// @route   GET /api/users/me
-// @access  Private
-exports.getMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    res.status(200).json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// Создание и отправка токена в ответе
+// Получить JWT токен, создать cookie и отправить ответ
 const sendTokenResponse = (user, statusCode, res) => {
   // Создание токена
   const token = user.getSignedJwtToken();
 
-  res.status(statusCode).json({
-    success: true,
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
-}; 
+  const options = {
+    expires: new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 дней
+    ),
+    httpOnly: true
+  };
+
+  res
+    .status(statusCode)
+    .cookie('token', token, options)
+    .json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        role: user.role
+      }
+    });
+};
+
+module.exports = authController; 

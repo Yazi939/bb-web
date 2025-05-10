@@ -1,3 +1,6 @@
+import { mockUsers } from './mockData';
+import { userService } from '../services/api';
+
 // Типы пользователей
 export type UserRole = 'admin' | 'moderator' | 'worker';
 
@@ -7,7 +10,7 @@ export interface User {
   name: string;
   role: UserRole;
   username: string;
-  password: string;
+  password?: string;
 }
 
 // Права доступа по ролям
@@ -44,76 +47,41 @@ export const rolePermissions = {
   }
 };
 
-// Инициализация пользователей
-export const initializeUsers = (): void => {
-  const users = localStorage.getItem('users');
-  
-  if (!users) {
-    const defaultUsers: User[] = [
-      {
-        id: 'admin1',
-        name: 'Администратор',
-        role: 'admin',
-        username: 'admin',
-        password: 'admin123'
-      },
-      {
-        id: 'moderator1',
-        name: 'Модератор',
-        role: 'moderator',
-        username: 'moderator',
-        password: 'mod123'
-      },
-      {
-        id: 'worker1',
-        name: 'Работник',
-        role: 'worker',
-        username: 'worker',
-        password: 'worker123'
-      }
-    ];
-    
-    localStorage.setItem('users', JSON.stringify(defaultUsers));
-  }
-  
-  // Установка текущего пользователя, если не установлен
-  if (!localStorage.getItem('currentUser')) {
-    localStorage.setItem('currentUser', JSON.stringify({
-      id: 'admin1',
-      name: 'Администратор',
-      role: 'admin'
-    }));
+// Авторизация пользователя
+export const loginUser = async (username: string, password: string): Promise<User | null> => {
+  try {
+    // Всегда используем только серверную авторизацию
+    const response = await userService.login(username, password);
+    if (response.data && response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      return response.data.user || {
+        id: response.data.id,
+        username: response.data.username,
+        role: response.data.role,
+        name: response.data.name
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    return null;
   }
 };
 
-// Авторизация пользователя
-export const loginUser = (username: string, password: string): User | null => {
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
-  const user = users.find((u: User) => u.username === username && u.password === password);
-  
-  if (user) {
-    const { id, name, role } = user;
-    localStorage.setItem('currentUser', JSON.stringify({ id, name, role }));
-    return user;
-  }
-  
+// Получение текущего пользователя
+export const getCurrentUser = async (): Promise<User | null> => {
+  // Например, реализуйте userService.getCurrentUser(), если сервер поддерживает
   return null;
 };
 
 // Выход пользователя
-export const logoutUser = (): void => {
-  localStorage.removeItem('currentUser');
-};
-
-// Получение текущего пользователя
-export const getCurrentUser = (): { id: string; name: string; role: UserRole } | null => {
-  const userStr = localStorage.getItem('currentUser');
-  return userStr ? JSON.parse(userStr) : null;
+export const logoutUser = async (): Promise<void> => {
+  localStorage.removeItem('token');
 };
 
 // Проверка прав доступа
-export const checkPermission = (permission: keyof typeof rolePermissions.admin): boolean => {
-  const user = getCurrentUser();
+export const checkPermission = async (permission: keyof typeof rolePermissions.admin): Promise<boolean> => {
+  const user = await getCurrentUser();
   if (!user) return false;
   
   return rolePermissions[user.role][permission] || false;

@@ -1,68 +1,44 @@
 @echo off
-echo Создание установщика приложения Bunker Boats с Node.js
+setlocal
+cd /d %~dp0
+echo Создание установщика для всей директории FE
 
-echo Проверка наличия Node.js...
-where node >nul 2>nul
-if %errorlevel% neq 0 (
-    echo ОШИБКА: Node.js не найден!
-    echo Для создания установщика нужен Node.js
-    echo Однако созданный установщик сможет автоматически установить Node.js на целевом компьютере
-    pause
-    exit /b 1
-)
+REM Очищаем и пересоздаём папку dist
+if exist "%~dp0dist" rmdir /S /Q "%~dp0dist"
+mkdir "%~dp0dist"
 
-echo Установка зависимостей...
-call npm install
-if %errorlevel% neq 0 (
-    echo ОШИБКА: Не удалось установить зависимости!
-    pause
-    exit /b 1
-)
-
-echo Сборка React-приложения...
+REM Очищаем кэш и пересобираем приложение
+echo Очистка кэша и пересборка приложения...
+call npm run clean
 call npm run build
-if %errorlevel% neq 0 (
-    echo ОШИБКА: Не удалось собрать React-приложение!
-    pause
-    exit /b 1
-)
+call npm run build:backend
 
-echo Проверка наличия необходимых файлов...
-if not exist main.js (
-    echo ОШИБКА: Файл main.js не найден!
-    pause
-    exit /b 1
-)
+REM Копируем всё кроме dist и служебных файлов через PowerShell
+powershell -Command "Get-ChildItem -Path . -Exclude dist,create_installer.bat,installer.nsi,installer.nsh | ForEach-Object { Copy-Item -Path $_.FullName -Destination '%~dp0dist' -Recurse -Force }"
 
-if not exist preload.js (
-    echo ОШИБКА: Файл preload.js не найден!
-    pause
-    exit /b 1
-)
-
-echo Установка плагина NSIS для скачивания...
-mkdir nsis-plugins\Plugins\x86-unicode 2>nul
-echo Скачивание плагина InetC.dll...
-powershell -Command "Invoke-WebRequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/c/c9/Inetc.zip' -OutFile '%TEMP%\Inetc.zip'"
-echo Распаковка...
-powershell -Command "Expand-Archive -Path '%TEMP%\Inetc.zip' -DestinationPath '%TEMP%\Inetc' -Force"
-copy /Y "%TEMP%\Inetc\Plugins\x86-unicode\InetC.dll" "nsis-plugins\Plugins\x86-unicode\" >nul
-
-echo Копирование main.js и preload.js в папку dist...
-copy main.js dist\main.js /Y
-copy preload.js dist\preload.js /Y
-
-echo Создание package.json в папке dist...
-echo {
-echo   "main": "main.js",
-echo   "name": "fuel",
-echo   "private": true,
-echo   "version": "1.0.0", 
-echo   "dependencies": {} 
-echo } > dist\package.json
+REM Создаём NSIS скрипт
+del "%~dp0installer.nsi" 2>nul
+(
+echo !include "installer.nsh"
+echo.
+echo OutFile "dist\BunkerBoats-Setup.exe"
+echo InstallDir "$PROGRAMFILES\Bunker Boats"
+echo.
+echo Section "Install"
+echo   SetOutPath "$INSTDIR"
+echo   File /r "dist\*.*"
+echo   !insertmacro customInstall
+echo   WriteUninstaller "$INSTDIR\Uninstall.exe"
+echo SectionEnd
+echo.
+echo Section "Uninstall"
+echo   RMDir /r "$INSTDIR"
+echo   !insertmacro customUnInstall
+echo SectionEnd
+) > "%~dp0installer.nsi"
 
 echo Сборка установщика...
-call npm run package
+makensis "%~dp0installer.nsi"
 if %errorlevel% neq 0 (
     echo ОШИБКА: Не удалось создать установщик!
     pause
@@ -70,8 +46,9 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo Готово! Установщик создан: dist\BunkerBoats-Setup.exe
-echo Этот установщик автоматически загрузит и установит Node.js на целевом компьютере.
+echo Готово! Установщик создан: %~dp0dist\BunkerBoats-Setup.exe
+echo Этот установщик содержит всю директорию FE.
 echo.
 
-pause 
+pause
+endlocal

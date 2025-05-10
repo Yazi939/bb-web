@@ -1,106 +1,97 @@
 {
-  "name": "bunker-boats",
-  "private": true,
+  "name": "fuel-app",
   "version": "1.0.0",
-  "description": "Fuel management system for boats",
-  "author": "Your Name",
+  "description": "Fuel management application",
+  "main": "main.cjs",
   "type": "commonjs",
-  "main": "main.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "clean": "rimraf dist build",
+    "dev": "cross-env NODE_ENV=development vite",
+    "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "electron .",
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"wait-on tcp:5174 && electron .\"",
     "electron:build": "electron-builder",
-    "start": "npx concurrently \"npm run dev\" \"npm run electron:dev\"",
-    "server": "cd server && npm run dev",
-    "start:all": "concurrently \"npm run start\" \"npm run server\" \"npm run electron:dev\"",
     "pack": "electron-builder --dir",
     "dist": "npm run build && electron-builder --dir",
-    "package": "electron-builder --win --x64",
-    "package:mac": "electron-builder --mac",
-    "make-exe": "npm run build && npm run package",
-    "postinstall": "electron-builder install-app-deps",
-    "test": "echo \"No tests specified\" && exit 0",
-    "eject": "react-scripts eject"
+    "make-exe": "npm run build && npm run build:backend && npm run package",
+    "package": "electron-builder --win --publish never",
+    "build:ts": "tsc -p tsconfig.preload.json",
+    "build:backend": "tsc -p tsconfig.backend.json",
+    "postbuild": "copy src\\database\\api.js build\\database\\api.js"
   },
   "build": {
-    "appId": "com.bunkerboats.app",
-    "productName": "Bunker Boats",
+    "appId": "com.yourcompany.fuelapp",
+    "productName": "Fuel Trading App",
+    "publish": {
+      "provider": "github",
+      "owner": "Yazi939",
+      "repo": "Bunker-final-product"
+    },
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
+      "main.cjs",
+      "preload.cjs",
       "package.json"
     ],
-    "asar": true,
-    "compression": "maximum",
+    "extraResources": [
+      {
+        "from": "src",
+        "to": "app/src",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "build/database",
+        "to": "app/build/database",
+        "filter": ["**/*"]
+      }
+    ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.png"
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "icon": "assets/icon.icns",
-      "category": "public.app-category.utilities",
-      "darkModeSupport": true
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Bunker Boats",
-      "include": "installer.nsh",
-      "perMachine": true,
-      "artifactName": "BunkerBoats-Setup.exe",
-      "installerIcon": "assets/icon.png",
-      "uninstallerIcon": "assets/icon.png",
-      "installerHeaderIcon": "assets/icon.png"
+      "createStartMenuShortcut": true
     },
-    "nsisWeb": {
-      "additionalConfigurations": {
-        "include": "installer.nsh"
-      }
-    }
+    "asar": false,
+    "compression": "store",
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "nodeGypRebuild": false
   },
   "dependencies": {
-    "@ant-design/icons": "^5.3.1",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.89",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "antd": "^5.15.2",
-    "better-sqlite3": "^9.4.3",
-    "concurrently": "^8.2.2",
+    "@ant-design/icons": "^5.3.0",
+    "@types/socket.io-client": "^1.4.36",
+    "antd": "^5.14.1",
+    "axios": "^1.9.0",
     "dayjs": "^1.11.10",
-    "electron-store": "^8.1.0",
-    "node-fetch": "^2.7.0",
+    "electron-log": "^5.4.0",
+    "electron-updater": "^6.6.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "recharts": "^2.12.2",
-    "typescript": "^5.2.2",
-    "wait-on": "^7.2.0",
+    "recharts": "^2.12.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "sqlite3": "^5.1.6",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.19",
-    "@typescript-eslint/eslint-plugin": "^7.0.2",
-    "@typescript-eslint/parser": "^7.0.2",
-    "@vitejs/plugin-react": "^4.2.1",
-    "electron": "^29.1.4",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^28.1.0",
     "electron-builder": "^24.13.3",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "vite": "^5.1.4"
+    "typescript": "^5.8.3",
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
   }
 }

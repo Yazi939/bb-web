@@ -1,15 +1,25 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.filters {
+  margin-bottom: 16px;
+}
+
 .shiftManagement {
   padding: 24px;
 }
 
 .addShiftCard {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .statsCard {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  margin-bottom: 24px;
 }
 
 @media (max-width: 992px) {

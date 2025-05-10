@@ -1,229 +1,204 @@
 const FuelTransaction = require('../models/FuelTransaction');
+const { User } = require('../models');
+const socket = require('../socket');
+const { Op } = require('sequelize');
 
-// @desc    Получение всех транзакций
-// @route   GET /api/fuel
-// @access  Private
-exports.getTransactions = async (req, res) => {
-  try {
-    let query;
-    
-    // Копируем req.query
-    const reqQuery = { ...req.query };
-    
-    // Поля для исключения
-    const removeFields = ['select', 'sort', 'page', 'limit'];
-    
-    // Удаляем поля из запроса
-    removeFields.forEach(param => delete reqQuery[param]);
-    
-    // Создаем строку запроса
-    let queryStr = JSON.stringify(reqQuery);
-    
-    // Создаем операторы ($gt, $gte, и т.д.)
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-    
-    // Поиск транзакций
-    query = FuelTransaction.find(JSON.parse(queryStr));
-    
-    // Выбор полей
-    if (req.query.select) {
-      const fields = req.query.select.split(',').join(' ');
-      query = query.select(fields);
+const fuelController = {
+  async getFuelTransactions(req, res) {
+    try {
+      const transactions = await FuelTransaction.findAll({
+        attributes: [
+          'id', 'type', 'volume', 'price', 'totalCost', 'fuelType',
+          'source', 'destination', 'supplier', 'customer', 'vessel',
+          'bunkerVessel', 'paymentMethod', 'notes', 'userId', 'userRole',
+          'createdAt', 'updatedAt'
+        ],
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'role']
+        }]
+      });
+      res.json(transactions);
+    } catch (error) {
+      console.error('Ошибка при получении транзакций:', error);
+      res.status(500).json({ error: error.message });
     }
-    
-    // Сортировка
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
-    } else {
-      query = query.sort('-timestamp');
+  },
+
+  async getAllTransactions(req, res) {
+    try {
+      const transactions = await FuelTransaction.findAll({
+        attributes: [
+          'id', 'type', 'volume', 'price', 'totalCost', 'fuelType',
+          'source', 'destination', 'supplier', 'customer', 'vessel',
+          'bunkerVessel', 'paymentMethod', 'notes', 'userId', 'userRole',
+          'createdAt', 'updatedAt', 'timestamp', 'frozen'
+        ],
+        order: [['timestamp', 'ASC']]
+      });
+      res.json(transactions);
+    } catch (error) {
+      console.error('Ошибка при получении всех транзакций:', error);
+      res.status(500).json({ error: error.message });
     }
-    
-    // Пагинация
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 25;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const total = await FuelTransaction.countDocuments(JSON.parse(queryStr));
-    
-    query = query.skip(startIndex).limit(limit);
-    
-    // Выполнение запроса
-    const transactions = await query;
-    
-    // Объект пагинации
-    const pagination = {};
-    
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit
+  },
+
+  async getFuelTransaction(req, res) {
+    try {
+      const transaction = await FuelTransaction.findByPk(req.params.id, {
+        attributes: [
+          'id', 'type', 'volume', 'price', 'totalCost', 'fuelType',
+          'source', 'destination', 'supplier', 'customer', 'vessel',
+          'bunkerVessel', 'paymentMethod', 'notes', 'userId', 'userRole',
+          'createdAt', 'updatedAt'
+        ],
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'role']
+        }]
+      });
+      if (!transaction) {
+        return res.status(404).json({ error: 'Transaction not found' });
+      }
+      res.json(transaction);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  async createFuelTransaction(req, res) {
+    try {
+      const transactionData = {
+        ...req.body,
+        id: `transaction-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        userId: req.user.id,
+        userRole: req.user.role,
+        createdAt: req.body.date ? new Date(req.body.date) : new Date(),
+        updatedAt: req.body.date ? new Date(req.body.date) : new Date()
       };
+      const transaction = await FuelTransaction.create(transactionData);
+      
+      // Отправляем уведомления через Socket.IO
+      const io = socket.getIO();
+      io.emit('transaction:created', transaction);
+      io.emit('data-updated', { 
+        type: 'transactions',
+        action: 'created',
+        data: transaction
+      });
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      console.error('Ошибка при создании транзакции:', error);
+      res.status(500).json({ error: error.message });
     }
-    
-    if (startIndex > 0) {
-      pagination.prev = {
-        page: page - 1,
-        limit
-      };
+  },
+
+  async updateFuelTransaction(req, res) {
+    try {
+      // Найти транзакцию по id
+      let transaction = await FuelTransaction.findByPk(req.params.id);
+      if (!transaction) {
+        // Пробуем найти по id без префикса 'transaction-'
+        const idWithoutPrefix = req.params.id.replace(/^transaction-/, '');
+        transaction = await FuelTransaction.findByPk(idWithoutPrefix);
+        if (!transaction) {
+          return res.status(404).json({ error: 'Transaction not found' });
+        }
+      }
+
+      // Проверка прав: только админ или владелец может изменять
+      if (req.user.role !== 'admin' && req.user.id !== transaction.userId) {
+        return res.status(403).json({ error: 'Нет прав на изменение этой транзакции' });
+      }
+
+      const [updated] = await FuelTransaction.update(req.body, {
+        where: { id: transaction.id }
+      });
+      if (updated) {
+        const updatedTransaction = await FuelTransaction.findByPk(transaction.id, {
+          attributes: [
+            'id', 'type', 'volume', 'price', 'totalCost', 'fuelType',
+            'source', 'destination', 'supplier', 'customer', 'vessel',
+            'bunkerVessel', 'paymentMethod', 'notes', 'userId', 'userRole',
+            'createdAt', 'updatedAt'
+          ],
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'role']
+          }]
+        });
+        
+        // Отправляем уведомления через Socket.IO
+        const io = socket.getIO();
+        io.emit('transaction:updated', updatedTransaction);
+        io.emit('data-updated', { 
+          type: 'transactions',
+          action: 'updated',
+          data: updatedTransaction
+        });
+        
+        res.json(updatedTransaction);
+      } else {
+        res.status(404).json({ error: 'Transaction not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
-    
-    res.status(200).json({
-      success: true,
-      count: transactions.length,
-      pagination,
-      data: transactions
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+  },
+
+  async deleteFuelTransaction(req, res) {
+    try {
+      console.log('Attempting to delete transaction with id:', req.params.id);
+      
+      // Сначала проверим, существует ли транзакция
+      let transaction = await FuelTransaction.findByPk(req.params.id);
+      console.log('Found transaction:', transaction ? 'yes' : 'no');
+      
+      if (!transaction) {
+        // Пробуем найти по id без префикса 'transaction-'
+        const idWithoutPrefix = req.params.id.replace(/^transaction-/, '');
+        transaction = await FuelTransaction.findByPk(idWithoutPrefix);
+        console.log('Found old format transaction:', transaction ? 'yes' : 'no');
+
+        if (!transaction) {
+          return res.status(404).json({ error: 'Transaction not found' });
+        }
+      }
+
+      // Проверка прав: только админ или владелец может удалить
+      if (req.user.role !== 'admin' && req.user.id !== transaction.userId) {
+        return res.status(403).json({ error: 'Нет прав на удаление этой транзакции' });
+      }
+
+      const deleted = await FuelTransaction.destroy({
+        where: { id: transaction.id }
+      });
+      
+      console.log('Delete result:', deleted);
+      
+      if (deleted) {
+        // Отправляем уведомления через Socket.IO
+        const io = socket.getIO();
+        io.emit('transaction:deleted', transaction.id);
+        io.emit('data-updated', { 
+          type: 'transactions',
+          action: 'deleted',
+          id: transaction.id
+        });
+        
+        res.status(204).send();
+      } else {
+        res.status(404).json({ error: 'Transaction not found' });
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении транзакции:', error);
+      res.status(500).json({ error: error.message });
+    }
   }
 };
 
-// @desc    Получение одной транзакции
-// @route   GET /api/fuel/:id
-// @access  Private
-exports.getTransaction = async (req, res) => {
-  try {
-    const transaction = await FuelTransaction.findById(req.params.id);
-    
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        error: 'Транзакция не найдена'
-      });
-    }
-    
-    res.status(200).json({
-      success: true,
-      data: transaction
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Создание транзакции
-// @route   POST /api/fuel
-// @access  Private
-exports.createTransaction = async (req, res) => {
-  try {
-    // Добавляем пользователя к транзакции
-    if (req.user) {
-      req.body.user = req.user.id;
-      req.body.userRole = req.user.role;
-    }
-    
-    const transaction = await FuelTransaction.create(req.body);
-    
-    res.status(201).json({
-      success: true,
-      data: transaction
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Обновление транзакции
-// @route   PUT /api/fuel/:id
-// @access  Private
-exports.updateTransaction = async (req, res) => {
-  try {
-    let transaction = await FuelTransaction.findById(req.params.id);
-    
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        error: 'Транзакция не найдена'
-      });
-    }
-    
-    // Проверка на заморозку транзакции
-    if (transaction.frozen && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Нельзя изменять замороженную транзакцию'
-      });
-    }
-    
-    // Проверка владельца транзакции или админа
-    if (transaction.user && transaction.user.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'У вас нет прав для обновления этой транзакции'
-      });
-    }
-    
-    // Отмечаем транзакцию как отредактированную
-    req.body.edited = true;
-    req.body.editTimestamp = Date.now();
-    
-    transaction = await FuelTransaction.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    
-    res.status(200).json({
-      success: true,
-      data: transaction
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Удаление транзакции
-// @route   DELETE /api/fuel/:id
-// @access  Private
-exports.deleteTransaction = async (req, res) => {
-  try {
-    const transaction = await FuelTransaction.findById(req.params.id);
-    
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        error: 'Транзакция не найдена'
-      });
-    }
-    
-    // Проверка на заморозку транзакции
-    if (transaction.frozen && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Нельзя удалять замороженную транзакцию'
-      });
-    }
-    
-    // Проверка владельца транзакции или админа
-    if (transaction.user && transaction.user.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'У вас нет прав для удаления этой транзакции'
-      });
-    }
-    
-    await transaction.deleteOne();
-    
-    res.status(200).json({
-      success: true,
-      data: {}
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-}; 
+module.exports = fuelController; 

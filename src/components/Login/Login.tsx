@@ -1,106 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, Alert, message } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { loginUser, initializeUsers } from '../../utils/users';
-import styles from './Login.module.css';
+import { loginUser } from '../../utils/users';
+import './Login.css';
 
 const { Title } = Typography;
 
 interface LoginProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (user: any) => void;
 }
+
+const iconProps = {
+  onPointerEnterCapture: () => {},
+  onPointerLeaveCapture: () => {}
+};
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  useEffect(() => {
-    // Initialize default users
-    initializeUsers();
-  }, []);
-  
-  const handleSubmit = (values: { username: string; password: string }) => {
+  const [form] = Form.useForm();
+
+  const handleSubmit = async (values: { username: string; password: string }) => {
     setLoading(true);
-    setError('');
-    
-    // Simulate network delay
-    setTimeout(() => {
-      const user = loginUser(values.username, values.password);
-      
+    try {
+      const user = await loginUser(values.username, values.password);
       if (user) {
-        message.success(`Добро пожаловать, ${user.name}!`);
-        onLoginSuccess();
+        onLoginSuccess(user);
       } else {
-        setError('Неверное имя пользователя или пароль');
+        form.setFields([
+          {
+            name: 'password',
+            errors: ['Неверный логин или пароль'],
+          },
+        ]);
       }
-      
+    } catch (error) {
+      console.error('Login error:', error);
+      form.setFields([
+        {
+          name: 'password',
+          errors: ['Произошла ошибка при входе'],
+        },
+      ]);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
-  
+
   return (
-    <div className={styles.loginContainer}>
-      <Card className={styles.loginCard}>
-        <Title level={2} className={styles.loginTitle}>
-          Система управления топливом
+    <div className="login-container">
+      <Card className="login-card">
+        <Title level={2} style={{ textAlign: 'center', marginBottom: 24 }}>
+          Вход в систему
         </Title>
-        
-        {error && (
-          <Alert
-            message="Ошибка входа"
-            description={error}
-            type="error"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-        )}
-        
         <Form
+          form={form}
           name="login"
-          initialValues={{ remember: true }}
           onFinish={handleSubmit}
           layout="vertical"
         >
           <Form.Item
             name="username"
-            rules={[{ required: true, message: 'Введите имя пользователя' }]}
+            rules={[{ required: true, message: 'Введите логин' }]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="Имя пользователя" 
+            <Input
+              prefix={<UserOutlined {...iconProps} />}
+              placeholder="Логин"
               size="large"
             />
           </Form.Item>
-          
           <Form.Item
             name="password"
             rules={[{ required: true, message: 'Введите пароль' }]}
           >
             <Input.Password
-              prefix={<LockOutlined />}
+              prefix={<LockOutlined {...iconProps} />}
               placeholder="Пароль"
               size="large"
             />
           </Form.Item>
-          
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              loading={loading}
+            <Button
+              type="primary"
+              htmlType="submit"
               size="large"
               block
+              loading={loading}
             >
               Войти
             </Button>
           </Form.Item>
-          
-          <div className={styles.loginHelp}>
-            <p>Для входа используйте:</p>
-            <p><strong>Администратор:</strong> admin / admin123</p>
-            <p><strong>Модератор:</strong> moderator / mod123</p>
-            <p><strong>Работник:</strong> worker / worker123</p>
-          </div>
         </Form>
       </Card>
     </div>

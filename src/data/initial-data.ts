@@ -1,30 +1,10 @@
-export const initialVehicles = [
+export const initialUsers = [
   {
-    key: '1',
-    id: 'ТС-001',
-    type: 'Катер',
-    model: 'Yamaha AR240',
-    fuelType: 'АИ-95',
-    consumption: 45.2,
-    lastRefuel: '2024-04-08'
-  },
-  {
-    key: '2',
-    id: 'ТС-002',
-    type: 'Яхта',
-    model: 'Azimut 54',
-    fuelType: 'Дизель',
-    consumption: 120.5,
-    lastRefuel: '2024-04-07'
-  },
-  {
-    key: '3',
-    id: 'ТС-003',
-    type: 'Баржа',
-    model: 'River Master 85',
-    fuelType: 'Дизель',
-    consumption: 210.8,
-    lastRefuel: '2024-04-08'
+    id: '1',
+    name: 'Admin',
+    email: 'admin@example.com',
+    role: 'admin',
+    password: 'admin123'
   }
 ];
 

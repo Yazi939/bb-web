@@ -1,208 +1,93 @@
-const Shift = require('../models/Shift');
+const { Shift } = require('../models');
 
-// @desc    Получение всех смен
-// @route   GET /api/shifts
-// @access  Private
-exports.getShifts = async (req, res) => {
+// Получить все смены
+const getAllShifts = async (req, res) => {
   try {
-    let query;
+    const shifts = await Shift.findAll();
+    res.json(shifts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Добавить смену
+const addShift = async (req, res) => {
+  try {
+    const { fuelSaved, fuelPrice, shiftType } = req.body;
     
-    // Копируем req.query
-    const reqQuery = { ...req.query };
+    // Рассчитываем базовую зарплату
+    const baseSalary = shiftType === 'day' ? 5500 : 6500;
     
-    // Поля для исключения
-    const removeFields = ['select', 'sort', 'page', 'limit'];
+    // Новый расчёт бонуса
+    const bonus = fuelSaved * fuelPrice;
     
-    // Удаляем поля из запроса
-    removeFields.forEach(param => delete reqQuery[param]);
+    // Рассчитываем общую зарплату
+    const totalSalary = baseSalary + bonus;
     
-    // Создаем строку запроса
-    let queryStr = JSON.stringify(reqQuery);
+    const shift = await Shift.create({
+      ...req.body,
+      baseSalary,
+      bonus,
+      totalSalary
+    });
     
-    // Создаем операторы ($gt, $gte, и т.д.)
-    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+    res.status(201).json(shift);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Обновить смену
+const updateShift = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { fuelSaved, fuelPrice, shiftType } = req.body;
     
-    // Поиск смен
-    query = Shift.find(JSON.parse(queryStr));
+    // Рассчитываем базовую зарплату
+    const baseSalary = shiftType === 'day' ? 5500 : 6500;
     
-    // Выбор полей
-    if (req.query.select) {
-      const fields = req.query.select.split(',').join(' ');
-      query = query.select(fields);
-    }
+    // Новый расчёт бонуса
+    const bonus = fuelSaved * fuelPrice;
     
-    // Сортировка
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' ');
-      query = query.sort(sortBy);
+    // Рассчитываем общую зарплату
+    const totalSalary = baseSalary + bonus;
+    
+    const [updated] = await Shift.update({
+      ...req.body,
+      baseSalary,
+      bonus,
+      totalSalary
+    }, { where: { id } });
+    
+    if (updated) {
+      const updatedShift = await Shift.findByPk(id);
+      res.json(updatedShift);
     } else {
-      query = query.sort('-timestamp');
+      res.status(404).json({ error: 'Shift not found' });
     }
-    
-    // Пагинация
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 25;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const total = await Shift.countDocuments(JSON.parse(queryStr));
-    
-    query = query.skip(startIndex).limit(limit);
-    
-    // Выполнение запроса
-    const shifts = await query;
-    
-    // Объект пагинации
-    const pagination = {};
-    
-    if (endIndex < total) {
-      pagination.next = {
-        page: page + 1,
-        limit
-      };
-    }
-    
-    if (startIndex > 0) {
-      pagination.prev = {
-        page: page - 1,
-        limit
-      };
-    }
-    
-    res.status(200).json({
-      success: true,
-      count: shifts.length,
-      pagination,
-      data: shifts
-    });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// @desc    Получение одной смены
-// @route   GET /api/shifts/:id
-// @access  Private
-exports.getShift = async (req, res) => {
+// Удалить смену
+const deleteShift = async (req, res) => {
   try {
-    const shift = await Shift.findById(req.params.id);
-    
-    if (!shift) {
-      return res.status(404).json({
-        success: false,
-        error: 'Смена не найдена'
-      });
+    const { id } = req.params;
+    const deleted = await Shift.destroy({ where: { id } });
+    if (deleted) {
+      res.status(204).send();
+    } else {
+      res.status(404).json({ error: 'Shift not found' });
     }
-    
-    res.status(200).json({
-      success: true,
-      data: shift
-    });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// @desc    Создание смены
-// @route   POST /api/shifts
-// @access  Private
-exports.createShift = async (req, res) => {
-  try {
-    // Добавляем пользователя к смене
-    if (req.user) {
-      req.body.user = req.user.id;
-    }
-    
-    const shift = await Shift.create(req.body);
-    
-    res.status(201).json({
-      success: true,
-      data: shift
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Обновление смены
-// @route   PUT /api/shifts/:id
-// @access  Private
-exports.updateShift = async (req, res) => {
-  try {
-    let shift = await Shift.findById(req.params.id);
-    
-    if (!shift) {
-      return res.status(404).json({
-        success: false,
-        error: 'Смена не найдена'
-      });
-    }
-    
-    // Проверка владельца смены или админа
-    if (shift.user && shift.user.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'У вас нет прав для обновления этой смены'
-      });
-    }
-    
-    shift = await Shift.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    
-    res.status(200).json({
-      success: true,
-      data: shift
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
-
-// @desc    Удаление смены
-// @route   DELETE /api/shifts/:id
-// @access  Private
-exports.deleteShift = async (req, res) => {
-  try {
-    const shift = await Shift.findById(req.params.id);
-    
-    if (!shift) {
-      return res.status(404).json({
-        success: false,
-        error: 'Смена не найдена'
-      });
-    }
-    
-    // Проверка владельца смены или админа
-    if (shift.user && shift.user.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'У вас нет прав для удаления этой смены'
-      });
-    }
-    
-    await shift.deleteOne();
-    
-    res.status(200).json({
-      success: true,
-      data: {}
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+module.exports = {
+  getAllShifts,
+  addShift,
+  updateShift,
+  deleteShift
 }; 

@@ -1,25 +1,26 @@
 const express = require('express');
-const {
-  getTransactions,
-  getTransaction,
-  createTransaction,
-  updateTransaction,
-  deleteTransaction
-} = require('../controllers/fuelController');
-
-const { protect, authorize } = require('../middleware/auth');
-
 const router = express.Router();
+const fuelController = require('../controllers/fuelController');
+const { protect } = require('../middleware/auth');
 
-router
-  .route('/')
-  .get(protect, getTransactions)
-  .post(protect, createTransaction);
+// Защищаем все маршруты middleware аутентификации
+router.use(protect);
 
-router
-  .route('/:id')
-  .get(protect, getTransaction)
-  .put(protect, updateTransaction)
-  .delete(protect, deleteTransaction);
+// Проверяем, что контроллеры существуют
+if (!fuelController.getFuelTransactions || 
+    !fuelController.getFuelTransaction || 
+    !fuelController.createFuelTransaction || 
+    !fuelController.updateFuelTransaction || 
+    !fuelController.deleteFuelTransaction) {
+    console.error('Ошибка: не все методы контроллера определены');
+    process.exit(1);
+}
+
+router.get('/', fuelController.getFuelTransactions);
+router.get('/all', fuelController.getAllTransactions);
+router.get('/:id', fuelController.getFuelTransaction);
+router.post('/', fuelController.createFuelTransaction);
+router.put('/:id', fuelController.updateFuelTransaction);
+router.delete('/transaction/:id', fuelController.deleteFuelTransaction);
 
 module.exports = router; 

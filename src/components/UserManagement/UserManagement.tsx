@@ -3,6 +3,8 @@ import { Table, Card, Button, Form, Input, Select, Modal, Space, Typography, mes
 import { UserAddOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { User, UserRole, getCurrentUser, rolePermissions } from '../../utils/users';
 import styles from './UserManagement.module.css';
+import type { UserRole as UserRoleType } from '../../utils/users';
+import { userService } from '../../services/api';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -17,22 +19,22 @@ const UserManagement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form] = Form.useForm();
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: UserRoleType } | null>(null);
   
   useEffect(() => {
-    // Load users from localStorage
-    const storedUsers = localStorage.getItem('users');
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    }
+    loadUsers();
+    getCurrentUser().then(setCurrentUser);
   }, []);
   
-  // Save users to localStorage when they change
-  useEffect(() => {
-    if (users.length > 0) {
-      localStorage.setItem('users', JSON.stringify(users));
+  const loadUsers = async () => {
+    try {
+      const response = await userService.getUsers();
+      setUsers(Array.isArray(response.data) ? response.data : response.data.users || []);
+    } catch (error) {
+      message.error('Ошибка при загрузке пользователей');
+      console.error(error);
     }
-  }, [users]);
+  };
   
   const handleAddUser = () => {
     setEditingUser(null);
@@ -51,7 +53,7 @@ const UserManagement: React.FC = () => {
     setModalVisible(true);
   };
   
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
     // Prevent deleting your own account
     if (userId === currentUser?.id) {
       message.error('Вы не можете удалить свой аккаунт');
@@ -64,30 +66,51 @@ const UserManagement: React.FC = () => {
       okText: 'Удалить',
       okType: 'danger',
       cancelText: 'Отмена',
-      onOk() {
-        setUsers(users.filter(user => user.id !== userId));
-        message.success('Пользователь удален');
+      async onOk() {
+        try {
+          await userService.deleteUser(userId);
+          await loadUsers();
+          message.success('Пользователь удален');
+        } catch (error) {
+          message.error('Ошибка при удалении пользователя');
+          console.error(error);
+        }
       },
     });
   };
   
-  const handleSubmit = (values: any) => {
+  const handleSubmit = async (values: any) => {
     const { name, username, password, role } = values;
     
-    if (editingUser) {
-      // Update existing user
-      setUsers(users.map(user => 
-        user.id === editingUser.id ? { ...user, name, username, password, role } : user
-      ));
-      message.success('Пользователь обновлен');
-    } else {
-      // Create new user
-      const newId = `user${Date.now()}`;
-      setUsers([...users, { id: newId, name, username, password, role }]);
-      message.success('Пользователь добавлен');
+    try {
+      if (editingUser) {
+        // Update existing user
+        const updatedUser = {
+          ...editingUser,
+          name,
+          username,
+          password: password || editingUser.password,
+          role
+        };
+        await userService.updateUser(updatedUser.id, updatedUser);
+        message.success('Пользователь обновлен');
+      } else {
+        // Create new user
+        await userService.createUser({
+          name,
+          username,
+          password,
+          role
+        });
+        message.success('Пользователь добавлен');
+      }
+      
+      await loadUsers();
+      setModalVisible(false);
+    } catch (error) {
+      message.error('Ошибка при сохранении пользователя');
+      console.error(error);
     }
-    
-    setModalVisible(false);
   };
   
   const columns = [
@@ -105,7 +128,7 @@ const UserManagement: React.FC = () => {
       title: 'Роль',
       dataIndex: 'role',
       key: 'role',
-      render: (role: UserRole) => {
+      render: (role: UserRoleType) => {
         let color = '';
         let label = '';
         
@@ -133,12 +156,12 @@ const UserManagement: React.FC = () => {
       render: (_: any, record: User) => (
         <Space>
           <Button 
-            icon={<EditOutlined {...IconProps} />} 
+            icon={<EditOutlined />} 
             size="small" 
             onClick={() => handleEditUser(record)}
           />
           <Button 
-            icon={<DeleteOutlined {...IconProps} />} 
+            icon={<DeleteOutlined />} 
             size="small" 
             danger 
             onClick={() => handleDeleteUser(record.id)}
@@ -149,16 +172,6 @@ const UserManagement: React.FC = () => {
     },
   ];
   
-  // Check if user has permission
-  if (!currentUser || !rolePermissions[currentUser.role].canAddUsers) {
-    return (
-      <Card>
-        <Title level={4}>Доступ запрещен</Title>
-        <p>У вас нет прав для управления пользователями.</p>
-      </Card>
-    );
-  }
-  
   return (
     <div className={styles.userManagement}>
       <Card
@@ -166,7 +179,7 @@ const UserManagement: React.FC = () => {
         extra={
           <Button 
             type="primary" 
-            icon={<UserAddOutlined {...IconProps} />} 
+            icon={<UserAddOutlined />} 
             onClick={handleAddUser}
           >
             Добавить пользователя

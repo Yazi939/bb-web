@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Указываем production API URL по умолчанию
+const API_URL = process.env.REACT_APP_API_URL || 'http://89.169.170.164:5000/api';
 
 // Создаем инстанс axios
 const api = axios.create({
@@ -8,8 +9,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  // Добавляем таймаут для запросов
-  timeout: 5000
+  // Увеличиваем таймаут для запросов
+  timeout: 10000,
+  // Добавляем withCredentials для CORS
+  withCredentials: true
 });
 
 // Перехватчик для добавления токена авторизации
@@ -24,80 +27,61 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Перехватчик ответов для глобальной обработки ошибок
+// Перехватчик для обработки ошибок
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Обработка ошибок соединения
-    if (error.code === 'ECONNABORTED' || !error.response) {
-      console.error('API Connection Error:', error.message);
-      // Возвращаем "мягкую" ошибку вместо жесткого прерывания
-      return Promise.resolve({
-        data: { error: true, message: 'Нет соединения с сервером' },
-        status: 503
-      });
+    if (error.response) {
+      // Ошибка от сервера
+      console.error('API Error:', error.response.data);
+    } else if (error.request) {
+      // Ошибка сети
+      console.error('Network Error:', error.request);
+    } else {
+      // Ошибка в настройках запроса
+      console.error('Request Error:', error.message);
     }
-    
     return Promise.reject(error);
   }
 );
 
-// Аутентификация
-export const authService = {
-  register: (userData) => api.post('/users/register', userData)
-    .catch(error => {
-      if (!error.response) return { data: { success: false, message: 'Сервер недоступен' } };
-      return Promise.reject(error);
-    }),
-  login: (email, password) => api.post('/users/login', { email, password })
-    .catch(error => {
-      if (!error.response) return { data: { success: false, message: 'Сервер недоступен' } };
-      return Promise.reject(error);
-    }),
-  getMe: () => api.get('/users/me')
-    .catch(error => {
-      if (!error.response) return { data: { user: null } };
-      return Promise.reject(error);
-    })
-};
-
-// Транспортные средства
-export const vehicleService = {
-  getVehicles: () => api.get('/vehicles')
-    .catch(error => {
-      if (!error.response) return { data: [] };
-      return Promise.reject(error);
-    }),
-  getVehicle: (id) => api.get(`/vehicles/${id}`),
-  createVehicle: (vehicleData) => api.post('/vehicles', vehicleData),
-  updateVehicle: (id, vehicleData) => api.put(`/vehicles/${id}`, vehicleData),
-  deleteVehicle: (id) => api.delete(`/vehicles/${id}`)
+// Транзакции топлива
+export const fuelService = {
+  getTransactions: () => api.get('/fuel'),
+  getTransaction: (id) => api.get(`/fuel/${id}`),
+  createTransaction: (data) => api.post('/fuel', data),
+  updateTransaction: (id, data) => api.put(`/fuel/${id}`, data),
+  deleteTransaction: (id) => api.delete(`/fuel/transaction/${id}`),
+  getAllTransactions: () => api.get('/fuel/all'),
 };
 
 // Смены
 export const shiftService = {
-  getShifts: (params) => api.get('/shifts', { params })
-    .catch(error => {
-      if (!error.response) return { data: [] };
-      return Promise.reject(error);
-    }),
-  getShift: (id) => api.get(`/shifts/${id}`),
-  createShift: (shiftData) => api.post('/shifts', shiftData),
-  updateShift: (id, shiftData) => api.put(`/shifts/${id}`, shiftData),
-  deleteShift: (id) => api.delete(`/shifts/${id}`)
+  getShifts: (params) => api.get('/shifts', { params }).then(res => res.data),
+  getShift: (id) => api.get(`/shifts/${id}`).then(res => res.data),
+  createShift: (data) => api.post('/shifts', data).then(res => res.data),
+  updateShift: (id, data) => api.put(`/shifts/${id}`, data).then(res => res.data),
+  deleteShift: (id) => api.delete(`/shifts/${id}`).then(res => res.data)
 };
 
-// Топливо
-export const fuelService = {
-  getTransactions: (params) => api.get('/fuel', { params })
-    .catch(error => {
-      if (!error.response) return { data: [] };
-      return Promise.reject(error);
-    }),
-  getTransaction: (id) => api.get(`/fuel/${id}`),
-  createTransaction: (transactionData) => api.post('/fuel', transactionData),
-  updateTransaction: (id, transactionData) => api.put(`/fuel/${id}`, transactionData),
-  deleteTransaction: (id) => api.delete(`/fuel/${id}`)
+// Пользователи
+export const userService = {
+  getUsers: () => api.get('/users'),
+  getUser: (id) => api.get(`/users/${id}`),
+  createUser: (data) => api.post('/users', data),
+  updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`),
+  login: (username, password) => api.post('/users/login', { username, password }),
+  getCurrentUser: () => api.get('/users/me')
+};
+
+// Заказы
+export const orderService = {
+  getOrders: () => api.get('/orders'),
+  getOrder: (id) => api.get(`/orders/${id}`),
+  createOrder: (data) => api.post('/orders', data),
+  updateOrder: (id, data) => api.put(`/orders/${id}`, data),
+  deleteOrder: (id) => api.delete(`/orders/${id}`)
 };
 
 export default api; 

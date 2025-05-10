@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, Avatar, Space } from 'antd';
+import { Layout, Menu, Button, Dropdown, Avatar, Space, notification } from 'antd';
 import type { MenuProps } from 'antd';
 import { 
   DashboardOutlined, PartitionOutlined, TeamOutlined, 
-  ShoppingCartOutlined, ScheduleOutlined,
+  ShoppingCartOutlined, ScheduleOutlined, CalendarOutlined,
   LogoutOutlined, UserOutlined, SettingOutlined,
   MenuUnfoldOutlined, MenuFoldOutlined, DownOutlined
 } from '@ant-design/icons';
-import { initializeUsers, getCurrentUser, logoutUser } from './utils/users';
+import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
+import { getCurrentUser, logoutUser, UserRole } from './utils/users';
 import Dashboard from './components/Dashboard/Dashboard';
 import FuelTrading from './components/FuelTrading/FuelTrading';
 import UserManagement from './components/UserManagement/UserManagement';
@@ -15,202 +16,259 @@ import ShiftManagement from './components/ShiftManagement/ShiftManagement';
 import Orders from './components/Orders/Orders';
 import Login from './components/Login/Login';
 import Preloader from './components/Preloader/Preloader';
+import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
+import UpdateNotification from './components/UpdateNotification';
 import './App.css';
 
 const { Header, Content, Sider } = Layout;
 
+type MenuItem = Required<MenuProps>['items'][number];
+
+interface User {
+  id: string;
+  name: string;
+  username: string;
+  role: UserRole;
+}
+
+const iconProps: AntdIconProps = {
+  className: "white-icon"
+};
+
+const adminMenuItems: MenuItem[] = [
+  {
+    key: 'dashboard',
+    icon: <DashboardOutlined className="white-icon" />,
+    label: 'Дашборд',
+  },
+  {
+    key: 'fuel',
+    icon: <PartitionOutlined className="white-icon" />,
+    label: 'Топливо',
+  },
+  {
+    key: 'orders',
+    icon: <ShoppingCartOutlined className="white-icon" />,
+    label: 'Заказы',
+  },
+  {
+    key: 'expenses',
+    icon: <CalendarOutlined className="white-icon" />,
+    label: 'Календарь расходов',
+  },
+  {
+    key: 'users',
+    icon: <TeamOutlined className="white-icon" />,
+    label: 'Пользователи',
+  },
+  {
+    key: 'shifts',
+    icon: <ScheduleOutlined className="white-icon" />,
+    label: 'Смены',
+  },
+];
+
+const userMenuItems: MenuItem[] = [
+  {
+    key: 'fuel',
+    icon: <PartitionOutlined className="white-icon" />,
+    label: 'Топливо',
+  },
+  {
+    key: 'orders',
+    icon: <ShoppingCartOutlined className="white-icon" />,
+    label: 'Заказы',
+  },
+];
+
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState<string>('dashboard');
+  const [currentView, setCurrentView] = useState<string>('fuel');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
+  const [showLoader, setShowLoader] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+  const [showOverlay, setShowOverlay] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      initializeUsers();
-      const user = getCurrentUser();
-      if (user) {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 767;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setCollapsed(false);
+        setShowOverlay(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    let hideTimeout: NodeJS.Timeout;
+
+    if (loading) {
+      setShowLoader(true);
+    } else {
+      // showLoader теперь скрывается только после onFinish
+    }
+    return () => {
+      clearTimeout(hideTimeout);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        const user = await getCurrentUser();
+        console.log('getCurrentUser:', user);
+        if (user) {
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error('Error during app initialization:', error);
+        notification.error({
+          message: 'Ошибка инициализации',
+          description: 'Не удалось загрузить данные пользователей. Пожалуйста, перезагрузите приложение.'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    initApp();
+  }, []);
+
+  useEffect(() => {
+    console.log('currentUser (render):', currentUser);
+  }, [currentUser]);
+
+  const handleMenuClick: MenuProps['onClick'] = (e) => {
+    setCurrentView(e.key);
+    if (isMobile) {
+      setCollapsed(true);
+      setShowOverlay(false);
+    }
+  };
+
+  const handleUserMenuClick: MenuProps['onClick'] = async (e) => {
+    if (e.key === 'logout') {
+      await logoutUser();
+      setIsLoggedIn(false);
+      setCurrentUser(null);
+      setCurrentView('fuel');
+    }
+  };
+
+  const toggleMenu = () => {
+    setCollapsed(!collapsed);
+    setShowOverlay(!showOverlay);
+  };
+
+  const renderContent = () => {
+    if (showLoader) {
+      return <Preloader loading={loading} onFinish={() => setShowLoader(false)} />;
+    }
+
+    if (!isLoggedIn) {
+      return <Login onLoginSuccess={async (user: User) => {
+        console.log('LOGIN RESPONSE:', user);
         setIsLoggedIn(true);
         setCurrentUser(user);
-      }
-      setTimeout(() => {
-        setLoading(false);
-      }, 800);
-    }, 2500);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  useEffect(() => {
-    if (isLoggedIn) {
-      setCurrentUser(getCurrentUser());
-    } else {
-      setCurrentUser(null);
+        setCurrentView('fuel');
+      }} />;
     }
-  }, [isLoggedIn]);
-  
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
-  
-  const handleLogout = () => {
-    logoutUser();
-    setIsLoggedIn(false);
-  };
-  
-  const handleMenuClick = (e: { key: string }) => {
-    setCurrentView(e.key);
-  };
-  
-  const renderContent = () => {
+
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard />;
-      case 'fuelTrading':
+        return currentUser?.role === 'admin' ? <Dashboard /> : null;
+      case 'fuel':
         return <FuelTrading />;
-      case 'userManagement':
-        return <UserManagement />;
-      case 'shiftManagement':
-        return <ShiftManagement />;
+      case 'expenses':
+        return currentUser?.role === 'admin' ? <ExpensesCalendar /> : null;
+      case 'users':
+        return currentUser?.role === 'admin' ? <UserManagement /> : null;
+      case 'shifts':
+        return currentUser?.role === 'admin' ? <ShiftManagement /> : null;
       case 'orders':
         return <Orders />;
       default:
-        return <Dashboard />;
+        return <FuelTrading />;
     }
   };
-  
-  if (loading) {
-    return <Preloader />;
-  }
-  
-  if (!isLoggedIn) {
-    return <Login onLoginSuccess={handleLogin} />;
-  }
 
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Профиль'
-    },
+  const dropdownMenuItems: MenuProps['items'] = [
     {
       key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Настройки'
-    },
-    {
-      type: 'divider'
+      icon: <SettingOutlined className="white-icon" />,
+      label: 'Настройки',
     },
     {
       key: 'logout',
-      icon: <LogoutOutlined />,
-      label: 'Выйти',
-      onClick: handleLogout
-    }
+      icon: <LogoutOutlined className="white-icon" />,
+      label: 'Выход',
+    },
   ];
-
-  const sideMenuItems: MenuProps['items'] = [
-    {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Панель управления'
-    },
-    {
-      key: 'fuelTrading',
-      icon: <PartitionOutlined />,
-      label: 'Учет топлива'
-    },
-    {
-      key: 'orders',
-      icon: <ShoppingCartOutlined />,
-      label: 'Заказы'
-    },
-    {
-      key: 'shiftManagement',
-      icon: <ScheduleOutlined />,
-      label: 'Расчёт зп'
-    },
-    currentUser?.role === 'admin' ? {
-      key: 'userManagement',
-      icon: <TeamOutlined />,
-      label: 'Пользователи'
-    } : null
-  ].filter(Boolean);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {isMobile && showOverlay && (
+        <div className="mobile-menu-overlay visible" onClick={toggleMenu} />
+      )}
       <Sider
         collapsed={collapsed}
         breakpoint="lg"
         collapsedWidth="0"
-        className="main-sidebar"
+        className={`main-sidebar ${collapsed ? 'ant-layout-sider-collapsed' : ''}`}
         trigger={null}
         style={{ height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
       >
-        <div className="logo" style={{ color: 'white' }}>
+        <div className="logo">
           {!collapsed && <span>FUEL Manager</span>}
         </div>
         <Menu 
           theme="dark" 
           mode="inline" 
-          defaultSelectedKeys={['dashboard']}
+          defaultSelectedKeys={['fuel']}
           selectedKeys={[currentView]}
           onClick={handleMenuClick}
-          items={sideMenuItems}
+          items={currentUser?.role === 'admin' ? adminMenuItems : userMenuItems}
         />
-        <div className="sidebar-footer" style={{ 
-          width: collapsed ? 80 : 200,
-          padding: '16px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          color: 'white'
-        }}>
-          <Dropdown menu={{ items: userMenuItems }} placement="topRight">
-            <Space style={{ cursor: 'pointer' }}>
-              <Avatar icon={<UserOutlined style={{ color: 'white' }} />} />
+        <div className="sidebar-footer" style={{ width: collapsed ? 80 : 200 }}>
+          <Dropdown menu={{ items: dropdownMenuItems, onClick: handleUserMenuClick }} placement="topRight">
+            <Space>
+              <Avatar icon={<UserOutlined className="white-icon" />} />
               {!collapsed && (
                 <>
-                  <span style={{ color: 'white' }}>{currentUser?.name || 'Пользователь'}</span>
-                  <DownOutlined style={{ color: 'white' }} />
+                  <span style={{ color: 'white' }}>{currentUser?.name || currentUser?.username || 'Пользователь'}</span>
+                  <DownOutlined className="white-icon" />
                 </>
               )}
             </Space>
           </Dropdown>
         </div>
       </Sider>
-      <Layout style={{ marginLeft: collapsed ? 0 : 200, transition: 'margin-left 0.2s' }}>
-        <Header style={{ 
-          padding: '0 16px', 
-          background: '#fff', 
-          display: 'flex', 
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+      
+      <Layout style={{ marginLeft: collapsed ? 0 : isMobile ? 0 : 200 }}>
+        <Header className="site-layout-background" style={{ padding: 0, background: '#001529' }}>
           <Button
             type="text"
             icon={collapsed ? 
-              <MenuUnfoldOutlined style={{ color: 'rgba(0, 0, 0, 0.15)' }} /> : 
-              <MenuFoldOutlined style={{ color: 'rgba(0, 0, 0, 0.15)' }} />
+              <MenuUnfoldOutlined className="white-icon" /> : 
+              <MenuFoldOutlined className="white-icon" />
             }
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ 
-              fontSize: '16px', 
-              width: 32, 
-              height: 32,
-              margin: '16px 0',
-              opacity: 0.5,
-              transition: 'opacity 0.3s'
-            }}
-            className="collapse-trigger"
+            onClick={toggleMenu}
+            style={{ fontSize: '16px', width: 64, height: 64 }}
           />
-          <div style={{ flex: 1 }} />
         </Header>
-        <Content style={{ margin: '24px 16px', padding: 24, background: '#fff' }}>
+        <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
           {renderContent()}
         </Content>
       </Layout>
+      <UpdateNotification />
     </Layout>
   );
-}
+};
 
 export default App; 

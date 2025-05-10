@@ -1,57 +1,99 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
-const morgan = require('morgan');
-const fs = require('fs');
 const path = require('path');
-const { connectDB } = require('./config/db');
-const seedUsers = require('./data/seedUsers');
+const { createServer } = require('http');
+const { sequelize, config } = require('./config/database');
+const cookieParser = require('cookie-parser');
+const socket = require('./socket');
 
-// Проверка существования директории для данных
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
-}
-
-// Загрузка переменных окружения
-dotenv.config();
-
-// Подключение к базе данных
-connectDB().then(() => {
-  // Создание начальных пользователей
-  seedUsers();
-});
+// Импорт маршрутов
+const userRoutes = require('./routes/userRoutes');
+const shiftRoutes = require('./routes/shiftRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const healthRoutes = require('./routes/healthRoutes');
+const sync = require('./routes/sync');
+const fuelRoutes = require('./routes/fuelRoutes');
 
 const app = express();
+const httpServer = createServer(app);
+
+// Настройка CORS
+app.use(cors({
+    origin: ['http://localhost:5174', 'http://localhost:3000', 'http://localhost:5173', 'http://89.169.170.164:*'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Инициализация Socket.IO
+socket.init(httpServer);
 
 // Middleware
 app.use(express.json());
-app.use(cors());
-app.use(morgan('dev'));
+app.use(cookieParser());
 
-// Маршруты API
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/vehicles', require('./routes/vehicleRoutes'));
-app.use('/api/shifts', require('./routes/shiftRoutes'));
-app.use('/api/fuel', require('./routes/fuelRoutes'));
-app.use('/api/health', require('./routes/healthRoutes'));
+// Маршруты
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/health', healthRoutes);
+app.use('/api/sync', sync);
+app.use('/api/fuel', fuelRoutes);
 
-// Базовый маршрут
-app.get('/', (req, res) => {
-  res.json({ message: 'API FUEL Manager успешно работает' });
-});
-
-// Обработка ошибок
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    message: 'Ошибка сервера',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+  res.status(500).json({ error: 'Что-то пошло не так!' });
 });
 
-const PORT = process.env.PORT || 5000;
+// Инициализация базы данных
+const initializeDatabase = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('SQLite подключена успешно');
+    
+    // Синхронизация моделей с базой данных
+    await sequelize.sync();
+    console.log('Модели синхронизированы с базой данных');
+  } catch (error) {
+    console.error('Ошибка при инициализации базы данных:', error);
+    process.exit(1);
+  }
+};
 
-app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-}); 
+// Инициализация приложения
+const initApp = async () => {
+  try {
+    await initializeDatabase();
+    
+    // Запуск сервера
+    httpServer.listen(config.port, '0.0.0.0', () => {
+      console.log(`Сервер запущен на порту ${config.port}`);
+    });
+  } catch (error) {
+    console.error('Ошибка при инициализации приложения:', error);
+    process.exit(1);
+  }
+};
+
+// Запускаем приложение только если файл запущен напрямую
+if (require.main === module) {
+  initApp();
+}
+
+// Обработка необработанных ошибок
+process.on('uncaughtException', (err) => {
+  console.error('Необработанная ошибка:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Необработанный rejection:', reason);
+});
+
+// Экспортируем только необходимые компоненты
+module.exports = {
+  app,
+  httpServer,
+  config
+}; 
