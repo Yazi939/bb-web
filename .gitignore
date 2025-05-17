@@ -30,4 +30,7 @@ Thumbs.db
 *.key
 *.crt
 *.csr
-*.srl 
+*.srl
+
+# JAR files
+*.jar 
