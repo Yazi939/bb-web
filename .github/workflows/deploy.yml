@@ -5,29 +5,47 @@ on:
     branches:
       - main  # или master, в зависимости от вашей основной ветки
 
+permissions:
+  contents: read # Разрешаем чтение кода
+  pages: write # Разрешаем запись в Pages (для деплоя)
+  id-token: write # Разрешаем получение токена для развертывания через OIDC
+
 jobs:
-  build-and-deploy:
+  # Задание для сборки проекта
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Используем последнюю версию для совместимости с permissions
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # Используем последнюю версию
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '18' # Убедитесь, что это нужная версия Node.js
+          cache: 'npm' # Кэшируем зависимости npm
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci # Чистая установка зависимостей
 
       - name: Build
-        run: npm run build
-        env:
+        run: npm run build # Запуск команды сборки вашего проекта
+        env: # Передаем переменную окружения во время сборки
           VITE_API_URL: https://bunker-boats.ru/api
 
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3 # Действие для загрузки артефакта сборки
         with:
-          folder: dist
-          branch: gh-pages 
+          path: './dist' # Указываем путь к папке с собранным проектом (обычно dist)
+
+  # Задание для деплоя артефакта на GitHub Pages
+  deploy:
+    environment: # Указываем окружение развертывания
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # URL задеплоенной страницы
+    runs-on: ubuntu-latest
+    needs: build # Это задание зависит от успешного завершения задания 'build'
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment # ID шага для ссылки на его выводы
+        uses: actions/deploy-pages@v4 # Официальное действие GitHub для деплоя Pages 
