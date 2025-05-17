@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Указываем production API URL по умолчанию
-const API_URL = process.env.REACT_APP_API_URL || 'http://89.169.170.164:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://bunker-boats.ru/api';
 
 // Создаем инстанс axios
 const api = axios.create({
