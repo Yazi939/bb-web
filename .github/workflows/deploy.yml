@@ -3,12 +3,13 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # или master, в зависимости от вашей основной ветки
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: read # Разрешаем чтение кода
-  pages: write # Разрешаем запись в Pages (для деплоя)
-  id-token: write # Разрешаем получение токена для развертывания через OIDC
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   # Задание для сборки проекта
@@ -31,6 +32,7 @@ jobs:
         run: npm run build # Запуск команды сборки вашего проекта
         env: # Передаем переменную окружения во время сборки
           VITE_API_URL: https://bunker-boats.ru/api
+          NODE_ENV: production
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3 # Действие для загрузки артефакта сборки

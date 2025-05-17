@@ -11,13 +11,13 @@ const disableHmr = process.env.VITE_DISABLE_HMR === 'true';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/bb-web/',
+  base: '/',
   root: resolve(__dirname, 'src'),
   publicDir: resolve(__dirname, 'public'),
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
-    target: 'chrome95',
+    target: 'es2015',
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'src/index.html'),
@@ -48,14 +48,14 @@ export default defineConfig({
     strictPort: true,
     headers: {
       'Content-Security-Policy': [
-        "default-src 'self' file: http://localhost:* ws://localhost:* http://89.169.170.164:* ws://89.169.170.164:*;",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' file:;",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:;",
-        "img-src 'self' data: blob: file: http://localhost:* https:;",
-        "font-src 'self' data: https://fonts.gstatic.com file:;",
-        "connect-src 'self' ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:* ws://89.169.170.164:5000 http://89.169.170.164:5000;",
-        "worker-src 'self' blob: file:;",
-        "frame-src 'self' file:;"
+        "default-src 'self' https:;",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
+        "img-src 'self' data: blob: https:;",
+        "font-src 'self' data: https://fonts.gstatic.com;",
+        "connect-src 'self' https://bunker-boats.ru;",
+        "worker-src 'self' blob:;",
+        "frame-src 'self';"
       ].join(' ')
     },
     watch: {
