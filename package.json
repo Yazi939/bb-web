@@ -11,7 +11,11 @@
   },
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder build"
+    "build": "electron-builder build",
+    "dev": "vite",
+    "build:web": "vite build",
+    "preview": "vite preview",
+    "deploy:web": "npm run build:web && git add dist && git commit -m 'Update web version' && git push"
   },
   "build": {
     "appId": "com.bunkerboats.app",
