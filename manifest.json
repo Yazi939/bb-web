@@ -1,0 +1,10 @@
+{
+  "name": "Bunker App",
+  "short_name": "Bunker",
+  "description": "Fuel management application",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1890ff",
+  "icons": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "bb-web",
+  "version": "1.0.0",
+  "description": "Web version of Bunker application",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -s ."
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
