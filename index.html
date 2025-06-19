@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/x-icon" href="./bunker-logo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://bunker-boats.ru wss://bunker-boats.ru ws://localhost:* http://localhost:*; worker-src 'self' blob:; frame-src 'self';" />
-    <title>Fuel Trading</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:* ws://89.169.170.164:5000 http://89.169.170.164:5000;" />
+    <title>Fuel Trading Web</title>
+    <meta name="description" content="Fuel Trading Management System - Web Version" />
+    <meta name="keywords" content="fuel, trading, management, web, expenses" />
+    <link rel="manifest" href="./manifest-web.json" />
+    <meta name="theme-color" content="#1890ff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="FuelManager" />
     <script type="module" crossorigin src="./main.js"></script>
     <link rel="modulepreload" crossorigin href="./react-vendor.js">
     <link rel="modulepreload" crossorigin href="./antd-vendor.js">
@@ -13,6 +20,6 @@
     <link rel="stylesheet" crossorigin href="./main.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html> 
