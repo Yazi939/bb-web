@@ -1,30 +1,17 @@
 {
   "name": "Bunkering boat",
   "short_name": "Bunkering boat",
-  "description": "Fuel Trading Management System - Web Version with Expense Management",
+  "description": "Система управления топливом и расходами",
   "version": "2.1.1",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#001529",
-  "theme_color": "#1890ff",
-  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./bunker-logo.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "src": "/icon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
     }
   ],
-  "categories": ["business", "productivity", "finance"],
-  "lang": "ru",
-  "scope": "./",
-  "features": [
-    "fuel-management",
-    "expense-tracking",
-    "user-management",
-    "order-processing",
-    "shift-management",
-    "dashboard-analytics"
-  ]
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1890ff",
+  "background_color": "#ffffff"
 } 
