@@ -1,6 +1,6 @@
 {
-  "name": "Fuel Trading Management",
-  "short_name": "FuelManager",
+  "name": "Bunkering boat",
+  "short_name": "Bunkering boat",
   "description": "Fuel Trading Management System - Web Version with Expense Management",
   "version": "2.1.0",
   "start_url": "./index.html",
