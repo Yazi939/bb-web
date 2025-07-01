@@ -105,6 +105,15 @@ const FuelTrading: React.FC = () => {
       setLoading(true);
       const response: any = await fuelService.getTransactions();
       const responseData = Array.isArray(response) ? response : (response?.data || []);
+      
+      // ВРЕМЕННЫЙ ЛОГ: Проверяем формат времени от сервера (отключен)
+      // if (responseData.length > 0) {
+      //   console.log('=== ОТЛАДКА ВРЕМЕНИ ===');
+      //   console.log('Первая транзакция от сервера:', responseData[0]);
+      //   console.log('createdAt формат:', responseData[0].createdAt);
+      //   console.log('typeof createdAt:', typeof responseData[0].createdAt);
+      // }
+      
       const fetchedTransactions = responseData.map((t: any) => {
         return {
           ...t,
@@ -168,8 +177,12 @@ const FuelTrading: React.FC = () => {
     .filter(t => {
       const isNotFrozen = !t.frozen;
       
-      // Парсим время как московское время (сервер возвращает московское время без 'Z')
-      const transactionDate = dayjs(t.createdAt + '+03:00'); // явно указываем московскую временную зону
+      // Осторожно парсим время - проверяем есть ли уже временная зона
+      let timeStr = t.createdAt;
+      if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+        timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+      }
+      const transactionDate = dayjs(timeStr); // явно указываем московскую временную зону
       const startOfToday = dayjs().startOf('day');
       const endOfToday = dayjs().endOf('day');
       
@@ -201,8 +214,12 @@ const FuelTrading: React.FC = () => {
       const endOfDay = selectedArchiveDate.endOf('day');
       
       const filtered = allTransactions.filter(t => {
-        // Парсим время как московское время
-        const transactionDate = dayjs(t.createdAt + '+03:00');
+        // Осторожно парсим время - проверяем есть ли уже временная зона
+        let timeStr = t.createdAt;
+        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        }
+        const transactionDate = dayjs(timeStr);
         const isInDateRange = !t.frozen && 
                              transactionDate.isSameOrAfter(startOfDay) && 
                              transactionDate.isSameOrBefore(endOfDay);
@@ -230,11 +247,18 @@ const FuelTrading: React.FC = () => {
   };
   
   useEffect(() => {
-    // При изменении фильтров или пагинации обновляем отображаемые транзакции
+    // При изменении фильтров обновляем отображаемые транзакции
     const { current, pageSize } = pagination;
     const start = (current - 1) * pageSize;
     const end = start + pageSize;
     const paginatedTransactions = filteredTransactions.slice(start, end);
+    
+    // ВРЕМЕННЫЙ ЛОГ для отладки
+    console.log('🔄 Updating transactions:', {
+      filteredCount: filteredTransactions.length,
+      paginatedCount: paginatedTransactions.length,
+      pagination: { current, pageSize, start, end }
+    });
     
     setTransactions(paginatedTransactions);
     
@@ -243,7 +267,7 @@ const FuelTrading: React.FC = () => {
       ...prev,
       total: filteredTransactions.length
     }));
-  }, [filteredTransactions, pagination.current, pagination.pageSize]);
+  }, [filteredTransactions]);
   
   const loadUserInfo = async () => {
     try {
@@ -825,8 +849,8 @@ const FuelTrading: React.FC = () => {
 
   // Убираем автоматическое создание пользователя - должна быть авторизация
 
-  // ВРЕМЕННО: выводим данные для отладки объёма
-  console.log('filteredTransactions:', filteredTransactions.map(t => ({ key: t.key, volume: t.volume, type: typeof t.volume })));
+  // ✅ Исправлено: таблица теперь использует filteredTransactions напрямую
+  // Логи отключены для предотвращения циклов рендеринга
 
   const tableData = Object.entries(metrics.fuelTypeStats).map(([fuelType, stats]) => ({
     key: fuelType,
@@ -920,8 +944,12 @@ const FuelTrading: React.FC = () => {
   // Расчёт выручки за день
   // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
   const todayTransactions = allTransactions.filter(t => {
-    // Парсим время как московское время
-    const transactionDate = dayjs(t.createdAt + '+03:00');
+    // Осторожно парсим время - проверяем есть ли уже временная зона
+    let timeStr = t.createdAt;
+    if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+      timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+    }
+    const transactionDate = dayjs(timeStr);
     const startOfToday = dayjs().startOf('day');
     const endOfToday = dayjs().endOf('day');
     return !t.frozen && 
@@ -931,9 +959,9 @@ const FuelTrading: React.FC = () => {
   
   const dailyRevenue = calcDailyRevenueByPaymentMethod(todayTransactions);
 
-  // Отладочный вывод для проверки расчёта остатков по дизелю
-  console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
-  console.log('Все операции дизеля:', allTransactions.filter(t => t.fuelType === 'diesel'));
+  // Отладочный вывод для проверки расчёта остатков по дизелю (только при изменении)
+  // console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
+  // console.log('Все операции дизеля:', allTransactions.filter(t => t.fuelType === 'diesel'));
 
   return (
     <ConfigProvider locale={ruRU}>
@@ -1250,9 +1278,9 @@ const FuelTrading: React.FC = () => {
               
               <Table 
                 columns={advancedMode ? advancedColumns : columns} 
-                dataSource={transactions} 
+                dataSource={filteredTransactions} 
                 pagination={{
-                  ...pagination,
+                  pageSize: 10,
                   showSizeChanger: true,
                   showTotal: (total: number) => `Всего ${total} записей`,
                   pageSizeOptions: ['10', '20', '50', '100'],
@@ -1260,7 +1288,6 @@ const FuelTrading: React.FC = () => {
                 }}
                 scroll={{ x: 'max-content' }}
                 rowClassName={() => 'fuel-table-row'}
-                onChange={handleTableChange}
                 loading={loading}
               />
             </Card>

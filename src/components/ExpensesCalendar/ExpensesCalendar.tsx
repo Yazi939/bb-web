@@ -217,8 +217,12 @@ const ExpensesCalendar: React.FC = () => {
       // Фильтруем транзакции только за выбранный день из разрешенных типов
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        // Парсим время как московское время (сервер возвращает московское время без 'Z')
-        const transactionDate = dayjs((t.createdAt || t.date) + '+03:00');
+        // Осторожно парсим время - проверяем есть ли уже временная зона
+        let timeStr = t.createdAt || t.date;
+        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        }
+        const transactionDate = dayjs(timeStr);
         return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
       });
       
@@ -240,8 +244,12 @@ const ExpensesCalendar: React.FC = () => {
       // Фильтруем транзакции только за этот день из разрешенных типов
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        // Парсим время как московское время (сервер возвращает московское время без 'Z')
-        const transactionDate = dayjs((t.createdAt || t.date) + '+03:00');
+        // Осторожно парсим время - проверяем есть ли уже временная зона
+        let timeStr = t.createdAt || t.date;
+        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        }
+        const transactionDate = dayjs(timeStr);
         return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
       });
       
