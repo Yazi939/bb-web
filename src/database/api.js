@@ -1,7 +1,21 @@
 const axios = require('axios');
 
-// Указываем production API URL по умолчанию
-const API_URL = process.env.REACT_APP_API_URL || 'http://89.169.170.164:5000/api';
+// Автоматическое определение API URL в зависимости от платформы
+const getApiUrl = () => {
+  // Если это веб-версия и загружена по HTTPS
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
+    return 'https://bunker-boats.ru/api';
+  }
+  // Если переменная окружения задана
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // По умолчанию для разработки
+  return 'http://89.169.170.164:5000/api';
+};
+
+const API_URL = getApiUrl();
+console.log('🔗 API Base URL:', API_URL);
 
 // Создаем инстанс axios
 const api = axios.create({
@@ -42,12 +56,13 @@ api.interceptors.response.use(
     }
     
     // Обработка ошибок авторизации
-    if (error.response.status === 401 || error.response.status === 403) {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
       // Проверяем, не Electron ли это
       const isElectron = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('electron');
-      if (!isElectron) {
-        window.location.href = '/login';
+      if (!isElectron && typeof window !== 'undefined') {
+        // В веб-версии перенаправляем на корень
+        window.location.href = '/';
       }
       // В Electron просто возвращаем ошибку
     }
