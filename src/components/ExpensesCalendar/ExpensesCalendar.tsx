@@ -217,7 +217,8 @@ const ExpensesCalendar: React.FC = () => {
       // Фильтруем транзакции только за выбранный день из разрешенных типов
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        const transactionDate = dayjs(t.timestamp || t.createdAt || t.date);
+        // Парсим время как московское время (сервер возвращает московское время без 'Z')
+        const transactionDate = dayjs((t.createdAt || t.date) + '+03:00');
         return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
       });
       
@@ -239,7 +240,8 @@ const ExpensesCalendar: React.FC = () => {
       // Фильтруем транзакции только за этот день из разрешенных типов
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        const transactionDate = dayjs(t.timestamp || t.createdAt || t.date);
+        // Парсим время как московское время (сервер возвращает московское время без 'Z')
+        const transactionDate = dayjs((t.createdAt || t.date) + '+03:00');
         return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
       });
       

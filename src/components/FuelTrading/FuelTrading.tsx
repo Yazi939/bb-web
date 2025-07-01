@@ -167,7 +167,9 @@ const FuelTrading: React.FC = () => {
   const filteredTransactions = allTransactions
     .filter(t => {
       const isNotFrozen = !t.frozen;
-      const transactionDate = dayjs(t.createdAt);
+      
+      // Парсим время как московское время (сервер возвращает московское время без 'Z')
+      const transactionDate = dayjs(t.createdAt + '+03:00'); // явно указываем московскую временную зону
       const startOfToday = dayjs().startOf('day');
       const endOfToday = dayjs().endOf('day');
       
@@ -199,7 +201,8 @@ const FuelTrading: React.FC = () => {
       const endOfDay = selectedArchiveDate.endOf('day');
       
       const filtered = allTransactions.filter(t => {
-        const transactionDate = dayjs(t.createdAt);
+        // Парсим время как московское время
+        const transactionDate = dayjs(t.createdAt + '+03:00');
         const isInDateRange = !t.frozen && 
                              transactionDate.isSameOrAfter(startOfDay) && 
                              transactionDate.isSameOrBefore(endOfDay);
@@ -917,7 +920,8 @@ const FuelTrading: React.FC = () => {
   // Расчёт выручки за день
   // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
   const todayTransactions = allTransactions.filter(t => {
-    const transactionDate = dayjs(t.createdAt);
+    // Парсим время как московское время
+    const transactionDate = dayjs(t.createdAt + '+03:00');
     const startOfToday = dayjs().startOf('day');
     const endOfToday = dayjs().endOf('day');
     return !t.frozen && 
