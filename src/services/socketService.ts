@@ -1,6 +1,14 @@
 import { io, Socket } from 'socket.io-client';
 import { FuelTransaction } from '../types/electron';
 
+// Автоматическое определение Socket URL в зависимости от платформы
+const getSocketUrl = () => {
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
+    return 'https://bunker-boats.ru';
+  }
+  return 'http://89.169.170.164:5000';
+};
+
 class SocketService {
   private static instance: SocketService;
   private socket: Socket;
@@ -21,17 +29,21 @@ class SocketService {
   private lastEventId: string | null = null;
 
   private constructor() {
-    this.socket = io('http://89.169.170.164:5000', {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 10000,
-      transports: ['polling', 'websocket'],
-      withCredentials: true,
-      autoConnect: true,
-      forceNew: true,
-      path: '/socket.io/'
-    });
+    const socketUrl = getSocketUrl();
+    console.log('🔌 Socket URL:', socketUrl);
+    
+    try {
+      this.socket = io(socketUrl, {
+        transports: ['websocket', 'polling'],
+        timeout: 10000,
+        forceNew: true
+      });
+    } catch (error) {
+      console.error('Ошибка создания Socket.IO:', error);
+      // Создаем заглушку для предотвращения ошибок
+      this.socket = {} as Socket;
+      return;
+    }
 
     this.socket.on('connect', () => {
       console.log('WebSocket подключен');

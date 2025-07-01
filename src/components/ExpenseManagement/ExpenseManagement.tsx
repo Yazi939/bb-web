@@ -57,6 +57,7 @@ const ExpenseManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [expenseStats, setExpenseStats] = useState({ total: 0, count: 0 });
 
   // Константы для селектов
   const expenseTypes = [
@@ -82,13 +83,23 @@ const ExpenseManagement: React.FC = () => {
     { value: 'transfer', label: 'Перевод' }
   ];
 
+  // Автоматическое определение API URL
+  const getExpenseApiUrl = () => {
+    if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
+      return 'https://bunker-boats.ru/api';
+    }
+    return 'http://89.169.170.164:5000/api';
+  };
+
+  const API_URL = getExpenseApiUrl();
+  console.log('💰 Expense API URL:', API_URL);
+
   useEffect(() => {
-    fetchExpenses();
+    console.log('💰 Expense API URL:', API_URL);
+    loadExpenses();
   }, []);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://89.169.170.164:5000/api';
-
-  const fetchExpenses = async () => {
+  const loadExpenses = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -147,7 +158,7 @@ const ExpenseManagement: React.FC = () => {
       form.resetFields();
       setIsModalVisible(false);
       setEditingExpense(null);
-      fetchExpenses();
+      loadExpenses();
     } catch (error) {
       message.error('Ошибка при сохранении расхода');
       console.error('Error saving expense:', error);
@@ -170,7 +181,7 @@ const ExpenseManagement: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       message.success('Расход успешно удален');
-      fetchExpenses();
+      loadExpenses();
     } catch (error) {
       message.error('Ошибка при удалении расхода');
       console.error('Error deleting expense:', error);

@@ -20,6 +20,9 @@ import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
 import ExpenseManagement from './components/ExpenseManagement/ExpenseManagementWeb';
 import './App.css';
 
+// Компонент-заглушка для UpdateNotification в веб-версии
+const WebUpdateNotification: React.FC = () => null;
+
 const { Header, Content, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -303,9 +306,10 @@ const AppWeb: React.FC = () => {
         <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
           {renderContent()}
         </Content>
+              </Layout>
+        <WebUpdateNotification />
       </Layout>
-    </Layout>
-  );
-};
+    );
+  };
 
 export default AppWeb; 

@@ -1,64 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Progress, Space, Typography } from 'antd';
+import { DownloadOutlined, ReloadOutlined, CloseOutlined } from '@ant-design/icons';
 import { UpdateInfo } from '../types/electron';
 
 const { Text } = Typography;
 
 declare global {
   interface Window {
-    electronAPI: {
-      checkForUpdates: () => Promise<void>;
+    electronAPI?: {
+      checkForUpdates: () => void;
       downloadUpdate: () => Promise<void>;
-      installUpdate: () => Promise<void>;
+      installUpdate: () => void;
       onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
-      onDownloadProgress: (callback: (progress: { percent: number }) => void) => void;
-      onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => void;
-      onUpdateError: (callback: (error: string) => void) => void;
-    }
+      onDownloadProgress: (callback: (info: { percent: number }) => void) => void;
+      onUpdateDownloaded: (callback: () => void) => void;
+      onUpdateError: (callback: (error: Error) => void) => void;
+      onUpdateNotAvailable?: (callback: () => void) => void;
+    };
   }
 }
 
 const UpdateNotification: React.FC = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isDownloaded, setIsDownloaded] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    // Проверяем, что API доступен
+    // Проверяем доступность Electron API
     if (!window.electronAPI) {
-      console.error('Electron API не доступен');
+      console.log('Electron API недоступен - вероятно веб-версия');
       return;
     }
 
-    // Слушаем события обновлений
-    window.electronAPI.onUpdateAvailable((info) => {
+    // Проверяем когда последний раз проверяли обновления
+    const lastCheck = localStorage.getItem('lastUpdateCheck');
+    const skipTime = localStorage.getItem('updateSkipTime');
+    const now = Date.now();
+    
+    // Если пользователь недавно отклонил обновление, не проверяем 24 часа
+    if (skipTime && (now - parseInt(skipTime)) < 24 * 60 * 60 * 1000) {
+      console.log('Пользователь недавно отклонил обновление, пропускаем');
+      return;
+    }
+
+    // Настраиваем обработчики событий
+    window.electronAPI.onUpdateAvailable((info: UpdateInfo) => {
+      console.log('Доступно обновление:', info);
+      
+      // Проверяем, не отклонил ли пользователь эту версию
+      const skipVersion = localStorage.getItem('skipUpdateVersion');
+      if (skipVersion === info.version) {
+        console.log('Пользователь выбрал не напоминать об этой версии:', info.version);
+        return;
+      }
+      
       setUpdateInfo(info);
-      setIsModalVisible(true);
+      setIsVisible(true);
     });
 
-    window.electronAPI.onDownloadProgress((progressObj) => {
-      setDownloadProgress(Math.round(progressObj.percent));
+    window.electronAPI.onDownloadProgress((info: { percent: number }) => {
+      setDownloadProgress(Math.round(info.percent));
     });
 
     window.electronAPI.onUpdateDownloaded(() => {
       setIsDownloading(false);
-      setIsDownloaded(true);
+      setIsReady(true);
     });
 
-    window.electronAPI.onUpdateError((error) => {
+    window.electronAPI.onUpdateError((error: Error) => {
       console.error('Ошибка обновления:', error);
       setIsDownloading(false);
     });
 
-    // Проверяем наличие обновлений при запуске
-    window.electronAPI.checkForUpdates();
+    // Обработчик для случая когда обновлений нет
+    if (window.electronAPI.onUpdateNotAvailable) {
+      window.electronAPI.onUpdateNotAvailable(() => {
+        console.log('Обновления не доступны, приложение актуально');
+        localStorage.setItem('lastUpdateCheck', now.toString());
+      });
+    }
+
+    // Проверяем обновления только если не проверяли в этой сессии
+    if (!hasChecked) {
+      console.log('Проверяем обновления...');
+      window.electronAPI.checkForUpdates();
+      localStorage.setItem('lastUpdateCheck', now.toString());
+    }
 
     return () => {
-      // Очистка слушателей не требуется, так как они привязаны к window.electronAPI
+      // Cleanup не требуется для большинства Electron API
     };
-  }, []);
+  }, [hasChecked]);
 
   const handleUpdate = async () => {
     setIsDownloading(true);
@@ -70,13 +105,13 @@ const UpdateNotification: React.FC = () => {
   };
 
   const handleLater = () => {
-    setIsModalVisible(false);
+    setIsVisible(false);
   };
 
   return (
     <Modal
       title="Уважаемый сотрудник Bunker Boats"
-      open={isModalVisible}
+      open={isVisible}
       onCancel={handleLater}
       footer={null}
       closable={!isDownloading}
@@ -98,7 +133,7 @@ const UpdateNotification: React.FC = () => {
             </div>
           )}
 
-          {!isDownloading && !isDownloaded && (
+          {!isDownloading && !isReady && (
             <Space style={{ marginTop: 16 }}>
               <Button type="primary" onClick={handleUpdate}>
                 Обновить сейчас
@@ -109,7 +144,7 @@ const UpdateNotification: React.FC = () => {
             </Space>
           )}
 
-          {isDownloaded && (
+          {isReady && (
             <Space style={{ marginTop: 16 }}>
               <Button type="primary" onClick={handleInstall}>
                 Перезапустить и установить
