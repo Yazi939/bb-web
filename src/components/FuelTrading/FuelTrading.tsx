@@ -162,20 +162,30 @@ const FuelTrading: React.FC = () => {
     .filter(t => {
       const isNotFrozen = !t.frozen;
       
-      // Осторожно парсим время - проверяем есть ли уже временная зона
-      let timeStr = t.createdAt;
-      if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-        timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+      // Получаем дату транзакции
+      let transactionDateStr = '';
+      if (t.createdAt) {
+        // Берем только дату из строки времени (первые 10 символов: YYYY-MM-DD)
+        transactionDateStr = t.createdAt.substring(0, 10);
+      } else {
+        return false;
       }
-      const transactionDate = dayjs(timeStr);
       
-      // ВАЖНО: Создаем "сегодня" также в московской временной зоне
-      const moscowNow = dayjs().add(3, 'hour'); // Московское время UTC+3
-      const startOfToday = moscowNow.startOf('day');
-      const endOfToday = moscowNow.endOf('day');
+      // Получаем сегодняшнюю дату в формате YYYY-MM-DD
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + 
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(today.getDate()).padStart(2, '0');
       
-      // Только сегодняшние операции
-      if (!(isNotFrozen && transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday))) {
+      console.log('Простая проверка даты:', {
+        transactionId: t.id,
+        transactionDate: transactionDateStr,
+        todayDate: todayStr,
+        isToday: transactionDateStr === todayStr
+      });
+      
+      // Только сегодняшние операции (сравниваем строки дат)
+      if (!(isNotFrozen && transactionDateStr === todayStr)) {
         return false;
       }
       
