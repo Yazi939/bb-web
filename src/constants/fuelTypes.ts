@@ -7,7 +7,8 @@ export const FUEL_TYPES = [
 
 export const ALL_OPERATION_TYPES = [
   { value: 'purchase' as const, label: 'Закупка', color: 'green' },
-  { value: 'sale' as const, label: 'Продажа', color: 'blue' },
+  { value: 'sale' as const, label: 'Продажа с катера', color: 'blue' },
+  { value: 'bunker_sale' as const, label: 'Продажа с причала', color: 'cyan' },
   { value: 'base_to_bunker' as const, label: 'На бункер', color: 'orange' },
   { value: 'bunker_to_base' as const, label: 'С бункера', color: 'purple' }
 ] as const;

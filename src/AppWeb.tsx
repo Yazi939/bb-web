@@ -6,9 +6,10 @@ import {
   ShoppingCartOutlined, ScheduleOutlined, CalendarOutlined,
   LogoutOutlined, UserOutlined, SettingOutlined,
   MenuUnfoldOutlined, MenuFoldOutlined, DownOutlined,
-  DollarOutlined, CloseOutlined
+  DollarOutlined, CloseOutlined, CalculatorOutlined, PayCircleOutlined
 } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
+import { User, UserRole } from './utils/users';
 import Dashboard from './components/Dashboard/Dashboard';
 import FuelTrading from './components/FuelTrading/FuelTrading';
 import UserManagement from './components/UserManagement/UserManagement';
@@ -18,6 +19,8 @@ import Login from './components/Login/Login';
 import Preloader from './components/Preloader/Preloader';
 import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
 import ExpenseManagement from './components/ExpenseManagement/ExpenseManagementWeb';
+import Calculator from './components/Calculator/Calculator';
+import SalaryCalculator from './components/SalaryCalculator/SalaryCalculator';
 import './App.css';
 
 // Компонент-заглушка для UpdateNotification в веб-версии
@@ -26,13 +29,6 @@ const WebUpdateNotification: React.FC = () => null;
 const { Header, Content, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
-
-interface User {
-  id: number;
-  username: string;
-  role: string;
-  name?: string;
-}
 
 const iconProps: AntdIconProps = {
   className: "white-icon"
@@ -53,6 +49,16 @@ const adminMenuItems: MenuItem[] = [
     key: 'orders',
     icon: <ShoppingCartOutlined className="white-icon" />,
     label: 'Заказы',
+  },
+  {
+    key: 'calculator',
+    icon: <CalculatorOutlined className="white-icon" />,
+    label: 'Калькулятор',
+  },
+  {
+    key: 'salary-calculator',
+    icon: <PayCircleOutlined className="white-icon" />,
+    label: 'Зарплаты',
   },
   {
     key: 'expenses',
@@ -87,26 +93,36 @@ const userMenuItems: MenuItem[] = [
     icon: <ShoppingCartOutlined className="white-icon" />,
     label: 'Заказы',
   },
+  {
+    key: 'calculator',
+    icon: <CalculatorOutlined className="white-icon" />,
+    label: 'Калькулятор',
+  },
 ];
 
 const AppWeb: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState<string>('fuel');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showLoader, setShowLoader] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentView, setCurrentView] = useState('fuel');
+  const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(true);
 
+  // Базовая отладка загрузки
+  console.log('🚀 AppWeb component loaded!');
+  console.log('📱 Window width:', window.innerWidth);
+  console.log('📱 isMobile detected:', isMobile);
+  console.log('📱 User agent:', navigator.userAgent);
+
+  // Инициализация состояния при загрузке
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 767;
       setIsMobile(mobile);
-      if (!mobile) {
-        setCollapsed(false);
-        setShowOverlay(false);
-      }
+      console.log('📱 Resize detected:', { width: window.innerWidth, isMobile: mobile });
     };
 
     window.addEventListener('resize', handleResize);
@@ -114,27 +130,43 @@ const AppWeb: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (loading) {
-      setShowLoader(true);
-    } else {
-      // showLoader теперь скрывается только после onFinish
-    }
-  }, [loading]);
-
-  useEffect(() => {
     const checkAuth = async () => {
+      console.log('🔐 Checking auth...');
+      
       try {
         const token = localStorage.getItem('token');
+        console.log('🔐 Token found:', !!token);
+        
         if (token) {
-          // Простая проверка - если токен есть, считаем что пользователь авторизован
-          // В реальном приложении здесь бы была проверка токена на сервере
-          const userData = { id: 1, username: 'webuser', role: 'user', name: 'Web User' };
-          console.log('Web auth verified:', userData);
-          setCurrentUser(userData);
-          setIsLoggedIn(true);
+          // Определяем API URL
+          const apiUrl = window.location.protocol === 'https:' 
+            ? 'https://bunker-boats.ru/api'
+            : 'http://89.169.170.164:5000/api';
+            
+          // Проверяем токен на сервере
+          const response = await fetch(`${apiUrl}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            // Адаптируем данные с сервера к типу User
+            const user: User = {
+              id: String(userData.id), // Преобразуем number в string
+              name: userData.name || userData.username || 'Пользователь',
+              username: userData.username,
+              role: userData.role as UserRole // Приводим к UserRole
+            };
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+            console.log('🔐 Auth successful:', user);
+          } else {
+            localStorage.removeItem('token');
+            console.log('🔐 Invalid token, removed');
+          }
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error('🔐 Auth check failed:', error);
         localStorage.removeItem('token');
       } finally {
         setLoading(false);
@@ -149,9 +181,17 @@ const AppWeb: React.FC = () => {
   }, [currentUser]);
 
   const toggleMenu = () => {
+    console.log('🔧 Toggle menu called:', { isMobile, mobileMenuOpen });
+    
     if (isMobile) {
-      setCollapsed(!collapsed);
-      setShowOverlay(!collapsed);
+      const newMobileMenuOpen = !mobileMenuOpen;
+      setMobileMenuOpen(newMobileMenuOpen);
+      setShowOverlay(newMobileMenuOpen);
+      console.log('🔧 Mobile menu toggle:', { 
+        wasClosed: !mobileMenuOpen, 
+        willBeOpen: newMobileMenuOpen,
+        isMobile: isMobile 
+      });
     } else {
       setCollapsed(!collapsed);
       setShowOverlay(false);
@@ -160,7 +200,7 @@ const AppWeb: React.FC = () => {
 
   const closeMenu = () => {
     if (isMobile) {
-      setCollapsed(true);
+      setMobileMenuOpen(false);
       setShowOverlay(false);
     }
   };
@@ -189,8 +229,15 @@ const AppWeb: React.FC = () => {
     }
 
     if (!isLoggedIn) {
-      return <Login onLoginSuccess={async (user: User) => {
-        console.log('LOGIN RESPONSE:', user);
+      return <Login onLoginSuccess={async (userData: any) => {
+        console.log('LOGIN RESPONSE:', userData);
+        // Адаптируем данные от Login к типу User
+        const user: User = {
+          id: String(userData.id), // Преобразуем number в string если нужно
+          name: userData.name || userData.username || 'Пользователь',
+          username: userData.username,
+          role: userData.role as UserRole // Приводим к UserRole
+        };
         setIsLoggedIn(true);
         setCurrentUser(user);
         setCurrentView('fuel');
@@ -212,6 +259,10 @@ const AppWeb: React.FC = () => {
         return currentUser?.role === 'admin' ? <ShiftManagement /> : null;
       case 'orders':
         return <Orders />;
+      case 'calculator':
+        return <Calculator />;
+      case 'salary-calculator':
+        return <SalaryCalculator />;
       default:
         return <FuelTrading />;
     }
@@ -248,76 +299,126 @@ const AppWeb: React.FC = () => {
           }}
         />
       )}
-      <Sider
-        collapsed={isMobile ? collapsed : collapsed}
-        breakpoint="lg"
-        collapsedWidth="0"
-        className={`main-sidebar ${collapsed ? 'ant-layout-sider-collapsed' : ''}`}
-        trigger={null}
-        style={{ 
-          height: '100vh', 
-          position: 'fixed', 
-          left: 0, 
-          top: 0, 
-          bottom: 0,
-          zIndex: isMobile ? 1000 : 100,
-          transform: isMobile ? (collapsed ? 'translateX(-100%)' : 'translateX(0)') : 'none',
-          transition: 'transform 0.3s ease'
-        }}
-      >
-        <div className="logo">
-          {!collapsed && <span>Bunker Boats</span>}
-          {/* Кнопка закрытия для мобильных устройств */}
-          {isMobile && !collapsed && (
-            <Button 
-              type="text" 
-              icon={<CloseOutlined />}
-              onClick={closeMenu}
-              style={{ 
-                color: 'white', 
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                zIndex: 1001,
-                padding: '4px',
-                width: '32px',
-                height: '32px',
-                borderRadius: '4px',
-                background: 'rgba(255, 255, 255, 0.1)'
-              }}
-            />
-          )}
-        </div>
-        <Menu 
-          theme="dark" 
-          mode="inline" 
-          defaultSelectedKeys={['fuel']}
-          selectedKeys={[currentView]}
-          onClick={handleMenuClick}
-          items={currentUser?.role === 'admin' ? adminMenuItems : userMenuItems}
-        />
-        <div className="sidebar-footer" style={{ width: collapsed ? 80 : 200 }}>
-          <Dropdown menu={{ items: dropdownMenuItems, onClick: handleUserMenuClick }} placement="topRight">
-            <Space>
-              <Avatar icon={<UserOutlined className="white-icon" />} />
-              {!collapsed && (
-                <>
-                  <span style={{ color: 'white' }}>{currentUser?.name || currentUser?.username || 'Пользователь'}</span>
-                  <DownOutlined className="white-icon" />
-                </>
-              )}
-            </Space>
-          </Dropdown>
-        </div>
-      </Sider>
       
-      <Layout style={{ marginLeft: collapsed ? 0 : isMobile ? 0 : 200 }}>
+      {/* Мобильная версия меню - обычный div */}
+      {isMobile ? (
+        <div
+          className={`main-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            height: '100vh',
+            width: '280px',
+            maxWidth: '80vw',
+            zIndex: 1000,
+            transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)',
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            backgroundColor: '#001529',
+            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)',
+            display: 'block',
+            visibility: 'visible'
+          }}
+          data-mobile-open={mobileMenuOpen}
+          data-is-mobile={isMobile}
+        >
+          <div className="logo">
+            {mobileMenuOpen && <span>Bunker Boats</span>}
+            {/* Кнопка закрытия для мобильных устройств */}
+            {mobileMenuOpen && (
+              <Button 
+                type="text" 
+                icon={<CloseOutlined />}
+                onClick={closeMenu}
+                style={{ 
+                  color: 'white', 
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  zIndex: 1001,
+                  padding: '4px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '4px',
+                  background: 'rgba(255, 255, 255, 0.1)'
+                }}
+              />
+            )}
+          </div>
+          <Menu 
+            theme="dark" 
+            mode="inline" 
+            defaultSelectedKeys={['fuel']}
+            selectedKeys={[currentView]}
+            onClick={handleMenuClick}
+            items={currentUser?.role === 'admin' ? adminMenuItems : userMenuItems}
+            style={{ backgroundColor: 'transparent', borderRight: 'none' }}
+          />
+          <div className="sidebar-footer" style={{ width: 280 }}>
+            <Dropdown menu={{ items: dropdownMenuItems, onClick: handleUserMenuClick }} placement="topRight">
+              <Space>
+                <Avatar icon={<UserOutlined className="white-icon" />} />
+                {mobileMenuOpen && (
+                  <>
+                    <span style={{ color: 'white' }}>{currentUser?.name || currentUser?.username || 'Пользователь'}</span>
+                    <DownOutlined className="white-icon" />
+                  </>
+                )}
+              </Space>
+            </Dropdown>
+          </div>
+        </div>
+      ) : (
+        /* Десктопная версия - Antd Sider */
+        <Sider
+          collapsed={collapsed}
+          breakpoint="lg"
+          collapsedWidth="0"
+          className="main-sidebar"
+          trigger={null}
+          style={{ 
+            height: '100vh', 
+            position: 'fixed', 
+            left: 0, 
+            top: 0, 
+            bottom: 0,
+            zIndex: 100
+          }}
+        >
+          <div className="logo">
+            {!collapsed && <span>Bunker Boats</span>}
+          </div>
+          <Menu 
+            theme="dark" 
+            mode="inline" 
+            defaultSelectedKeys={['fuel']}
+            selectedKeys={[currentView]}
+            onClick={handleMenuClick}
+            items={currentUser?.role === 'admin' ? adminMenuItems : userMenuItems}
+          />
+          <div className="sidebar-footer" style={{ width: collapsed ? 80 : 200 }}>
+            <Dropdown menu={{ items: dropdownMenuItems, onClick: handleUserMenuClick }} placement="topRight">
+              <Space>
+                <Avatar icon={<UserOutlined className="white-icon" />} />
+                {!collapsed && (
+                  <>
+                    <span style={{ color: 'white' }}>{currentUser?.name || currentUser?.username || 'Пользователь'}</span>
+                    <DownOutlined className="white-icon" />
+                  </>
+                )}
+              </Space>
+            </Dropdown>
+          </div>
+        </Sider>
+      )}
+      
+      <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 0 : 200) }}>
         <Header className="site-layout-background" style={{ padding: 0, background: '#001529' }}>
           <Button
             type="text"
-            icon={collapsed ? 
-              <MenuUnfoldOutlined className="white-icon" /> : 
-              <MenuFoldOutlined className="white-icon" />
+            icon={isMobile ? 
+              (mobileMenuOpen ? <MenuFoldOutlined className="white-icon" /> : <MenuUnfoldOutlined className="white-icon" />) :
+              (collapsed ? <MenuUnfoldOutlined className="white-icon" /> : <MenuFoldOutlined className="white-icon" />)
             }
             onClick={toggleMenu}
             style={{ fontSize: '16px', width: 64, height: 64 }}
@@ -326,10 +427,10 @@ const AppWeb: React.FC = () => {
         <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
           {renderContent()}
         </Content>
-              </Layout>
-        <WebUpdateNotification />
       </Layout>
-    );
-  };
+      <WebUpdateNotification />
+    </Layout>
+  );
+};
 
 export default AppWeb; 

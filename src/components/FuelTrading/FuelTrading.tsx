@@ -62,7 +62,7 @@ interface FuelTypeData {
 type FuelTransactionType = FuelTransaction['type'];
 
 // Разрешённые типы операций для учёта топлива
-const allowedTypes: FuelTransactionType[] = ['purchase', 'sale', 'base_to_bunker', 'bunker_to_base'];
+const allowedTypes: FuelTransactionType[] = ['purchase', 'sale', 'bunker_sale', 'base_to_bunker', 'bunker_to_base'];
 
 const FuelTrading: React.FC = () => {
   const [allTransactions, setAllTransactions] = useState<FuelTransaction[]>([]);
@@ -100,27 +100,25 @@ const FuelTrading: React.FC = () => {
   const fetchTransactions = async (page = 1, pageSize = 10) => {
     try {
       setLoading(true);
-      const response = await fuelService.getTransactions();
-      const fetchedTransactions = (Array.isArray(response) ? response : response.data || []).map((t: any) => ({
-        ...t,
-        date: t.date || (t.createdAt ? t.createdAt.slice(0, 10) : dayjs().format('YYYY-MM-DD')),
-        timestamp: t.timestamp || new Date(t.createdAt || t.date).getTime(),
-        volume: t.volume || 0,
-        totalCost: t.totalCost || 0
-      }));
+      const response: any = await fuelService.getTransactions();
+      const responseData = Array.isArray(response) ? response : (response?.data || []);
+      const fetchedTransactions = responseData.map((t: any) => {
+        // Исправляем работу с датами - используем UTC для стабильности
+        const createdDate = t.createdAt ? dayjs(t.createdAt) : dayjs();
+        const transactionDate = t.date ? dayjs(t.date) : createdDate;
+        
+        return {
+          ...t,
+          date: transactionDate.format('YYYY-MM-DD'),
+          timestamp: t.timestamp || transactionDate.valueOf(),
+          volume: Number(t.volume) || 0,
+          totalCost: Number(t.totalCost) || 0
+        };
+      });
       
       setAllTransactions(fetchedTransactions);
       
-      setPagination(prev => ({
-        ...prev,
-        total: fetchedTransactions.length
-      }));
-
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const paginatedTransactions = fetchedTransactions.slice(start, end);
-      
-      setTransactions(paginatedTransactions);
+      // НЕ устанавливаем transactions здесь - это делается через фильтрацию
     } catch (error) {
       console.error('Error fetching transactions:', error);
       notification.error({
@@ -174,10 +172,15 @@ const FuelTrading: React.FC = () => {
     const transactionDate = dayjs(t.timestamp);
     const startOfToday = dayjs().startOf('day');
     const endOfToday = dayjs().endOf('day');
-    // Только сегодняшние операции
-    if (!(isNotFrozen && transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday))) {
+    
+    // Только сегодняшние операции И только разрешенные типы топливных операций
+    const isToday = transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday);
+    const isAllowedType = allowedTypes.includes(t.type);
+    
+    if (!(isNotFrozen && isToday && isAllowedType)) {
       return false;
     }
+    
     // Фильтр по типу топлива
     if (filterFuelType && t.fuelType !== filterFuelType) {
       return false;
@@ -206,33 +209,24 @@ const FuelTrading: React.FC = () => {
     }
   }, [selectedArchiveDate, allTransactions]);
 
-  // Только топливные транзакции для таблицы (с учетом пагинации)
-  const fuelTransactions = transactions.filter(t => allowedTypes.includes(t.type));
-
-  // ЛОГИ ДЛЯ ОТЛАДКИ
-  useEffect(() => {
-    console.log('transactions state:', transactions);
-    console.log('filterFuelType:', filterFuelType);
-    console.log('filterTransactionType:', filterTransactionType);
-    console.log('dateRange:', dateRange);
-    console.log('filteredTransactions:', filteredTransactions);
-  }, [transactions, filterFuelType, filterTransactionType, dateRange, filteredTransactions]);
-  
-  const handleTableChange = (pagination: any) => {
-    setPagination(pagination);
-    const start = (pagination.current - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    const paginatedTransactions = filteredTransactions.slice(start, end);
-    setTransactions(paginatedTransactions);
+  const handleTableChange = (paginationConfig: any) => {
+    setPagination({
+      ...pagination,
+      current: paginationConfig.current,
+      pageSize: paginationConfig.pageSize
+    });
   };
   
   useEffect(() => {
-    // При изменении фильтров обновляем пагинацию
-    const start = (pagination.current - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
+    // При изменении фильтров или пагинации обновляем отображаемые транзакции
+    const { current, pageSize } = pagination;
+    const start = (current - 1) * pageSize;
+    const end = start + pageSize;
     const paginatedTransactions = filteredTransactions.slice(start, end);
+    
     setTransactions(paginatedTransactions);
     
+    // Обновляем общее количество для пагинации
     setPagination(prev => ({
       ...prev,
       total: filteredTransactions.length
@@ -347,7 +341,10 @@ const FuelTrading: React.FC = () => {
   const handleAddTransaction = async (values: any) => {
     try {
       const vesselValue = (values.type === 'base_to_bunker' || values.type === 'bunker_to_base') ? values.bunkerVessel : values.vessel;
-      const currentDate = dayjs().format('YYYY-MM-DD');
+      const now = dayjs();
+      const currentDate = now.format('YYYY-MM-DD');
+      const currentTimestamp = now.valueOf();
+      
       const newTransaction: FuelTransaction = {
         id: '', // Временное значение, будет заменено сервером
         key: '', // Временное значение, будет заменено сервером
@@ -357,7 +354,7 @@ const FuelTrading: React.FC = () => {
         price: values.price ? Number(values.price) : 0,
         totalCost: (values.price && values.volume) ? Number(values.volume) * Number(values.price) : 0,
         date: currentDate,
-        timestamp: Date.now(),
+        timestamp: currentTimestamp,
         frozen: false,
         notes: values.notes,
         customer: values.customer,
@@ -365,7 +362,7 @@ const FuelTrading: React.FC = () => {
         supplier: values.supplier,
         paymentMethod: values.paymentMethod,
         userId: currentUser.id,
-        createdAt: currentDate
+        createdAt: now.toISOString()
       };
 
       const response = await fuelService.createTransaction(newTransaction);
@@ -796,7 +793,7 @@ const FuelTrading: React.FC = () => {
   // Функция экспорта в Excel
   const exportToExcel = () => {
     // Преобразуем данные для экспорта (например, fuelTransactions)
-    const data = fuelTransactions.map((item, idx) => ({
+    const data = transactions.map((item, idx) => ({
       '№': idx + 1,
       'Тип операции': item.type,
       'Тип топлива': item.fuelType,
@@ -818,9 +815,9 @@ const FuelTrading: React.FC = () => {
   // Вспомогательная функция для расчёта статистики по произвольному набору операций
   function calcStatsForTransactions(transactions: FuelTransaction[]) {
     const totalPurchased = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.volume, 0);
-    const totalSold = transactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.volume, 0);
+    const totalSold = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.volume, 0);
     const totalPurchaseCost = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.totalCost, 0);
-    const totalSaleIncome = transactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.totalCost, 0);
+          const totalSaleIncome = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.totalCost, 0);
     const avgPurchasePrice = totalPurchased > 0 ? totalPurchaseCost / totalPurchased : 0;
     const soldCost = totalSold * avgPurchasePrice;
     const profit = totalSaleIncome - soldCost;
@@ -849,7 +846,8 @@ const FuelTrading: React.FC = () => {
                 >
                   <Select placeholder="Выберите тип операции">
                     <Option value="purchase">Покупка топлива</Option>
-                    <Option value="sale">Продажа топлива</Option>
+                    <Option value="sale">Продажа с катера</Option>
+                    <Option value="bunker_sale">Продажа с причала</Option>
                     {currentUser.role === 'admin' && (
                       <>
                         <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
@@ -885,7 +883,7 @@ const FuelTrading: React.FC = () => {
                 >
                   {({ getFieldValue }) => {
                     const type = getFieldValue('type');
-                    return (type === 'purchase' || type === 'sale') ? (
+                    return (type === 'purchase' || type === 'sale' || type === 'bunker_sale') ? (
                       <Form.Item
                         name="price"
                         label="Цена (₽/л)"
@@ -917,14 +915,16 @@ const FuelTrading: React.FC = () => {
                 >
                   {({ getFieldValue }) => {
                     const type = getFieldValue('type');
-                    return type === 'sale' ? (
+                    return (type === 'sale' || type === 'bunker_sale') ? (
                       <>
                         <Form.Item name="customer" label="Покупатель" rules={[{ required: true, message: 'Укажите покупателя' }]}> 
                           <Input placeholder="Укажите покупателя" />
                         </Form.Item>
-                        <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
-                          <Input placeholder="Укажите название катера" />
-                        </Form.Item>
+                        {type === 'sale' && (
+                          <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
+                            <Input placeholder="Укажите название катера" />
+                          </Form.Item>
+                        )}
                         <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true, message: 'Укажите способ оплаты' }]}> 
                           <Select placeholder="Выберите способ оплаты">
                             <Option value="cash">Наличные</Option>
@@ -1136,7 +1136,8 @@ const FuelTrading: React.FC = () => {
                       onChange={(value) => setFilterTransactionType(value as FuelTransactionType | null)}
                     >
                       <Option value="purchase">Покупка</Option>
-                      <Option value="sale">Продажа</Option>
+                      <Option value="sale">Продажа с катера</Option>
+                      <Option value="bunker_sale">Продажа с причала</Option>
                       {currentUser.role === 'admin' && (
                         <>
                           <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
@@ -1150,7 +1151,7 @@ const FuelTrading: React.FC = () => {
               
               <Table 
                 columns={advancedMode ? advancedColumns : columns} 
-                dataSource={fuelTransactions} 
+                dataSource={transactions} 
                 pagination={{
                   ...pagination,
                   showSizeChanger: true,
@@ -1185,7 +1186,8 @@ const FuelTrading: React.FC = () => {
             >
               <Select disabled>
                 <Option value="purchase">Покупка топлива</Option>
-                <Option value="sale">Продажа топлива</Option>
+                <Option value="sale">Продажа с катера</Option>
+                <Option value="bunker_sale">Продажа с причала</Option>
                 <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
                 <Option value="bunker_to_base">Перемещение с бункеровщика на базу</Option>
               </Select>
@@ -1217,7 +1219,7 @@ const FuelTrading: React.FC = () => {
             >
               {({ getFieldValue }) => {
                 const type = getFieldValue('type');
-                return (type === 'purchase' || type === 'sale') ? (
+                return (type === 'purchase' || type === 'sale' || type === 'bunker_sale') ? (
                   <Form.Item
                     name="price"
                     label="Цена (₽/л)"
@@ -1249,14 +1251,16 @@ const FuelTrading: React.FC = () => {
             >
               {({ getFieldValue }) => {
                 const type = getFieldValue('type');
-                return type === 'sale' ? (
+                return (type === 'sale' || type === 'bunker_sale') ? (
                   <>
                     <Form.Item name="customer" label="Покупатель" rules={[{ required: true, message: 'Укажите покупателя' }]}> 
                       <Input placeholder="Укажите покупателя" />
                     </Form.Item>
-                    <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
-                      <Input placeholder="Укажите название катера" />
-                    </Form.Item>
+                    {type === 'sale' && (
+                      <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
+                        <Input placeholder="Укажите название катера" />
+                      </Form.Item>
+                    )}
                     <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true, message: 'Укажите способ оплаты' }]}> 
                       <Select placeholder="Выберите способ оплаты">
                         <Option value="cash">Наличные</Option>
@@ -1292,7 +1296,8 @@ const FuelTrading: React.FC = () => {
                 <li><b>Тип:</b> {(() => {
                   switch(transactionToDelete.type) {
                     case 'purchase': return 'Покупка';
-                    case 'sale': return 'Продажа';
+                    case 'sale': return 'Продажа с катера';
+                    case 'bunker_sale': return 'Продажа с причала';
                     case 'base_to_bunker': return 'Перемещение с базы на бункеровщик';
                     case 'bunker_to_base': return 'Перемещение с бункеровщика на базу';
                     default: return transactionToDelete.type;

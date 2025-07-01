@@ -10,7 +10,7 @@ const FuelTransaction = sequelize.define('FuelTransaction', {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      isIn: [['purchase', 'sale', 'drain', 'base_to_bunker', 'bunker_to_base', 'expense', 'repair', 'salary']]
+      isIn: [['purchase', 'sale', 'bunker_sale', 'drain', 'base_to_bunker', 'bunker_to_base', 'expense', 'repair', 'salary']]
     }
   },
   volume: {

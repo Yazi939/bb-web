@@ -221,7 +221,7 @@
   }
 }
 
-/* Мобильное меню улучшения */
+/* Мобильное меню */
 @media (max-width: 767px) {
   .main-sidebar {
     position: fixed !important;
@@ -229,14 +229,16 @@
     top: 0;
     height: 100vh;
     z-index: 1000;
+    transform: translateX(-100%) translateY(0) !important; /* По умолчанию СКРЫТО - добавляю translateY чтобы избежать минификации */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 280px !important;
     max-width: 80vw;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  .main-sidebar.ant-layout-sider-collapsed {
-    transform: translateX(-100%);
+  /* ТОЛЬКО когда есть класс mobile-open - показываем навигацию */
+  .main-sidebar.mobile-open {
+    transform: translateX(0) translateY(0) !important; /* Добавляю translateY чтобы избежать минификации */
   }
 
   .logo {

@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { DeleteOutlined, PlusOutlined, EditOutlined, CalendarOutlined, DollarOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
-import type { FuelTransaction, OperationType } from '../../types/electron';
+import type { FuelTransaction } from '../../types/electron';
 import { getCurrentUser } from '../../utils/users';
 import './ExpensesCalendar.css';
 import { ALL_OPERATION_TYPES, FUEL_TYPES, PAYMENT_METHODS, FuelType, PaymentMethod } from '../../constants/fuelTypes';
@@ -15,38 +15,24 @@ import SocketService from '../../services/socketService';
 const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
 
-interface OperationTypeOption {
-  value: OperationType;
-  label: string;
-  color: string;
-}
-
-// Добавить новые типы операций
-const ALL_OPERATION_TYPES_EXTENDED = [
-  ...ALL_OPERATION_TYPES,
-  { value: 'expense', label: 'Общие расходы', color: 'red' },
-  { value: 'repair', label: 'Ремонт', color: 'orange' },
-  { value: 'salary', label: 'Зарплата', color: 'purple' }
-];
-
-const OPERATION_TYPE_OPTIONS: { value: OperationType; label: string; color: string }[] = ALL_OPERATION_TYPES_EXTENDED.map((type) => ({
-  value: type.value as OperationType,
-  label: type.label,
-  color: type.color
-}));
+// Разрешённые типы операций для учёта топлива (как в FuelTrading)
+const allowedTypes = ['purchase', 'sale', 'bunker_sale', 'base_to_bunker', 'bunker_to_base'];
 
 const ExpensesCalendar: React.FC = () => {
-  const [transactions, setTransactions] = useState<FuelTransaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<FuelTransaction[]>([]);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedTransactions, setSelectedTransactions] = useState<FuelTransaction[]>([]);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
-  const [selectedOperationTypes, setSelectedOperationTypes] = useState<OperationType[]>([]);
+  const [selectedOperationTypes, setSelectedOperationTypes] = useState<string[]>([]);
   const [selectedFuelTypes, setSelectedFuelTypes] = useState<FuelType[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<FuelTransaction | null>(null);
+  const [editForm] = Form.useForm();
 
   useEffect(() => {
     (async () => {
@@ -72,29 +58,16 @@ const ExpensesCalendar: React.FC = () => {
       if (data.type === 'transactions') {
         switch (data.action) {
           case 'created':
-            setTransactions(prev => [...prev, data.data]);
+            setAllTransactions(prev => [...prev, data.data]);
             break;
           case 'updated':
-            setTransactions(prev => prev.map(t => t.id === data.data.id ? data.data : t));
+            setAllTransactions(prev => prev.map(t => t.id === data.data.id ? data.data : t));
             break;
           case 'deleted':
-            setTransactions(prev => prev.filter(t => t.id !== data.id));
+            setAllTransactions(prev => prev.filter(t => t.id !== data.id));
             break;
         }
       }
-    });
-
-    // Обработка событий транзакций
-    socketService.onTransactionCreated((transaction) => {
-      setTransactions(prev => [...prev, transaction]);
-    });
-
-    socketService.onTransactionUpdated((transaction) => {
-      setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
-    });
-
-    socketService.onTransactionDeleted((transactionId) => {
-      setTransactions(prev => prev.filter(t => t.id !== transactionId));
     });
 
     return () => {
@@ -103,12 +76,20 @@ const ExpensesCalendar: React.FC = () => {
     };
   }, []);
 
-  const filteredTransactions = transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+  // Фильтрация транзакций (как в FuelTrading)
+  const filteredTransactions = allTransactions.filter(t => {
+    const isNotFrozen = !t.frozen;
+    const isAllowedType = allowedTypes.includes(t.type);
+    
+    if (!(isNotFrozen && isAllowedType)) {
+      return false;
+    }
+    
+    const transactionDate = dayjs(t.timestamp || t.createdAt || t.date);
     
     const matchesDate = !dateRange || (
-      transactionDate >= dateRange[0].startOf('day').toDate() &&
-      transactionDate <= dateRange[1].endOf('day').toDate()
+      transactionDate.isSameOrAfter(dateRange[0].startOf('day')) &&
+      transactionDate.isSameOrBefore(dateRange[1].endOf('day'))
     );
     
     const matchesOperation = selectedOperationTypes.length === 0 || 
@@ -120,24 +101,26 @@ const ExpensesCalendar: React.FC = () => {
     return matchesDate && matchesOperation && matchesFuel;
   });
 
-  useEffect(() => {
-    console.log('Component mounted, loading transactions...');
-    loadTransactions();
-  }, []);
-
-  useEffect(() => {
-    console.log('Transactions updated:', transactions);
-  }, [transactions]);
-
-  useEffect(() => {
-    console.log('Filtered transactions updated:', filteredTransactions);
-  }, [filteredTransactions]);
-
   const loadTransactions = async () => {
     try {
-      const response = await fuelService.getTransactions();
-      const data = Array.isArray(response) ? response : (Array.isArray(response.data) ? response.data : response.data?.transactions || []);
-      setTransactions(data);
+      const response: any = await fuelService.getTransactions();
+      const data = Array.isArray(response) ? response : (Array.isArray(response?.data) ? response.data : response?.data?.transactions || []);
+      
+      // Обрабатываем даты так же как в FuelTrading
+      const processedData = data.map((t: any) => {
+        const createdDate = t.createdAt ? dayjs(t.createdAt) : dayjs();
+        const transactionDate = t.date ? dayjs(t.date) : createdDate;
+        
+        return {
+          ...t,
+          date: transactionDate.format('YYYY-MM-DD'),
+          timestamp: t.timestamp || transactionDate.valueOf(),
+          volume: Number(t.volume) || 0,
+          totalCost: Number(t.totalCost) || 0
+        };
+      });
+      
+      setAllTransactions(processedData);
     } catch (error) {
       console.error('Error loading transactions:', error);
       notification.error({
@@ -150,7 +133,7 @@ const ExpensesCalendar: React.FC = () => {
   const calculateStatistics = () => {
     const purchaseVolume = filteredTransactions
       .filter(t => t.type === 'purchase' && typeof t.volume === 'number' && !isNaN(t.volume))
-      .reduce((sum, t) => sum + t.volume, 0);
+      .reduce((sum, t) => sum + (t.volume || 0), 0);
 
     const purchaseCost = filteredTransactions
       .filter(t => t.type === 'purchase')
@@ -208,7 +191,7 @@ const ExpensesCalendar: React.FC = () => {
   };
 
   const getPieData = () => {
-    return ALL_OPERATION_TYPES_EXTENDED.map(type => ({
+    return ALL_OPERATION_TYPES.map(type => ({
       name: type.label,
       value: filteredTransactions
         .filter(t => t.type === type.value)
@@ -228,8 +211,16 @@ const ExpensesCalendar: React.FC = () => {
   const onSelect = (date: Dayjs) => {
     try {
       const localDate = date.startOf('day');
-      const dateStr = localDate.format('YYYY-MM-DD');
-      const dayTransactions = transactions.filter(t => t.createdAt && dayjs(t.createdAt).format('YYYY-MM-DD') === dateStr);
+      const startOfDay = localDate.startOf('day');
+      const endOfDay = localDate.endOf('day');
+      
+      // Фильтруем транзакции только за выбранный день из разрешенных типов
+      const dayTransactions = allTransactions.filter(t => {
+        if (!allowedTypes.includes(t.type) || t.frozen) return false;
+        const transactionDate = dayjs(t.timestamp || t.createdAt || t.date);
+        return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
+      });
+      
       setSelectedDate(localDate);
       setSelectedTransactions(dayTransactions);
       setIsModalVisible(true);
@@ -242,14 +233,22 @@ const ExpensesCalendar: React.FC = () => {
   const dateCellRender = (date: Dayjs) => {
     try {
       const localDate = date.startOf('day');
-      const dateStr = localDate.format('YYYY-MM-DD');
-      const dayTransactions = transactions.filter(t => t.createdAt && dayjs(t.createdAt).format('YYYY-MM-DD') === dateStr);
+      const startOfDay = localDate.startOf('day');
+      const endOfDay = localDate.endOf('day');
+      
+      // Фильтруем транзакции только за этот день из разрешенных типов
+      const dayTransactions = allTransactions.filter(t => {
+        if (!allowedTypes.includes(t.type) || t.frozen) return false;
+        const transactionDate = dayjs(t.timestamp || t.createdAt || t.date);
+        return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
+      });
+      
       if (dayTransactions.length === 0) return null;
 
       const totalVolume = dayTransactions
         .filter(t => t && typeof t.volume === 'number' && !isNaN(t.volume))
         .reduce((sum, t) => {
-          const volume = Number(t.volume);
+          const volume = Number(t.volume || 0);
           return sum + (isNaN(volume) ? 0 : volume);
         }, 0);
 
@@ -267,12 +266,16 @@ const ExpensesCalendar: React.FC = () => {
           <div className="transactions-cost">{totalCost.toFixed(2)} ₽</div>
           <div className="transactions-types">
             {Array.from(new Set(dayTransactions.map(t => t.type))).map((type, index) => {
-              const operation = ALL_OPERATION_TYPES_EXTENDED.find(ot => ot.value === type);
+              const operation = ALL_OPERATION_TYPES.find(ot => ot.value === type);
               return operation ? (
                 <Tag key={index} color={operation.color} style={{ marginRight: 4 }}>
                   {operation.label}
                 </Tag>
-              ) : null;
+              ) : (
+                <Tag key={index} style={{ marginRight: 4 }}>
+                  {type}
+                </Tag>
+              );
             })}
           </div>
         </div>
@@ -326,6 +329,76 @@ const ExpensesCalendar: React.FC = () => {
     }
   };
 
+  // Функция редактирования транзакции (как в FuelTrading)
+  const handleEditTransaction = (transaction: FuelTransaction) => {
+    setEditingTransaction(transaction);
+    editForm.setFieldsValue({
+      type: transaction.type,
+      fuelType: transaction.fuelType,
+      volume: transaction.volume,
+      price: transaction.price,
+      supplier: transaction.supplier,
+      customer: transaction.customer,
+      vessel: transaction.vessel,
+      paymentMethod: transaction.paymentMethod,
+      notes: transaction.notes
+    });
+    setEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      const values = await editForm.validateFields();
+      if (!editingTransaction) return;
+
+      const updatedTransaction = {
+        id: editingTransaction.id,
+        type: values.type,
+        volume: Number(values.volume),
+        price: Number(values.price),
+        totalCost: Number(values.volume) * Number(values.price),
+        fuelType: values.fuelType,
+        supplier: values.supplier,
+        customer: values.customer,
+        vessel: values.vessel,
+        paymentMethod: values.paymentMethod,
+        notes: values.notes,
+        date: editingTransaction.date,
+        timestamp: editingTransaction.timestamp,
+        userId: editingTransaction.userId,
+        createdAt: editingTransaction.createdAt
+      };
+
+      await fuelService.updateTransaction(editingTransaction.id, updatedTransaction);
+      await loadTransactions();
+      
+      // Обновляем выбранные транзакции
+      const updatedSelected = selectedTransactions.map(t => 
+        t.id === editingTransaction.id ? { ...t, ...updatedTransaction } : t
+      );
+      setSelectedTransactions(updatedSelected);
+      
+      setEditModalVisible(false);
+      setEditingTransaction(null);
+      notification.success({
+        message: 'Транзакция обновлена',
+        description: 'Транзакция успешно обновлена'
+      });
+    } catch (error: any) {
+      console.error('Error updating transaction:', error);
+      notification.error({
+        message: 'Ошибка обновления',
+        description: 'Не удалось обновить транзакцию'
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditModalVisible(false);
+    setEditingTransaction(null);
+    editForm.resetFields();
+  };
+
   const columns: ColumnsType<FuelTransaction> = [
     {
       title: 'Тип операции',
@@ -335,6 +408,7 @@ const ExpensesCalendar: React.FC = () => {
         const typeMap: Record<string, { color: string; text: string }> = {
           purchase: { color: 'green', text: 'Закупка' },
           sale: { color: 'blue', text: 'Продажа' },
+          bunker_sale: { color: 'blue', text: 'Продажа с причала' },
           base_to_bunker: { color: 'orange', text: 'На бункер' },
           bunker_to_base: { color: 'purple', text: 'С бункера' },
           expense: { color: 'red', text: 'Общие расходы' }
@@ -347,10 +421,7 @@ const ExpensesCalendar: React.FC = () => {
       title: 'Тип топлива',
       dataIndex: 'fuelType',
       key: 'fuelType',
-      render: (_: string, record) =>
-        ['expense', 'repair', 'salary'].includes(record.type)
-          ? '-' 
-          : (FUEL_TYPES.find(f => f.value === record.fuelType)?.label || record.fuelType)
+      render: (_: string, record) => (FUEL_TYPES.find(f => f.value === record.fuelType)?.label || record.fuelType || '-')
     },
     {
       title: 'Объем (л)',
@@ -383,6 +454,24 @@ const ExpensesCalendar: React.FC = () => {
       }
     },
     {
+      title: 'Поставщик',
+      dataIndex: 'supplier',
+      key: 'supplier',
+      render: (supplier?: string) => supplier || '-'
+    },
+    {
+      title: 'Покупатель',
+      dataIndex: 'customer',
+      key: 'customer',
+      render: (customer?: string) => customer || '-'
+    },
+    {
+      title: 'Судно',
+      dataIndex: 'vessel',
+      key: 'vessel',
+      render: (vessel?: string) => vessel || '-'
+    },
+    {
       title: 'Примечания',
       dataIndex: 'notes',
       key: 'notes',
@@ -392,12 +481,21 @@ const ExpensesCalendar: React.FC = () => {
       title: 'Действия',
       key: 'actions',
       render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleDeleteOperation(record.id)}
-        />
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEditTransaction(record)}
+            title="Редактировать"
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteOperation(record.id)}
+            title="Удалить"
+          />
+        </Space>
       )
     }
   ];
@@ -425,7 +523,7 @@ const ExpensesCalendar: React.FC = () => {
                 style={{ width: 200 }}
                 value={selectedOperationTypes}
                 onChange={setSelectedOperationTypes}
-                options={OPERATION_TYPE_OPTIONS}
+                options={ALL_OPERATION_TYPES.map(type => ({ value: type.value, label: type.label }))}
               />
               <Select
                 mode="multiple"
@@ -596,7 +694,7 @@ const ExpensesCalendar: React.FC = () => {
             rules={[{ required: true, message: 'Выберите тип операции' }]}
           >
             <Select onChange={() => form.resetFields(["fuelType", "volume", "price", "notes"]) }>
-              {ALL_OPERATION_TYPES_EXTENDED.map(type => (
+              {ALL_OPERATION_TYPES.map(type => (
                 <Select.Option key={type.value} value={type.value}>
                   {type.label}
                 </Select.Option>
@@ -677,6 +775,116 @@ const ExpensesCalendar: React.FC = () => {
                 Отмена
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Редактировать операцию"
+        open={editModalVisible}
+        onCancel={handleCancelEdit}
+        onOk={handleSaveEdit}
+        footer={[
+          <Button key="cancel" onClick={handleCancelEdit}>
+            Отмена
+          </Button>,
+          <Button key="save" type="primary" onClick={handleSaveEdit}>
+            Сохранить
+          </Button>
+        ]}
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+        >
+          <Form.Item
+            name="type"
+            label="Тип операции"
+            rules={[{ required: true, message: 'Выберите тип операции' }]}
+          >
+            <Select>
+              {ALL_OPERATION_TYPES.map(type => (
+                <Select.Option key={type.value} value={type.value}>
+                  {type.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="fuelType"
+            label="Тип топлива"
+            rules={[{ required: true, message: 'Выберите тип топлива' }]}
+          >
+            <Select>
+              {FUEL_TYPES.map(type => (
+                <Select.Option key={type.value} value={type.value}>
+                  {type.label}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="volume"
+            label="Объем (л)"
+            rules={[{ required: true, message: 'Введите объем' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="price"
+            label="Цена (₽/л)"
+            rules={[{ required: true, message: 'Введите цену' }]}
+          >
+            <InputNumber min={0} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="supplier"
+            label="Поставщик"
+            rules={[{ required: true, message: 'Введите поставщика' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="customer"
+            label="Покупатель"
+            rules={[{ required: true, message: 'Введите покупателя' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="vessel"
+            label="Судно"
+            rules={[{ required: true, message: 'Введите судно' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="paymentMethod"
+            label="Метод оплаты"
+            rules={[{ required: true, message: 'Выберите метод оплаты' }]}
+          >
+            <Select>
+              {PAYMENT_METHODS.map(method => (
+                <Select.Option key={method} value={method}>
+                  {method}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="notes"
+            label="Примечания"
+            rules={[{ required: true, message: 'Введите примечания' }]}
+          >
+            <Input.TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
