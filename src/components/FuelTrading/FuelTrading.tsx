@@ -1185,64 +1185,6 @@ const FuelTrading: React.FC = () => {
           </Col>
           
           <Col span={24} lg={14}>
-            {/* Блок выручки за день */}
-            <Card title="Выручка за день" style={{ marginBottom: 24 }}>
-              <Row gutter={[16, 16]}>
-                <Col span={6}>
-                  <Statistic
-                    title="Наличные"
-                    value={dailyRevenue.cash}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Перевод"
-                    value={dailyRevenue.transfer}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Терминал"
-                    value={dailyRevenue.card}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ color: '#722ed1' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Отложенный платеж"
-                    value={dailyRevenue.deferred}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ color: '#fa8c16' }}
-                  />
-                </Col>
-              </Row>
-              <Divider style={{ margin: '16px 0' }} />
-              <Row>
-                <Col span={24} style={{ textAlign: 'center' }}>
-                  <Statistic
-                    title="Общая выручка"
-                    value={dailyRevenue.total}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ 
-                      color: '#3f8600', 
-                      fontSize: '28px',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                </Col>
-              </Row>
-            </Card>
-
             <Card 
               title="Операции за сегодня" 
               extra={
@@ -1317,6 +1259,64 @@ const FuelTrading: React.FC = () => {
                 onChange={handleTableChange}
                 loading={loading}
               />
+            </Card>
+
+            {/* Блок выручки за день в столбик */}
+            <Card title="Выручка за день" style={{ marginTop: 24 }}>
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Statistic
+                    title="Наличные"
+                    value={dailyRevenue.cash}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Перевод"
+                    value={dailyRevenue.transfer}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Терминал"
+                    value={dailyRevenue.card}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Отложенный платеж"
+                    value={dailyRevenue.deferred}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#fa8c16' }}
+                  />
+                </Col>
+              </Row>
+              <Divider style={{ margin: '16px 0' }} />
+              <Row>
+                <Col span={24} style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title="Общая выручка"
+                    value={dailyRevenue.total}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ 
+                      color: '#3f8600', 
+                      fontSize: '28px',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>
