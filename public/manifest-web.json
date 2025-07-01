@@ -1,0 +1,35 @@
+{
+  "name": "Bunkering boat",
+  "short_name": "Bunkering boat",
+  "description": "Система управления топливом и расходами",
+  "version": "2.1.1",
+  "icons": [
+    {
+      "src": "./icon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "./bunker-logo.jpg",
+      "sizes": "144x144",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "./bunker-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "./bunker-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "theme_color": "#1890ff",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "categories": ["business", "productivity"]
+} 
