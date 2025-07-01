@@ -224,26 +224,6 @@ const AppWeb: React.FC = () => {
   };
 
   const renderContent = () => {
-    if (showLoader) {
-      return <Preloader loading={loading} onFinish={() => setShowLoader(false)} />;
-    }
-
-    if (!isLoggedIn) {
-      return <Login onLoginSuccess={async (userData: any) => {
-        console.log('LOGIN RESPONSE:', userData);
-        // Адаптируем данные от Login к типу User
-        const user: User = {
-          id: String(userData.id), // Преобразуем number в string если нужно
-          name: userData.name || userData.username || 'Пользователь',
-          username: userData.username,
-          role: userData.role as UserRole // Приводим к UserRole
-        };
-        setIsLoggedIn(true);
-        setCurrentUser(user);
-        setCurrentView('fuel');
-      }} />;
-    }
-
     switch (currentView) {
       case 'dashboard':
         return currentUser?.role === 'admin' ? <Dashboard /> : null;
@@ -280,6 +260,27 @@ const AppWeb: React.FC = () => {
       label: 'Выход',
     },
   ];
+
+  // Проверяем состояние загрузки и авторизации перед рендером основного интерфейса
+  if (showLoader) {
+    return <Preloader loading={loading} onFinish={() => setShowLoader(false)} />;
+  }
+
+  if (!isLoggedIn) {
+    return <Login onLoginSuccess={async (userData: any) => {
+      console.log('LOGIN RESPONSE:', userData);
+      // Адаптируем данные от Login к типу User
+      const user: User = {
+        id: String(userData.id), // Преобразуем number в string если нужно
+        name: userData.name || userData.username || 'Пользователь',
+        username: userData.username,
+        role: userData.role as UserRole // Приводим к UserRole
+      };
+      setIsLoggedIn(true);
+      setCurrentUser(user);
+      setCurrentView('fuel');
+    }} />;
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
