@@ -14,6 +14,29 @@
   gap: 12px;
 }
 
+/* Стили для планшетов */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .fuelTrading {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .headerActions {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .headerActions button {
+    min-width: 80px;
+    font-size: 14px;
+  }
+}
+
 @media (max-width: 768px) {
   .fuelTrading {
     padding: 12px;
@@ -27,5 +50,11 @@
   
   .headerActions {
     width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .headerActions button {
+    flex: 1;
+    min-width: 0;
   }
 } 
