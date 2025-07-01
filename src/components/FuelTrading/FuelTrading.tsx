@@ -351,20 +351,6 @@ const FuelTrading: React.FC = () => {
       const currentDate = now.format('YYYY-MM-DD');
       const currentTimestamp = now.valueOf();
       
-      // Отладочная информация при создании
-      console.log('🆕 Creating timestamp:', {
-        now_dayjs: now.format(),
-        now_valueOf: currentTimestamp,
-        now_js_date: new Date(),
-        now_js_timestamp: Date.now(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        comparison: {
-          'dayjs.valueOf()': currentTimestamp,
-          'Date.now()': Date.now(),
-          'new Date().getTime()': new Date().getTime()
-        }
-      });
-      
       const newTransaction: FuelTransaction = {
         id: '', // Временное значение, будет заменено сервером
         key: '', // Временное значение, будет заменено сервером
@@ -742,29 +728,27 @@ const FuelTrading: React.FC = () => {
       render: (timestamp, record) => {
         if (!timestamp) return '-';
         
-        // Отладочная информация
-        console.log('🕒 Timestamp debug:', {
-          original: timestamp,
-          typeof: typeof timestamp,
-          new_Date: new Date(timestamp),
-          dayjs_parse: dayjs(timestamp).format(),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          now_for_comparison: new Date().toLocaleString()
+        // Правильная обработка timestamp с учетом местного времени
+        const date = new Date(timestamp);
+        
+        // Форматируем дату и время в местной временной зоне
+        const dateStr = date.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
         });
         
-        // Правильная обработка timestamp с учетом local timezone
-        const jsDate = new Date(timestamp);
-        const date = dayjs(jsDate);
+        const timeStr = date.toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
         
         return (
           <div style={{ color: '#888', fontSize: 13 }}>
-            <div>{date.format('DD.MM.YYYY')}</div>
-            <div style={{ color: '#aaa', fontSize: 11 }}>
-              {date.format('HH:mm:ss')}
-              <span style={{ color: '#ccc', fontSize: 10, marginLeft: 4 }}>
-                (JS: {jsDate.toLocaleTimeString()})
-              </span>
-            </div>
+            <div>{dateStr}</div>
+            <div style={{ color: '#aaa', fontSize: 11 }}>{timeStr}</div>
           </div>
         );
       }
