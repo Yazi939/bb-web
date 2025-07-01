@@ -291,13 +291,27 @@ const ExpensesCalendar: React.FC = () => {
       const { type, fuelType, volume, price, notes } = values;
       
       // КРИТИЧНО: устанавливаем правильный timestamp для выбранной даты
+      const now = new Date();
       const operationDate = selectedDate || dayjs();
-      // Устанавливаем время на текущее время, но дату на выбранную
-      const correctTimestamp = operationDate
-        .hour(dayjs().hour())
-        .minute(dayjs().minute())
-        .second(dayjs().second())
-        .valueOf(); // Получаем timestamp для выбранной даты с текущим временем
+      
+      // Создаем дату с выбранной датой но текущим временем
+      let targetDate: Date;
+      if (selectedDate) {
+        // Если выбрана конкретная дата, используем её с текущим временем
+        targetDate = new Date(
+          operationDate.year(),
+          operationDate.month(), // dayjs месяцы с 0
+          operationDate.date(),
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds()
+        );
+      } else {
+        // Если дата не выбрана, используем текущее время
+        targetDate = now;
+      }
+      
+      const correctTimestamp = targetDate.getTime(); // Правильный timestamp
       
       let newOperation: any = {
         type,

@@ -347,9 +347,9 @@ const FuelTrading: React.FC = () => {
   const handleAddTransaction = async (values: any) => {
     try {
       const vesselValue = (values.type === 'base_to_bunker' || values.type === 'bunker_to_base') ? values.bunkerVessel : values.vessel;
-      const now = dayjs();
-      const currentDate = now.format('YYYY-MM-DD');
-      const currentTimestamp = now.valueOf();
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const currentTimestamp = now.getTime(); // Правильный timestamp в местном времени
       
       const newTransaction: FuelTransaction = {
         id: '', // Временное значение, будет заменено сервером
