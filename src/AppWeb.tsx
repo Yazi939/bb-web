@@ -6,7 +6,7 @@ import {
   ShoppingCartOutlined, ScheduleOutlined, CalendarOutlined,
   LogoutOutlined, UserOutlined, SettingOutlined,
   MenuUnfoldOutlined, MenuFoldOutlined, DownOutlined,
-  DollarOutlined, CloseOutlined, CalculatorOutlined, PayCircleOutlined
+  DollarOutlined, CloseOutlined
 } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
 import { User, UserRole } from './utils/users';
@@ -19,8 +19,7 @@ import Login from './components/Login/Login';
 import Preloader from './components/Preloader/Preloader';
 import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
 import ExpenseManagement from './components/ExpenseManagement/ExpenseManagementWeb';
-import Calculator from './components/Calculator/Calculator';
-import SalaryCalculator from './components/SalaryCalculator/SalaryCalculator';
+
 import './App.css';
 
 // Компонент-заглушка для UpdateNotification в веб-версии
@@ -49,16 +48,6 @@ const adminMenuItems: MenuItem[] = [
     key: 'orders',
     icon: <ShoppingCartOutlined className="white-icon" />,
     label: 'Заказы',
-  },
-  {
-    key: 'calculator',
-    icon: <CalculatorOutlined className="white-icon" />,
-    label: 'Калькулятор',
-  },
-  {
-    key: 'salary-calculator',
-    icon: <PayCircleOutlined className="white-icon" />,
-    label: 'Зарплаты',
   },
   {
     key: 'expenses',
@@ -92,11 +81,6 @@ const userMenuItems: MenuItem[] = [
     key: 'orders',
     icon: <ShoppingCartOutlined className="white-icon" />,
     label: 'Заказы',
-  },
-  {
-    key: 'calculator',
-    icon: <CalculatorOutlined className="white-icon" />,
-    label: 'Калькулятор',
   },
 ];
 
@@ -239,10 +223,6 @@ const AppWeb: React.FC = () => {
         return currentUser?.role === 'admin' ? <ShiftManagement /> : null;
       case 'orders':
         return <Orders />;
-      case 'calculator':
-        return <Calculator />;
-      case 'salary-calculator':
-        return <SalaryCalculator />;
       default:
         return <FuelTrading />;
     }
