@@ -103,14 +103,8 @@ const FuelTrading: React.FC = () => {
       const response: any = await fuelService.getTransactions();
       const responseData = Array.isArray(response) ? response : (response?.data || []);
       const fetchedTransactions = responseData.map((t: any) => {
-        // Исправляем работу с датами - используем UTC для стабильности
-        const createdDate = t.createdAt ? dayjs(t.createdAt) : dayjs();
-        const transactionDate = t.date ? dayjs(t.date) : createdDate;
-        
         return {
           ...t,
-          date: transactionDate.format('YYYY-MM-DD'),
-          timestamp: t.timestamp || transactionDate.valueOf(),
           volume: Number(t.volume) || 0,
           totalCost: Number(t.totalCost) || 0
         };
@@ -178,7 +172,7 @@ const FuelTrading: React.FC = () => {
     
     // Фильтр по диапазону дат (если выбран)
     if (dateRange && dateRange[0] && dateRange[1]) {
-      const transactionDate = dayjs(t.timestamp);
+      const transactionDate = dayjs(t.createdAt);
       const startDate = dateRange[0].startOf('day');
       const endDate = dateRange[1].endOf('day');
       
@@ -205,7 +199,7 @@ const FuelTrading: React.FC = () => {
       const endOfDay = selectedArchiveDate.endOf('day');
       
       const filtered = allTransactions.filter(t => {
-          const transactionDate = dayjs(t.timestamp);
+          const transactionDate = dayjs(t.createdAt);
         return !t.frozen && 
                transactionDate.isSameOrAfter(startOfDay) && 
                transactionDate.isSameOrBefore(endOfDay);
@@ -348,8 +342,6 @@ const FuelTrading: React.FC = () => {
     try {
       const vesselValue = (values.type === 'base_to_bunker' || values.type === 'bunker_to_base') ? values.bunkerVessel : values.vessel;
       const now = new Date();
-      const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
-      const currentTimestamp = now.getTime(); // Правильный timestamp в местном времени
       
       const newTransaction: FuelTransaction = {
         id: '', // Временное значение, будет заменено сервером
@@ -359,8 +351,6 @@ const FuelTrading: React.FC = () => {
         volume: Number(values.volume),
         price: values.price ? Number(values.price) : 0,
         totalCost: (values.price && values.volume) ? Number(values.volume) * Number(values.price) : 0,
-        date: currentDate,
-        timestamp: currentTimestamp,
         frozen: false,
         notes: values.notes,
         customer: values.customer,
@@ -368,6 +358,7 @@ const FuelTrading: React.FC = () => {
         supplier: values.supplier,
         paymentMethod: values.paymentMethod,
         userId: currentUser.id,
+        timestamp: now.getTime(), // Отправляем timestamp для правильной обработки сервером
         createdAt: now.toISOString()
       };
 
@@ -477,7 +468,7 @@ const FuelTrading: React.FC = () => {
         paymentMethod: values.paymentMethod,
         notes: values.notes,
         date: values.date || editingTransaction.date,
-        timestamp: values.timestamp || editingTransaction.timestamp,
+        timestamp: editingTransaction.timestamp,
         userId: editingTransaction.userId,
         userRole: editingTransaction.userRole,
         createdAt: editingTransaction.createdAt
@@ -721,17 +712,20 @@ const FuelTrading: React.FC = () => {
     },
     {
       title: 'Дата и время',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
-      sorter: (a, b) => (b.timestamp || 0) - (a.timestamp || 0),
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      sorter: (a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      },
       defaultSortOrder: 'descend',
-      render: (timestamp, record) => {
-        if (!timestamp) return '-';
+      render: (createdAt, record) => {
+        if (!createdAt) return '-';
         
-        // Правильная обработка timestamp с учетом местного времени
-        const date = new Date(timestamp);
+        // Сервер уже возвращает московское время, используем его напрямую
+        const date = new Date(createdAt);
         
-        // Форматируем дату и время в местной временной зоне
+        // Форматируем дату и время
         const dateStr = date.toLocaleDateString('ru-RU', {
           day: '2-digit',
           month: '2-digit',

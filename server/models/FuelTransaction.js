@@ -77,6 +77,21 @@ const FuelTransaction = sequelize.define('FuelTransaction', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  timestamp: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+    comment: 'Timestamp в миллисекундах для точного времени операции'
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: 'Дата операции в формате YYYY-MM-DD'
+  },
+  frozen: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'Заморожена ли транзакция (не учитывается в расчетах)'
+  },
   userId: {
     type: DataTypes.STRING,
     allowNull: true,
