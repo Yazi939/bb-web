@@ -146,12 +146,14 @@ const AppWeb: React.FC = () => {
             console.log('🔐 Auth successful:', user);
           } else {
             localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
             console.log('🔐 Invalid token, removed');
           }
         }
       } catch (error) {
         console.error('🔐 Auth check failed:', error);
         localStorage.removeItem('token');
+        localStorage.removeItem('currentUser');
       } finally {
         setLoading(false);
       }
