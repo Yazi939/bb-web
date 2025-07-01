@@ -117,46 +117,12 @@ const AppWeb: React.FC = () => {
     const checkAuth = async () => {
       console.log('🔐 Checking auth...');
       
-      try {
-        const token = localStorage.getItem('token');
-        console.log('🔐 Token found:', !!token);
-        
-        if (token) {
-          // Определяем API URL
-          const apiUrl = window.location.protocol === 'https:' 
-            ? 'https://bunker-boats.ru/api'
-            : 'http://89.169.170.164:5000/api';
-            
-          // Проверяем токен на сервере
-          const response = await fetch(`${apiUrl}/users/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (response.ok) {
-            const userData = await response.json();
-            // Адаптируем данные с сервера к типу User
-            const user: User = {
-              id: String(userData.id), // Преобразуем number в string
-              name: userData.name || userData.username || 'Пользователь',
-              username: userData.username,
-              role: userData.role as UserRole // Приводим к UserRole
-            };
-            setCurrentUser(user);
-            setIsLoggedIn(true);
-            console.log('🔐 Auth successful:', user);
-          } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('currentUser');
-            console.log('🔐 Invalid token, removed');
-          }
-        }
-      } catch (error) {
-        console.error('🔐 Auth check failed:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
-      } finally {
-        setLoading(false);
-      }
+      // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА - всегда требуем авторизацию заново
+      localStorage.removeItem('token');
+      localStorage.removeItem('currentUser');
+      console.log('🔐 Tokens cleared - login required');
+      
+      setLoading(false);
     };
 
     checkAuth();
