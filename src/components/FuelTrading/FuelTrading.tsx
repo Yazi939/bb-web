@@ -97,110 +97,7 @@ const FuelTrading: React.FC = () => {
   const [selectedArchiveDate, setSelectedArchiveDate] = useState<Dayjs | null>(null);
   const [archiveDayTransactions, setArchiveDayTransactions] = useState<FuelTransaction[]>([]);
 
-  // Ключ для localStorage архива
-  const ARCHIVE_STORAGE_KEY = 'fuelTradingArchive';
-  const LAST_ARCHIVE_DATE_KEY = 'lastArchiveDate';
 
-  // Функции для работы с архивом
-  const getArchiveFromStorage = (): Record<string, FuelTransaction[]> => {
-    try {
-      const stored = localStorage.getItem(ARCHIVE_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch (error) {
-      console.error('Error loading archive from storage:', error);
-      return {};
-    }
-  };
-
-  const saveArchiveToStorage = (archive: Record<string, FuelTransaction[]>) => {
-    try {
-      localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(archive));
-    } catch (error) {
-      console.error('Error saving archive to storage:', error);
-    }
-  };
-
-  const getLastArchiveDate = (): string | null => {
-    return localStorage.getItem(LAST_ARCHIVE_DATE_KEY);
-  };
-
-  const setLastArchiveDate = (date: string) => {
-    localStorage.setItem(LAST_ARCHIVE_DATE_KEY, date);
-  };
-
-  // Функция проверки необходимости архивирования
-  const shouldArchive = (): boolean => {
-    const today = dayjs().format('YYYY-MM-DD');
-    const lastArchiveDate = getLastArchiveDate();
-    
-    // Если это первый запуск или прошел новый день
-    return !lastArchiveDate || lastArchiveDate !== today;
-  };
-
-  // Функция архивирования операций предыдущего дня
-  const archivePreviousDayTransactions = async () => {
-    try {
-      const today = dayjs();
-      const yesterday = today.subtract(1, 'day');
-      const yesterdayStr = yesterday.format('YYYY-MM-DD');
-      
-      // Получаем все транзакции за вчерашний день
-      const yesterdayTransactions = allTransactions.filter(t => {
-        const transactionDate = dayjs(t.createdAt);
-        return transactionDate.format('YYYY-MM-DD') === yesterdayStr && !t.frozen;
-      });
-
-      if (yesterdayTransactions.length > 0) {
-        // Загружаем существующий архив
-        const currentArchive = getArchiveFromStorage();
-        
-        // Добавляем операции вчерашнего дня в архив
-        currentArchive[yesterdayStr] = yesterdayTransactions;
-        
-        // Сохраняем обновленный архив
-        saveArchiveToStorage(currentArchive);
-        
-        // Помечаем транзакции как заархивированные (замораживаем их)
-        const frozenTransactions = yesterdayTransactions.map(t => ({
-          ...t,
-          frozen: true,
-          frozenDate: Date.now()
-        }));
-
-        // Обновляем состояние
-        setAllTransactions(prev => 
-          prev.map(t => {
-            const found = frozenTransactions.find(ft => ft.id === t.id);
-            return found || t;
-          })
-        );
-
-        // Обновляем дату последнего архивирования
-        setLastArchiveDate(today.format('YYYY-MM-DD'));
-
-        notification.success({
-          message: 'Операции заархивированы',
-          description: `${yesterdayTransactions.length} операций за ${yesterday.format('DD.MM.YYYY')} перемещены в архив`
-        });
-
-        console.log(`Заархивировано ${yesterdayTransactions.length} операций за ${yesterdayStr}`);
-      } else {
-        // Просто обновляем дату, даже если операций не было
-        setLastArchiveDate(today.format('YYYY-MM-DD'));
-      }
-    } catch (error) {
-      console.error('Error archiving transactions:', error);
-      notification.error({
-        message: 'Ошибка архивирования',
-        description: 'Не удалось заархивировать операции предыдущего дня'
-      });
-    }
-  };
-
-  // Функция ручного архивирования
-  const handleManualArchive = async () => {
-    await archivePreviousDayTransactions();
-  };
 
   const fetchTransactions = async (page = 1, pageSize = 10) => {
     try {
@@ -230,18 +127,8 @@ const FuelTrading: React.FC = () => {
   };
 
   useEffect(() => {
-    const initializeComponent = async () => {
-      await fetchTransactions();
-      await loadUserInfo();
-
-      // Проверяем необходимость архивирования при загрузке
-      if (shouldArchive()) {
-        console.log('Требуется архивирование операций предыдущего дня');
-        await archivePreviousDayTransactions();
-      }
-    };
-
-    initializeComponent();
+    fetchTransactions();
+    loadUserInfo();
 
     // Подключаемся к Socket.IO
     const socket = SocketService.getInstance();
@@ -275,60 +162,49 @@ const FuelTrading: React.FC = () => {
     };
   }, []);
 
-  // Фильтрация транзакций для отображения (все операции + фильтры)
-  const filteredTransactions = allTransactions.filter(t => {
-    const isNotFrozen = !t.frozen;
-    const isAllowedType = allowedTypes.includes(t.type);
-    
-    // Базовые фильтры: не заморожено и разрешенный тип операции
-    if (!(isNotFrozen && isAllowedType)) {
-      return false;
-    }
-    
-    // Фильтр по диапазону дат (если выбран)
-    if (dateRange && dateRange[0] && dateRange[1]) {
+  // Фильтрация транзакций для отображения (только за сегодня + фильтры), отсортированные по времени
+  const filteredTransactions = allTransactions
+    .filter(t => {
+      const isNotFrozen = !t.frozen;
       const transactionDate = dayjs(t.createdAt);
-      const startDate = dateRange[0].startOf('day');
-      const endDate = dateRange[1].endOf('day');
+      const startOfToday = dayjs().startOf('day');
+      const endOfToday = dayjs().endOf('day');
       
-      if (!transactionDate.isSameOrAfter(startDate) || !transactionDate.isSameOrBefore(endDate)) {
+      // Только сегодняшние операции
+      if (!(isNotFrozen && transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday))) {
         return false;
       }
-    }
-    
-    // Фильтр по типу топлива
-    if (filterFuelType && t.fuelType !== filterFuelType) {
-      return false;
-    }
-    // Фильтр по типу операции
-    if (filterTransactionType && t.type !== filterTransactionType) {
-      return false;
-    }
-    return true;
-  });
+      
+      // Фильтр по типу топлива
+      if (filterFuelType && t.fuelType !== filterFuelType) {
+        return false;
+      }
+      // Фильтр по типу операции
+      if (filterTransactionType && t.type !== filterTransactionType) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.date || Date.now()).getTime();
+      const timeB = new Date(b.createdAt || b.date || Date.now()).getTime();
+      return timeA - timeB; // Сначала старые (по возрастанию)
+    });
 
   // Фильтрация архивных транзакций
   useEffect(() => {
     if (selectedArchiveDate) {
-      const dateStr = selectedArchiveDate.format('YYYY-MM-DD');
-      const archive = getArchiveFromStorage();
+      const startOfDay = selectedArchiveDate.startOf('day');
+      const endOfDay = selectedArchiveDate.endOf('day');
       
-      // Сначала ищем в архиве
-      let archivedForDate = archive[dateStr] || [];
+      const filtered = allTransactions.filter(t => {
+        const transactionDate = dayjs(t.createdAt);
+        return !t.frozen && 
+               transactionDate.isSameOrAfter(startOfDay) && 
+               transactionDate.isSameOrBefore(endOfDay);
+      });
       
-      // Если в архиве нет, ищем среди текущих транзакций
-      if (archivedForDate.length === 0) {
-        const startOfDay = selectedArchiveDate.startOf('day');
-        const endOfDay = selectedArchiveDate.endOf('day');
-        
-        archivedForDate = allTransactions.filter(t => {
-          const transactionDate = dayjs(t.createdAt);
-          return transactionDate.isSameOrAfter(startOfDay) && 
-                 transactionDate.isSameOrBefore(endOfDay);
-        });
-      }
-      
-      setArchiveDayTransactions(archivedForDate);
+      setArchiveDayTransactions(filtered);
     } else {
       setArchiveDayTransactions([]);
     }
@@ -548,7 +424,6 @@ const FuelTrading: React.FC = () => {
   };
 
   const clearFilters = () => {
-    setDateRange(undefined);
     setFilterFuelType(null);
     setFilterTransactionType(null);
   };
@@ -1032,7 +907,17 @@ const FuelTrading: React.FC = () => {
   }
 
   // Расчёт выручки за день
-  const dailyRevenue = calcDailyRevenueByPaymentMethod(allTransactions);
+  // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
+  const todayTransactions = allTransactions.filter(t => {
+    const transactionDate = dayjs(t.createdAt);
+    const startOfToday = dayjs().startOf('day');
+    const endOfToday = dayjs().endOf('day');
+    return !t.frozen && 
+           transactionDate.isSameOrAfter(startOfToday) && 
+           transactionDate.isSameOrBefore(endOfToday);
+  });
+  
+  const dailyRevenue = calcDailyRevenueByPaymentMethod(todayTransactions);
 
   // Отладочный вывод для проверки расчёта остатков по дизелю
   console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
@@ -1293,7 +1178,7 @@ const FuelTrading: React.FC = () => {
           
           <Col span={24} lg={14}>
             <Card 
-              title="История операций" 
+              title="Операции за сегодня" 
               extra={
                 <Space>
                   <Button
@@ -1305,7 +1190,7 @@ const FuelTrading: React.FC = () => {
                   <Button 
                     icon={<FilterOutlined />} 
                     onClick={() => clearFilters()}
-                    disabled={!dateRange && !filterFuelType && !filterTransactionType}
+                    disabled={!filterFuelType && !filterTransactionType}
                   >
                     Сбросить фильтры
                   </Button>
@@ -1315,52 +1200,6 @@ const FuelTrading: React.FC = () => {
               <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
                 <Row gutter={16}>
                   <Col span={12}>
-                    <Text>Период:</Text>
-                    <RangePicker 
-                      style={{ width: '100%', marginTop: 4 }} 
-                      value={dateRange}
-                      onChange={(dates) => setDateRange(dates ? [dates[0], dates[1]] : undefined)}
-                      placeholder={['Начальная дата', 'Конечная дата']}
-                    />
-                    <Space style={{ marginTop: 8 }} wrap>
-                      <Button 
-                        size="small" 
-                        onClick={() => {
-                          const today = dayjs();
-                          setDateRange([today, today]);
-                        }}
-                      >
-                        Сегодня
-                      </Button>
-                      <Button 
-                        size="small" 
-                        onClick={() => {
-                          const today = dayjs();
-                          const weekAgo = today.subtract(7, 'day');
-                          setDateRange([weekAgo, today]);
-                        }}
-                      >
-                        Неделя
-                      </Button>
-                      <Button 
-                        size="small" 
-                        onClick={() => {
-                          const today = dayjs();
-                          const monthAgo = today.subtract(1, 'month');
-                          setDateRange([monthAgo, today]);
-                        }}
-                      >
-                        Месяц
-                      </Button>
-                      <Button 
-                        size="small" 
-                        onClick={() => setDateRange(undefined)}
-                      >
-                        Все время
-                      </Button>
-                    </Space>
-                  </Col>
-                  <Col span={6}>
                     <Text>Тип топлива:</Text>
                     <Select 
                       style={{ width: '100%', marginTop: 4 }} 
@@ -1374,7 +1213,7 @@ const FuelTrading: React.FC = () => {
                       ))}
                     </Select>
                   </Col>
-                  <Col span={6}>
+                  <Col span={12}>
                     <Text>Тип операции:</Text>
                     <Select 
                       style={{ width: '100%', marginTop: 4 }} 
@@ -1665,31 +1504,13 @@ const FuelTrading: React.FC = () => {
 
         <Card title="Архив операций за день" style={{ marginTop: 24 }}>
           <Space direction="vertical" style={{ width: '100%' }}>
-            <Row gutter={16} align="middle">
-              <Col>
-                <AntdDatePicker
-                  value={selectedArchiveDate}
-                  onChange={setSelectedArchiveDate}
-                  placeholder="Выберите дату"
-                  style={{ width: 200 }}
-                  allowClear
-                />
-              </Col>
-              <Col>
-                <Button 
-                  onClick={handleManualArchive}
-                  type="primary"
-                  icon={<span>📦</span>}
-                >
-                  Заархивировать вчерашние операции
-                </Button>
-              </Col>
-              <Col>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  Последнее архивирование: {getLastArchiveDate() || 'никогда'}
-                </Text>
-              </Col>
-            </Row>
+            <AntdDatePicker
+              value={selectedArchiveDate}
+              onChange={setSelectedArchiveDate}
+              placeholder="Выберите дату"
+              style={{ width: 200 }}
+              allowClear
+            />
             {selectedArchiveDate && (
               <Table
                 columns={advancedMode ? advancedColumns : columns}
