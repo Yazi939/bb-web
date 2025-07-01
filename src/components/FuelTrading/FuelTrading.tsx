@@ -857,6 +857,58 @@ const FuelTrading: React.FC = () => {
     return { totalPurchased, totalSold, profit };
   }
 
+  // Функция для расчёта выручки по способам оплаты за день
+  function calcDailyRevenueByPaymentMethod(transactions: FuelTransaction[]) {
+    const today = dayjs().startOf('day');
+    const endOfToday = dayjs().endOf('day');
+    
+    // Фильтруем транзакции на сегодня и только продажи
+    const todaysSales = transactions.filter(t => {
+      const transactionDate = dayjs(t.createdAt);
+      return (t.type === 'sale' || t.type === 'bunker_sale') && 
+             !t.frozen && 
+             transactionDate.isSameOrAfter(today) && 
+             transactionDate.isSameOrBefore(endOfToday);
+    });
+
+    const revenue = {
+      cash: 0,      // Наличные
+      card: 0,      // Терминал
+      transfer: 0,  // Перевод
+      deferred: 0,  // Отложенный платеж
+      total: 0      // Общая выручка
+    };
+
+    todaysSales.forEach(transaction => {
+      const amount = transaction.totalCost || 0;
+      revenue.total += amount;
+      
+      switch (transaction.paymentMethod) {
+        case 'cash':
+          revenue.cash += amount;
+          break;
+        case 'card':
+          revenue.card += amount;
+          break;
+        case 'transfer':
+          revenue.transfer += amount;
+          break;
+        case 'deferred':
+          revenue.deferred += amount;
+          break;
+        default:
+          // Если способ оплаты не указан, относим к наличным
+          revenue.cash += amount;
+          break;
+      }
+    });
+
+    return revenue;
+  }
+
+  // Расчёт выручки за день
+  const dailyRevenue = calcDailyRevenueByPaymentMethod(allTransactions);
+
   // Отладочный вывод для проверки расчёта остатков по дизелю
   console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
   console.log('Все операции дизеля:', allTransactions.filter(t => t.fuelType === 'diesel'));
@@ -1235,6 +1287,124 @@ const FuelTrading: React.FC = () => {
                 onChange={handleTableChange}
                 loading={loading}
               />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Блок выручки за день */}
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col span={24} lg={8}>
+            <Card title="Выручка за день" style={{ height: '100%' }}>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Statistic
+                  title="Наличные"
+                  value={dailyRevenue.cash}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ color: '#52c41a' }}
+                />
+                <Statistic
+                  title="Перевод"
+                  value={dailyRevenue.transfer}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ color: '#1890ff' }}
+                />
+                <Statistic
+                  title="Терминал"
+                  value={dailyRevenue.card}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ color: '#722ed1' }}
+                />
+                <Statistic
+                  title="Отложенный платеж"
+                  value={dailyRevenue.deferred}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ color: '#fa8c16' }}
+                />
+                <Divider style={{ margin: '12px 0' }} />
+                <Statistic
+                  title="Общая выручка"
+                  value={dailyRevenue.total}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ 
+                    color: '#3f8600', 
+                    fontSize: '24px',
+                    fontWeight: 'bold'
+                  }}
+                />
+              </Space>
+            </Card>
+          </Col>
+          
+          <Col span={24} lg={8}>
+            <Card title="Общая статистика" style={{ height: '100%' }}>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Statistic
+                  title="Общая прибыль"
+                  value={metrics.totalProfit}
+                  precision={2}
+                  prefix="₽"
+                  valueStyle={{ color: metrics.totalProfit >= 0 ? '#3f8600' : '#cf1322' }}
+                />
+                <Statistic
+                  title="Маржа прибыли"
+                  value={metrics.profitMargin}
+                  precision={2}
+                  suffix="%"
+                  valueStyle={{ color: metrics.profitMargin >= 0 ? '#3f8600' : '#cf1322' }}
+                />
+                <Statistic
+                  title="Средняя цена покупки"
+                  value={metrics.averagePurchasePrice}
+                  precision={2}
+                  prefix="₽/л"
+                  valueStyle={{ color: '#1890ff' }}
+                />
+                <Statistic
+                  title="Средняя цена продажи"
+                  value={metrics.averageSalePrice}
+                  precision={2}
+                  prefix="₽/л"
+                  valueStyle={{ color: '#52c41a' }}
+                />
+              </Space>
+            </Card>
+          </Col>
+          
+          <Col span={24} lg={8}>
+            <Card title="Остатки топлива" style={{ height: '100%' }}>
+              <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Statistic
+                  title="На базе"
+                  value={metrics.baseBalance}
+                  precision={2}
+                  suffix="л"
+                  valueStyle={{ color: '#1890ff' }}
+                />
+                <Statistic
+                  title="На бункере"
+                  value={metrics.bunkerBalance}
+                  precision={2}
+                  suffix="л"
+                  valueStyle={{ color: '#722ed1' }}
+                />
+                <Divider style={{ margin: '12px 0' }} />
+                <Statistic
+                  title="Общий остаток"
+                  value={metrics.totalBalance}
+                  precision={2}
+                  suffix="л"
+                  valueStyle={{ 
+                    color: '#3f8600', 
+                    fontSize: '20px',
+                    fontWeight: 'bold'
+                  }}
+                />
+              </Space>
             </Card>
           </Col>
         </Row>

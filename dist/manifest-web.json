@@ -42,10 +42,12 @@
     }
   ],
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
-  "theme_color": "#1890ff",
-  "background_color": "#ffffff",
+  "theme_color": "#001529",
+  "background_color": "#001529",
   "scope": "/",
-  "categories": ["business", "productivity"]
+  "categories": ["business", "productivity"],
+  "prefer_related_applications": false
 } 

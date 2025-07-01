@@ -5,33 +5,49 @@
   "version": "2.1.1",
   "icons": [
     {
-      "src": "./icon.ico",
+      "src": "./bunker-logo.jpg",
       "sizes": "48x48",
-      "type": "image/x-icon"
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./bunker-logo.jpg",
+      "sizes": "72x72",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./bunker-logo.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
       "src": "./bunker-logo.jpg",
       "sizes": "144x144",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
       "src": "./bunker-logo.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
       "src": "./bunker-logo.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ],
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
-  "theme_color": "#1890ff",
-  "background_color": "#ffffff",
+  "theme_color": "#001529",
+  "background_color": "#001529",
   "scope": "/",
   "categories": ["business", "productivity"],
-  "prefer_related_applications": false,
-  "display_override": ["standalone", "minimal-ui"]
+  "prefer_related_applications": false
 } 
