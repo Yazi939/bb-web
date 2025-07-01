@@ -6,7 +6,7 @@ import {
   ShoppingCartOutlined, ScheduleOutlined, CalendarOutlined,
   LogoutOutlined, UserOutlined, SettingOutlined,
   MenuUnfoldOutlined, MenuFoldOutlined, DownOutlined,
-  DollarOutlined
+  DollarOutlined, CloseOutlined
 } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -267,6 +267,26 @@ const AppWeb: React.FC = () => {
       >
         <div className="logo">
           {!collapsed && <span>Bunker Boats</span>}
+          {/* Кнопка закрытия для мобильных устройств */}
+          {isMobile && !collapsed && (
+            <Button 
+              type="text" 
+              icon={<CloseOutlined />}
+              onClick={closeMenu}
+              style={{ 
+                color: 'white', 
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                zIndex: 1001,
+                padding: '4px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '4px',
+                background: 'rgba(255, 255, 255, 0.1)'
+              }}
+            />
+          )}
         </div>
         <Menu 
           theme="dark" 
