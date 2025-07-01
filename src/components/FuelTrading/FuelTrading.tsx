@@ -714,14 +714,20 @@ const FuelTrading: React.FC = () => {
       }
     },
     {
-      title: 'Дата',
-      dataIndex: 'date',
-      key: 'date',
-      sorter: (a, b) => b.timestamp - a.timestamp,
+      title: 'Дата и время',
+      dataIndex: 'timestamp',
+      key: 'timestamp',
+      sorter: (a, b) => (b.timestamp || 0) - (a.timestamp || 0),
       defaultSortOrder: 'descend',
-      render: (date) => {
-        if (!date) return '-';
-        return <span style={{ color: '#888', fontSize: 13 }}>{date}</span>;
+      render: (timestamp, record) => {
+        if (!timestamp) return '-';
+        const date = dayjs(timestamp);
+        return (
+          <div style={{ color: '#888', fontSize: 13 }}>
+            <div>{date.format('DD.MM.YYYY')}</div>
+            <div style={{ color: '#aaa', fontSize: 11 }}>{date.format('HH:mm:ss')}</div>
+          </div>
+        );
       }
     },
     {

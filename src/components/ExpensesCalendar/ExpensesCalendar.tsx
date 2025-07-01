@@ -289,10 +289,21 @@ const ExpensesCalendar: React.FC = () => {
   const handleAddOperation = async (values: any) => {
     try {
       const { type, fuelType, volume, price, notes } = values;
+      
+      // КРИТИЧНО: устанавливаем правильный timestamp для выбранной даты
+      const operationDate = selectedDate || dayjs();
+      // Устанавливаем время на текущее время, но дату на выбранную
+      const correctTimestamp = operationDate
+        .hour(dayjs().hour())
+        .minute(dayjs().minute())
+        .second(dayjs().second())
+        .valueOf(); // Получаем timestamp для выбранной даты с текущим временем
+      
       let newOperation: any = {
         type,
-        date: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString().split('T')[0],
-        timestamp: Date.now(),
+        date: operationDate.format('YYYY-MM-DD'),
+        timestamp: correctTimestamp,
+        createdAt: new Date().toISOString(),
         supplier: 'Добавлено вручную',
         paymentMethod: 'transfer',
         notes
