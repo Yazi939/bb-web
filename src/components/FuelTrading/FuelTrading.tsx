@@ -166,19 +166,25 @@ const FuelTrading: React.FC = () => {
     };
   }, []);
 
-  // Фильтрация транзакций для отображения (только за сегодня + фильтры)
+  // Фильтрация транзакций для отображения (все операции + фильтры)
   const filteredTransactions = allTransactions.filter(t => {
     const isNotFrozen = !t.frozen;
-    const transactionDate = dayjs(t.timestamp);
-    const startOfToday = dayjs().startOf('day');
-    const endOfToday = dayjs().endOf('day');
-    
-    // Только сегодняшние операции И только разрешенные типы топливных операций
-    const isToday = transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday);
     const isAllowedType = allowedTypes.includes(t.type);
     
-    if (!(isNotFrozen && isToday && isAllowedType)) {
+    // Базовые фильтры: не заморожено и разрешенный тип операции
+    if (!(isNotFrozen && isAllowedType)) {
       return false;
+    }
+    
+    // Фильтр по диапазону дат (если выбран)
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      const transactionDate = dayjs(t.timestamp);
+      const startDate = dateRange[0].startOf('day');
+      const endDate = dateRange[1].endOf('day');
+      
+      if (!transactionDate.isSameOrAfter(startDate) || !transactionDate.isSameOrBefore(endDate)) {
+        return false;
+      }
     }
     
     // Фильтр по типу топлива
@@ -1115,8 +1121,46 @@ const FuelTrading: React.FC = () => {
                     <RangePicker 
                       style={{ width: '100%', marginTop: 4 }} 
                       value={dateRange}
-                      onChange={setDateRange}
+                      onChange={(dates) => setDateRange(dates ? [dates[0], dates[1]] : undefined)}
+                      placeholder={['Начальная дата', 'Конечная дата']}
                     />
+                    <Space style={{ marginTop: 8 }} wrap>
+                      <Button 
+                        size="small" 
+                        onClick={() => {
+                          const today = dayjs();
+                          setDateRange([today, today]);
+                        }}
+                      >
+                        Сегодня
+                      </Button>
+                      <Button 
+                        size="small" 
+                        onClick={() => {
+                          const today = dayjs();
+                          const weekAgo = today.subtract(7, 'day');
+                          setDateRange([weekAgo, today]);
+                        }}
+                      >
+                        Неделя
+                      </Button>
+                      <Button 
+                        size="small" 
+                        onClick={() => {
+                          const today = dayjs();
+                          const monthAgo = today.subtract(1, 'month');
+                          setDateRange([monthAgo, today]);
+                        }}
+                      >
+                        Месяц
+                      </Button>
+                      <Button 
+                        size="small" 
+                        onClick={() => setDateRange(undefined)}
+                      >
+                        Все время
+                      </Button>
+                    </Space>
                   </Col>
                   <Col span={6}>
                     <Text>Тип топлива:</Text>
