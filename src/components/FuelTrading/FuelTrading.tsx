@@ -235,11 +235,21 @@ const FuelTrading: React.FC = () => {
   
   const loadUserInfo = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{"id": "", "role": ""}');
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error loading user info:', error);
-    }
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('currentUser');
+      
+      // Только если есть и токен и данные пользователя
+      if (token && userStr) {
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+             } else {
+         // Если нет токена или пользователя - устанавливаем пустого пользователя
+         setCurrentUser({ id: '', role: 'worker' });
+       }
+     } catch (error) {
+       console.error('Error loading user info:', error);
+       setCurrentUser({ id: '', role: 'worker' });
+     }
   };
   
   const saveTransactions = async () => {
@@ -802,16 +812,7 @@ const FuelTrading: React.FC = () => {
     columns[columns.length - 1] // Последний столбец (действия)
   ];
 
-  useEffect(() => {
-    // If no user exists in localStorage, create a default admin
-    if (!localStorage.getItem('currentUser')) {
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: 'admin1',
-        name: 'Администратор',
-        role: 'admin'
-      }));
-    }
-  }, []);
+  // Убираем автоматическое создание пользователя - должна быть авторизация
 
   // ВРЕМЕННО: выводим данные для отладки объёма
   console.log('filteredTransactions:', filteredTransactions.map(t => ({ key: t.key, volume: t.volume, type: typeof t.volume })));

@@ -54,12 +54,18 @@ export const loginUser = async (username: string, password: string): Promise<Use
     const response = await userService.login(username, password);
     if (response.data && response.data.token) {
       localStorage.setItem('token', response.data.token);
-      return response.data.user || {
+      
+      const user = response.data.user || {
         id: response.data.id,
         username: response.data.username,
         role: response.data.role,
         name: response.data.name
       };
+      
+      // Сохраняем данные пользователя в localStorage
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+      return user;
     }
     return null;
   } catch (error) {
@@ -70,13 +76,26 @@ export const loginUser = async (username: string, password: string): Promise<Use
 
 // Получение текущего пользователя
 export const getCurrentUser = async (): Promise<User | null> => {
-  // Например, реализуйте userService.getCurrentUser(), если сервер поддерживает
-  return null;
+  try {
+    const token = localStorage.getItem('token');
+    const currentUser = localStorage.getItem('currentUser');
+    
+    // Только если есть И токен И данные пользователя - возвращаем пользователя
+    if (token && currentUser) {
+      return JSON.parse(currentUser);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
 };
 
 // Выход пользователя
 export const logoutUser = async (): Promise<void> => {
   localStorage.removeItem('token');
+  localStorage.removeItem('currentUser');
 };
 
 // Проверка прав доступа
