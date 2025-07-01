@@ -66,7 +66,6 @@ const allowedTypes: FuelTransactionType[] = ['purchase', 'sale', 'bunker_sale', 
 
 const FuelTrading: React.FC = () => {
   const [allTransactions, setAllTransactions] = useState<FuelTransaction[]>([]);
-  const [transactions, setTransactions] = useState<FuelTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | undefined>(undefined);
   const [filters, setFilters] = useState<any>({});
@@ -97,8 +96,6 @@ const FuelTrading: React.FC = () => {
   const [selectedArchiveDate, setSelectedArchiveDate] = useState<Dayjs | null>(null);
   const [archiveDayTransactions, setArchiveDayTransactions] = useState<FuelTransaction[]>([]);
   const [filterArchivePaymentMethod, setFilterArchivePaymentMethod] = useState<string | null>(null);
-
-
 
   const fetchTransactions = async (page = 1, pageSize = 10) => {
     try {
@@ -148,20 +145,8 @@ const FuelTrading: React.FC = () => {
     socket.onDataUpdated((data) => {
       console.log('Получено обновление данных:', data);
       if (data.type === 'transactions') {
-        if (data.action === 'created') {
-          setTransactions(prev => {
-            // Проверяем, нет ли уже такой транзакции
-            if (prev.some(t => t.id === data.data.id)) {
-              console.log('Транзакция уже существует, пропускаем:', data.data.id);
-              return prev;
-            }
-            return [...prev, data.data];
-          });
-        } else if (data.action === 'updated') {
-          setTransactions(prev => prev.map(t => t.id === data.data.id ? data.data : t));
-        } else if (data.action === 'deleted') {
-          setTransactions(prev => prev.filter(t => t.id !== data.id));
-        }
+        // При обновлении данных просто перезагружаем все транзакции
+        fetchTransactions();
       }
     });
 
@@ -245,29 +230,6 @@ const FuelTrading: React.FC = () => {
       pageSize: paginationConfig.pageSize
     });
   };
-  
-  useEffect(() => {
-    // При изменении фильтров обновляем отображаемые транзакции
-    const { current, pageSize } = pagination;
-    const start = (current - 1) * pageSize;
-    const end = start + pageSize;
-    const paginatedTransactions = filteredTransactions.slice(start, end);
-    
-    // ВРЕМЕННЫЙ ЛОГ для отладки
-    console.log('🔄 Updating transactions:', {
-      filteredCount: filteredTransactions.length,
-      paginatedCount: paginatedTransactions.length,
-      pagination: { current, pageSize, start, end }
-    });
-    
-    setTransactions(paginatedTransactions);
-    
-    // Обновляем общее количество для пагинации
-    setPagination(prev => ({
-      ...prev,
-      total: filteredTransactions.length
-    }));
-  }, [filteredTransactions]);
   
   const loadUserInfo = async () => {
     try {
@@ -414,8 +376,6 @@ const FuelTrading: React.FC = () => {
       if (response.data && response.data.id) {
         newTransaction.id = response.data.id;
         newTransaction.key = response.data.id;
-        // Добавляем транзакцию в состояние сразу
-        setTransactions(prev => [...prev, newTransaction]);
       }
       
       await fetchTransactions();
@@ -560,21 +520,10 @@ const FuelTrading: React.FC = () => {
   };
 
   const handleFreezeTransaction = (transaction: FuelTransaction) => {
-    const updatedTransaction = {
-      ...transaction,
-      frozen: !transaction.frozen,
-      frozenDate: transaction.frozen ? undefined : Date.now()
-    };
-    
-    setTransactions(transactions.map(t => 
-      t.key === transaction.key ? updatedTransaction : t
-    ));
-    
+    // Freeze functionality is not currently implemented
     notification.info({
-      message: transaction.frozen ? 'Топливо разморожено' : 'Топливо заморожено',
-      description: transaction.frozen 
-        ? 'Топливо снова учитывается в остатках и влияет на прибыль' 
-        : 'Топливо не учитывается в остатках и не влияет на прибыль'
+      message: 'Функция заморозки',
+      description: 'Функция заморозки транзакций временно отключена'
     });
   };
 
