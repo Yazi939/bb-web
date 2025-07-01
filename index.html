@@ -1,14 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/icon.ico" />
+    <link rel="manifest" href="/manifest-web.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Bunker Boats - система управления топливом и расходами" />
+    <meta name="theme-color" content="#1890ff" />
+    <link rel="apple-touch-icon" href="/bunker-logo.jpg" />
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://bunker-boats.ru;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        font-src 'self' data:;
+        connect-src 'self' https://bunker-boats.ru https://bunker-boats.ru/api wss://bunker-boats.ru ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:*;
+        worker-src 'self' blob:;
+    " />
     <title>Bunker Boats</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' ws://localhost:* http://localhost:* http://89.169.170.164:* ws://89.169.170.164:*; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;" />
+    <link rel="stylesheet" href="./main.css">
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./main.js"></script>
   </body>
 </html> 
