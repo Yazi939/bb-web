@@ -1,9 +1,13 @@
 {
-  "name": "fuel-app",
-  "version": "1.0.0",
-  "description": "Fuel management application",
+  "name": "bunker-boats",
+  "private": true,
+  "version": "2.1.5",
+  "type": "module",
   "main": "main.cjs",
-  "type": "commonjs",
+  "homepage": ".",
+  "author": "Bunker Boats Team",
+  "description": "Bunker Boats - система управления топливом и расходами",
+  "productName": "Bunker Boats",
   "scripts": {
     "clean": "rimraf dist build",
     "dev": "cross-env NODE_ENV=development vite",
@@ -21,7 +25,6 @@
   },
   "build": {
     "appId": "com.yourcompany.fuelapp",
-    "productName": "Fuel Trading App",
     "publish": {
       "provider": "github",
       "owner": "Yazi939",

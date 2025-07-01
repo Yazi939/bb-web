@@ -225,7 +225,7 @@ const App: React.FC = () => {
         style={{ height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
       >
         <div className="logo">
-          {!collapsed && <span>FUEL Manager</span>}
+          {!collapsed && <span>Bunker Boats</span>}
         </div>
         <Menu 
           theme="dark" 

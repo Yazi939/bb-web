@@ -1,0 +1,305 @@
+.fuelTrading {
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.formCard {
+  margin-bottom: 24px;
+}
+
+.statsCard {
+  margin-bottom: 24px;
+}
+
+.tableCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobileTable {
+  min-width: 100%;
+}
+
+.mobileTableRow {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px;
+}
+
+.mobileTableCell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #fafafa;
+}
+
+.mobileTableCell:last-child {
+  border-bottom: none;
+}
+
+.mobileTableLabel {
+  font-weight: 500;
+  color: #666;
+  min-width: 100px;
+}
+
+.mobileTableValue {
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Tablet styles (768px - 1024px) */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .fuelTrading {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .headerActions {
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .formCard {
+    margin-bottom: 20px;
+  }
+  
+  .statsCard {
+    margin-bottom: 20px;
+  }
+  
+  .tableWrapper {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Better form layout for tablets */
+  .formCard .ant-form-item {
+    margin-bottom: 20px;
+  }
+  
+  .formCard .ant-row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+  
+  .formCard .ant-col {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  /* Statistics grid for tablets */
+  .statsCard .ant-row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+  
+  .statsCard .ant-col {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-bottom: 16px;
+  }
+  
+  .statsCard .ant-statistic {
+    text-align: center;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e8e8e8;
+  }
+}
+
+/* Portrait tablet */
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .header {
+    margin-bottom: 20px;
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .headerActions > * {
+    width: 100%;
+  }
+  
+  /* Stack form and stats vertically */
+  .formCard,
+  .statsCard {
+    width: 100%;
+  }
+  
+  /* Full width table on portrait */
+  .tableWrapper {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+}
+
+/* Landscape tablet */
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .fuelTrading {
+    padding: 12px;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+  }
+  
+  .formCard {
+    margin-bottom: 16px;
+  }
+  
+  .statsCard {
+    margin-bottom: 16px;
+  }
+  
+  /* More compact in landscape */
+  .statsCard .ant-statistic {
+    padding: 12px;
+  }
+  
+  .statsCard .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+/* Mobile styles (under 768px) */
+@media (max-width: 767px) {
+  .fuelTrading {
+    padding: 12px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .headerActions > * {
+    width: 100%;
+  }
+  
+  .formCard,
+  .statsCard {
+    margin-bottom: 16px;
+  }
+  
+  /* Hide desktop table, show mobile layout */
+  .tableWrapper {
+    display: none;
+  }
+  
+  .mobileTable {
+    display: block;
+  }
+  
+  .tableCard {
+    border-radius: 8px;
+    padding: 0;
+  }
+  
+  .mobileTableRow {
+    background: white;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobileTableRow:last-child {
+    margin-bottom: 0;
+  }
+  
+  .mobileTableCell {
+    padding: 12px 0;
+  }
+  
+  .mobileTableLabel {
+    font-size: 14px;
+    min-width: 120px;
+  }
+  
+  .mobileTableValue {
+    font-size: 14px;
+    max-width: 60%;
+    word-break: break-word;
+  }
+}
+
+/* Small mobile styles (under 480px) */
+@media (max-width: 479px) {
+  .fuelTrading {
+    padding: 8px;
+  }
+  
+  .header {
+    margin-bottom: 12px;
+  }
+  
+  .formCard,
+  .statsCard {
+    margin-bottom: 12px;
+  }
+  
+  .mobileTableRow {
+    padding: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .mobileTableCell {
+    padding: 8px 0;
+  }
+  
+  .mobileTableLabel {
+    font-size: 13px;
+    min-width: 100px;
+  }
+  
+  .mobileTableValue {
+    font-size: 13px;
+  }
+}
+
+/* Hide mobile table on desktop/tablet */
+@media (min-width: 768px) {
+  .mobileTable {
+    display: none;
+  }
+  
+  .tableWrapper {
+    display: block;
+  }
+} 

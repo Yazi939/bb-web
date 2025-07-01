@@ -1,0 +1,25 @@
+{
+  "name": "fuel-app",
+  "version": "2.1.4",
+  "description": "Fuel management application",
+  "main": "main.cjs",
+  "type": "commonjs",
+  "dependencies": {
+    "@ant-design/icons": "^5.3.0",
+    "@types/socket.io-client": "^1.4.36",
+    "antd": "^5.14.1",
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.10",
+    "electron-log": "^5.4.0",
+    "electron-updater": "^6.6.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.12.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "sqlite3": "^5.1.6",
+    "xlsx": "^0.18.5"
+  }
+}

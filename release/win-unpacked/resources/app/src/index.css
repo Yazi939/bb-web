@@ -1,0 +1,484 @@
+:root {
+  --primary-color: #1890ff;
+  --primary-color-rgb: 24, 144, 255;
+  --text-color: rgba(0, 0, 0, 0.85);
+  --background-color: #ffffff;
+  --secondary-background: #f0f2f5;
+  --border-color: #f0f0f0;
+  --success-color: #52c41a;
+  --error-color: #cf1322;
+}
+
+[data-theme='dark'] {
+  --primary-color: #177ddc;
+  --primary-color-rgb: 23, 125, 220;
+  --text-color: rgba(255, 255, 255, 0.85);
+  --background-color: #141414;
+  --secondary-background: #1f1f1f;
+  --border-color: #303030;
+  --success-color: #49aa19;
+  --error-color: #a61d24;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.ant-layout {
+  min-height: 100vh;
+  background: var(--background-color);
+}
+
+.ant-layout-sider {
+  background-color: #001529 !important;
+}
+
+.ant-menu.ant-menu-dark {
+  background-color: #001529 !important;
+}
+
+.ant-card {
+  background: var(--secondary-background);
+  border-color: var(--border-color);
+}
+
+.ant-statistic-title {
+  color: var(--text-color);
+}
+
+.ant-statistic-content {
+  color: var(--text-color);
+}
+
+.chart-container {
+  background: var(--secondary-background);
+  border-radius: 2px;
+  padding: 24px;
+}
+
+.heatmap {
+  background: var(--secondary-background);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.connector-chart {
+  background: var(--secondary-background);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Дополнительные стили для темной темы */
+[data-theme='dark'] .ant-table {
+  background: var(--secondary-background);
+}
+
+[data-theme='dark'] .ant-table-thead > tr > th {
+  background: var(--secondary-background);
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .ant-table-tbody > tr > td {
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .ant-card-head {
+  border-color: var(--border-color);
+}
+
+[data-theme='dark'] .recharts-cartesian-grid-horizontal line,
+[data-theme='dark'] .recharts-cartesian-grid-vertical line {
+  stroke: var(--border-color);
+}
+
+[data-theme='dark'] .recharts-text {
+  fill: var(--text-color);
+}
+
+/* Стили для тепловой карты */
+.heatmap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.heatmap th,
+.heatmap td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: center;
+}
+
+.heatmap th {
+  background: var(--secondary-background);
+  color: var(--text-color);
+}
+
+/* Стили для круговой диаграммы */
+.connector-chart .legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.connector-chart .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connector-chart .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.success-icon {
+  color: var(--success-color);
+}
+
+.error-icon {
+  color: var(--error-color);
+}
+
+/* Стили для иконок в сайдбаре */
+.sidebar-icon {
+  font-size: 18px;
+  min-width: 24px;
+  margin-right: 10px;
+}
+
+/* Улучшение видимости ссылок в сайдбаре */
+.ant-menu-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 16px !important;
+}
+
+.ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #1890ff !important;
+}
+
+.ant-menu-item-selected .sidebar-icon,
+.ant-menu-item-selected span {
+  color: white !important;
+}
+
+.ant-layout-sider-children {
+  background-color: #001529 !important;
+}
+
+/* Логотип в сайдбаре */
+.sidebar-logo {
+  height: 32px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+/* Tablet responsive styles */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Layout improvements for tablets */
+  .ant-layout-content {
+    padding: 16px 12px !important;
+    margin: 16px 12px !important;
+  }
+  
+  /* Card improvements */
+  .ant-card {
+    margin-bottom: 16px;
+    border-radius: 12px;
+  }
+  
+  .ant-card-head {
+    padding: 16px 20px;
+    font-size: 18px;
+  }
+  
+  .ant-card-body {
+    padding: 20px;
+  }
+  
+  /* Table improvements for tablets */
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .ant-table {
+    min-width: 800px;
+  }
+  
+  .ant-table-thead > tr > th {
+    padding: 12px 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+  
+  /* Form improvements */
+  .ant-form-item {
+    margin-bottom: 20px;
+  }
+  
+  .ant-form-item-label > label {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    height: 44px !important;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  
+  .ant-input-number {
+    width: 100%;
+  }
+  
+  .ant-input-number-input {
+    height: 42px !important;
+    font-size: 16px;
+  }
+  
+  /* Button improvements for touch */
+  .ant-btn {
+    height: 44px;
+    padding: 0 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .ant-btn-sm {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  
+  .ant-btn-lg {
+    height: 52px;
+    padding: 0 24px;
+    font-size: 18px;
+  }
+  
+  /* Select improvements */
+  .ant-select-dropdown {
+    border-radius: 12px;
+  }
+  
+  .ant-select-item {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+  
+  /* Statistics improvements */
+  .ant-statistic {
+    text-align: center;
+    padding: 16px;
+  }
+  
+  .ant-statistic-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .ant-statistic-content {
+    font-size: 28px;
+    font-weight: 600;
+  }
+  
+  /* Grid improvements */
+  .ant-row {
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+  }
+  
+  .ant-col {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  /* Modal improvements */
+  .ant-modal {
+    margin: 16px;
+  }
+  
+  .ant-modal-content {
+    border-radius: 16px;
+  }
+  
+  .ant-modal-header {
+    padding: 20px 24px;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .ant-modal-body {
+    padding: 24px;
+  }
+  
+  .ant-modal-footer {
+    padding: 16px 24px 24px;
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+/* Touch-friendly styles for all devices */
+@media (pointer: coarse) {
+  /* Make all interactive elements touch-friendly */
+  .ant-btn,
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker,
+  .ant-switch,
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper {
+    min-height: 44px;
+  }
+  
+  /* Larger touch targets */
+  .ant-table-tbody > tr > td .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Better spacing for touch */
+  .ant-space-item {
+    margin-right: 12px !important;
+  }
+  
+  /* Larger filter buttons */
+  .ant-table-filter-trigger {
+    padding: 8px;
+  }
+  
+  /* Better pagination for touch */
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 44px;
+    min-height: 44px;
+    line-height: 42px;
+  }
+}
+
+/* Landscape tablet specific styles */
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .ant-layout-content {
+    padding: 12px 16px !important;
+  }
+  
+  /* More compact layout in landscape */
+  .ant-card-head {
+    padding: 12px 16px;
+  }
+  
+  .ant-card-body {
+    padding: 16px;
+  }
+  
+  .ant-statistic {
+    padding: 12px;
+  }
+  
+  .ant-statistic-content {
+    font-size: 24px;
+  }
+}
+
+/* Portrait tablet specific styles */
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  /* Stack cards vertically in portrait */
+  .ant-col-lg-12 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .ant-col-lg-8 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .ant-col-lg-6 {
+    width: 50% !important;
+    max-width: 50% !important;
+  }
+  
+  /* Larger text in portrait mode */
+  .ant-typography h1 {
+    font-size: 28px;
+  }
+  
+  .ant-typography h2 {
+    font-size: 24px;
+  }
+  
+  .ant-typography h3 {
+    font-size: 20px;
+  }
+}
+
+/* Huawei tablet specific improvements */
+@media screen and (min-width: 768px) and (max-width: 1280px) {
+  /* Better scrolling for Huawei tablets */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for Huawei browser rendering */
+  .ant-table-wrapper {
+    transform: translateZ(0);
+  }
+  
+  /* Better contrast for Huawei displays */
+  .ant-table-thead > tr > th {
+    background-color: #fafafa;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  
+  /* Improved shadows for depth */
+  .ant-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ant-modal-content {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+} 

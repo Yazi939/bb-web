@@ -1,0 +1,94 @@
+.expenseManagement {
+  padding: 24px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.statisticsRow {
+  margin-bottom: 24px;
+}
+
+.statisticsCard {
+  text-align: center;
+  padding: 16px;
+}
+
+.statisticsIcon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.statisticsLabel {
+  margin-bottom: 4px;
+}
+
+.statisticsValue {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.totalAmount {
+  color: #f5222d !important;
+}
+
+.totalCount {
+  color: #52c41a !important;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.modalForm {
+  margin-top: 16px;
+}
+
+.formActions {
+  margin-bottom: 0;
+  text-align: right;
+}
+
+.amountText {
+  color: #f5222d !important;
+  font-weight: bold;
+}
+
+.ellipsisCell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .expenseManagement {
+    padding: 16px;
+  }
+  
+  .statisticsValue {
+    font-size: 20px;
+  }
+  
+  .ellipsisCell {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 576px) {
+  .expenseManagement {
+    padding: 12px;
+  }
+  
+  .statisticsCard {
+    padding: 12px;
+  }
+  
+  .statisticsValue {
+    font-size: 18px;
+  }
+} 

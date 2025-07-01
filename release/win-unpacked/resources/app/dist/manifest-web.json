@@ -1,0 +1,17 @@
+{
+  "name": "Bunkering boat",
+  "short_name": "Bunkering boat",
+  "description": "Система управления топливом и расходами",
+  "version": "2.1.1",
+  "icons": [
+    {
+      "src": "/icon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1890ff",
+  "background_color": "#ffffff"
+} 

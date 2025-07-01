@@ -61,13 +61,19 @@ const Preloader: React.FC<PreloaderProps> = ({ loading, onFinish }) => {
 
   return (
     <div className={`preloader-container ${fadeOut ? 'fade-out' : ''}`}>
-      <div className="app-name">FUEL Manager</div>
-      
-      <div className="fuel-drop">
-        <div className="drop-body">
-          <div className="wave"></div>
+      <div className="logo-container">
+        <div className="app-name">Bunker Boats</div>
+        <div className="fuel-drop">
+          <div className="drop-body">
+            <div className="wave"></div>
+          </div>
+          <div className="drop-shadow"></div>
         </div>
-        <div className="drop-shadow"></div>
+        <div className="loading-dots">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
       </div>
       
       <div className="fuel-gauge">

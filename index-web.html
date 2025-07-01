@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="./icon.ico" />
+    <link rel="manifest" href="./manifest-web.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Bunkering boat - система управления топливом и расходами" />
+    <meta name="theme-color" content="#1890ff" />
+    
+    <!-- PWA meta tags for hiding browser UI -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Bunkering boat" />
+    
+    <link rel="apple-touch-icon" href="./bunker-logo.jpg" />
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://bunker-boats.ru;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        font-src 'self' data:;
+        connect-src 'self' https://bunker-boats.ru ws://localhost:3001 wss://bunker-boats.ru;
+        worker-src 'self' blob:;
+    ">
+    <title>Bunkering boat</title>
+  <script type="module" crossorigin src="./main.js"></script>
+  <link rel="modulepreload" crossorigin href="./react-vendor.js">
+  <link rel="modulepreload" crossorigin href="./antd-vendor.js">
+  <link rel="modulepreload" crossorigin href="./utils-vendor.js">
+  <link rel="stylesheet" crossorigin href="./main.css">
+</head>
+<body>
+    <div id="root"></div>
+
+</body>
+</html> 

@@ -275,7 +275,7 @@ const AppWeb: React.FC = () => {
         }}
       >
         <div className="logo">
-          {!collapsed && <span>FUEL Manager</span>}
+          {!collapsed && <span>Bunker Boats</span>}
         </div>
         <Menu 
           theme="dark" 
