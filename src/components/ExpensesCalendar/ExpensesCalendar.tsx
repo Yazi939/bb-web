@@ -678,7 +678,8 @@ const ExpensesCalendar: React.FC = () => {
             Закрыть
           </Button>
         ]}
-        width={800}
+        width={1200}
+        style={{ top: 20 }}
       >
         {selectedTransactions.length > 0 ? (
           <>
@@ -688,6 +689,7 @@ const ExpensesCalendar: React.FC = () => {
               rowKey="id"
               pagination={false}
               size="small"
+              scroll={{ x: 900 }}
             />
             <div style={{ marginTop: 16 }}>
               <Space>
