@@ -1291,120 +1291,149 @@ const FuelTrading: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Блок выручки за день */}
+        {/* Блок статистики в столбик */}
         <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-          <Col span={24} lg={8}>
-            <Card title="Выручка за день" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Statistic
-                  title="Наличные"
-                  value={dailyRevenue.cash}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#52c41a' }}
-                />
-                <Statistic
-                  title="Перевод"
-                  value={dailyRevenue.transfer}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#1890ff' }}
-                />
-                <Statistic
-                  title="Терминал"
-                  value={dailyRevenue.card}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#722ed1' }}
-                />
-                <Statistic
-                  title="Отложенный платеж"
-                  value={dailyRevenue.deferred}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#fa8c16' }}
-                />
-                <Divider style={{ margin: '12px 0' }} />
-                <Statistic
-                  title="Общая выручка"
-                  value={dailyRevenue.total}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ 
-                    color: '#3f8600', 
-                    fontSize: '24px',
-                    fontWeight: 'bold'
-                  }}
-                />
-              </Space>
+          <Col span={24}>
+            <Card title="Выручка за день">
+              <Row gutter={[16, 16]}>
+                <Col span={6}>
+                  <Statistic
+                    title="Наличные"
+                    value={dailyRevenue.cash}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Перевод"
+                    value={dailyRevenue.transfer}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Терминал"
+                    value={dailyRevenue.card}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Отложенный платеж"
+                    value={dailyRevenue.deferred}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#fa8c16' }}
+                  />
+                </Col>
+              </Row>
+              <Divider style={{ margin: '16px 0' }} />
+              <Row>
+                <Col span={24} style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title="Общая выручка"
+                    value={dailyRevenue.total}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ 
+                      color: '#3f8600', 
+                      fontSize: '28px',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Col>
+              </Row>
             </Card>
           </Col>
-          
-          <Col span={24} lg={8}>
-            <Card title="Общая статистика" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Statistic
-                  title="Общая прибыль"
-                  value={metrics.totalProfit}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: metrics.totalProfit >= 0 ? '#3f8600' : '#cf1322' }}
-                />
-                <Statistic
-                  title="Маржа прибыли"
-                  value={metrics.profitMargin}
-                  precision={2}
-                  suffix="%"
-                  valueStyle={{ color: metrics.profitMargin >= 0 ? '#3f8600' : '#cf1322' }}
-                />
-                <Statistic
-                  title="Средняя цена покупки"
-                  value={metrics.averagePurchasePrice}
-                  precision={2}
-                  prefix="₽/л"
-                  valueStyle={{ color: '#1890ff' }}
-                />
-                <Statistic
-                  title="Средняя цена продажи"
-                  value={metrics.averageSalePrice}
-                  precision={2}
-                  prefix="₽/л"
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Space>
+        </Row>
+
+        <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
+          <Col span={24}>
+            <Card title="Общая статистика">
+              <Row gutter={[16, 16]}>
+                <Col span={6}>
+                  <Statistic
+                    title="Общая прибыль"
+                    value={metrics.totalProfit}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: metrics.totalProfit >= 0 ? '#3f8600' : '#cf1322' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Маржа прибыли"
+                    value={metrics.profitMargin}
+                    precision={2}
+                    suffix="%"
+                    valueStyle={{ color: metrics.profitMargin >= 0 ? '#3f8600' : '#cf1322' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Средняя цена покупки"
+                    value={metrics.averagePurchasePrice}
+                    precision={2}
+                    prefix="₽/л"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={6}>
+                  <Statistic
+                    title="Средняя цена продажи"
+                    value={metrics.averageSalePrice}
+                    precision={2}
+                    prefix="₽/л"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+              </Row>
             </Card>
           </Col>
-          
-          <Col span={24} lg={8}>
-            <Card title="Остатки топлива" style={{ height: '100%' }}>
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Statistic
-                  title="На базе"
-                  value={metrics.baseBalance}
-                  precision={2}
-                  suffix="л"
-                  valueStyle={{ color: '#1890ff' }}
-                />
-                <Statistic
-                  title="На бункере"
-                  value={metrics.bunkerBalance}
-                  precision={2}
-                  suffix="л"
-                  valueStyle={{ color: '#722ed1' }}
-                />
-                <Divider style={{ margin: '12px 0' }} />
-                <Statistic
-                  title="Общий остаток"
-                  value={metrics.totalBalance}
-                  precision={2}
-                  suffix="л"
-                  valueStyle={{ 
-                    color: '#3f8600', 
-                    fontSize: '20px',
-                    fontWeight: 'bold'
-                  }}
-                />
-              </Space>
+        </Row>
+
+        <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
+          <Col span={24}>
+            <Card title="Остатки топлива">
+              <Row gutter={[16, 16]}>
+                <Col span={8}>
+                  <Statistic
+                    title="На базе"
+                    value={metrics.baseBalance}
+                    precision={2}
+                    suffix="л"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="На бункере"
+                    value={metrics.bunkerBalance}
+                    precision={2}
+                    suffix="л"
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Общий остаток"
+                    value={metrics.totalBalance}
+                    precision={2}
+                    suffix="л"
+                    valueStyle={{ 
+                      color: '#3f8600', 
+                      fontSize: '20px',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>
