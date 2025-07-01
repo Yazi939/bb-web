@@ -10,8 +10,9 @@ const MOSCOW_TIMEZONE_OFFSET = 3 * 60 * 60 * 1000; // 3 часа в миллис
 const convertToMoscowTime = (utcDate) => {
   if (!utcDate) return null;
   const date = new Date(utcDate);
-  // Добавляем смещение московской временной зоны
-  return new Date(date.getTime() + MOSCOW_TIMEZONE_OFFSET);
+  // Добавляем смещение московской временной зоны и возвращаем как строку без 'Z'
+  const moscowDate = new Date(date.getTime() + MOSCOW_TIMEZONE_OFFSET);
+  return moscowDate.toISOString().replace('Z', '');
 };
 
 // Функция для конвертации московского времени в UTC для сохранения в БД

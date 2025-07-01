@@ -722,27 +722,36 @@ const FuelTrading: React.FC = () => {
       render: (createdAt, record) => {
         if (!createdAt) return '-';
         
-        // Сервер уже возвращает московское время, используем его напрямую
-        const date = new Date(createdAt);
+        // Сервер возвращает время уже сконвертированное в московское время
+        // Парсим строку напрямую без создания Date объекта
+        let displayDate, displayTime;
         
-        // Форматируем дату и время
-        const dateStr = date.toLocaleDateString('ru-RU', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-        
-        const timeStr = date.toLocaleTimeString('ru-RU', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: false
-        });
+        if (typeof createdAt === 'string') {
+          // Если это строка вида "2025-07-02T19:28:16.000Z" 
+          const dateStr = createdAt.replace('T', ' ').replace('Z', '').substring(0, 19);
+          const [datePart, timePart] = dateStr.split(' ');
+          if (datePart && timePart) {
+            const [year, month, day] = datePart.split('-');
+            displayDate = `${day}.${month}.${year}`;
+            displayTime = timePart;
+          } else {
+            displayDate = datePart || '';
+            displayTime = timePart || '';
+          }
+        } else {
+          // Если это Date объект, парсим его строкой
+          const isoString = new Date(createdAt).toISOString();
+          const dateStr = isoString.replace('T', ' ').replace('Z', '').substring(0, 19);
+          const [datePart, timePart] = dateStr.split(' ');
+          const [year, month, day] = datePart.split('-');
+          displayDate = `${day}.${month}.${year}`;
+          displayTime = timePart;
+        }
         
         return (
           <div style={{ color: '#888', fontSize: 13 }}>
-            <div>{dateStr}</div>
-            <div style={{ color: '#aaa', fontSize: 11 }}>{timeStr}</div>
+            <div>{displayDate}</div>
+            <div style={{ color: '#aaa', fontSize: 11 }}>{displayTime}</div>
           </div>
         );
       }
