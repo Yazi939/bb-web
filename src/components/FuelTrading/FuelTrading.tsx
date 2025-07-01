@@ -1353,50 +1353,7 @@ const FuelTrading: React.FC = () => {
           </Col>
         </Row>
 
-        <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
-          <Col span={24}>
-            <Card title="Общая статистика">
-              <Row gutter={[16, 16]}>
-                <Col span={6}>
-                  <Statistic
-                    title="Общая прибыль"
-                    value={metrics.totalProfit}
-                    precision={2}
-                    prefix="₽"
-                    valueStyle={{ color: metrics.totalProfit >= 0 ? '#3f8600' : '#cf1322' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Маржа прибыли"
-                    value={metrics.profitMargin}
-                    precision={2}
-                    suffix="%"
-                    valueStyle={{ color: metrics.profitMargin >= 0 ? '#3f8600' : '#cf1322' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Средняя цена покупки"
-                    value={metrics.averagePurchasePrice}
-                    precision={2}
-                    prefix="₽/л"
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Col>
-                <Col span={6}>
-                  <Statistic
-                    title="Средняя цена продажи"
-                    value={metrics.averageSalePrice}
-                    precision={2}
-                    prefix="₽/л"
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-        </Row>
+
 
         <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
           <Col span={24}>
