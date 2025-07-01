@@ -167,9 +167,12 @@ const FuelTrading: React.FC = () => {
       if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
         timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
       }
-      const transactionDate = dayjs(timeStr); // явно указываем московскую временную зону
-      const startOfToday = dayjs().startOf('day');
-      const endOfToday = dayjs().endOf('day');
+      const transactionDate = dayjs(timeStr);
+      
+      // ВАЖНО: Создаем "сегодня" также в московской временной зоне
+      const moscowNow = dayjs().add(3, 'hour'); // Московское время UTC+3
+      const startOfToday = moscowNow.startOf('day');
+      const endOfToday = moscowNow.endOf('day');
       
       // Только сегодняшние операции
       if (!(isNotFrozen && transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday))) {
