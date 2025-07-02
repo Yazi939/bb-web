@@ -1,4 +1,4 @@
-import type { FuelTransaction } from '../types/fuel';
+import type { FuelTransaction } from '../types/electron';
 
 export interface FuelBalances {
   baseBalance: number;
@@ -25,23 +25,21 @@ export function calculateFuelBalances(transactions: FuelTransaction[]): FuelBala
 
   for (const t of transactions) {
     if (t.frozen) continue; // не учитывать замороженные
-    const volume = t.volume || 0;
     switch (t.type) {
       case 'purchase':
-        totalPurchased += volume;
+        totalPurchased += t.volume;
         break;
       case 'sale':
-      case 'bunker_sale':
-        totalSold += volume;
+        totalSold += t.volume;
         break;
       case 'base_to_bunker':
-        totalBaseToBunker += volume;
+        totalBaseToBunker += t.volume;
         break;
       case 'bunker_to_base':
-        totalBunkerToBase += volume;
+        totalBunkerToBase += t.volume;
         break;
       case 'drain':
-        totalDrained += volume;
+        totalDrained += t.volume;
         break;
       default:
         break;
@@ -68,26 +66,23 @@ export function calculateFuelStats(transactions: FuelTransaction[]): FuelStats {
 
   for (const t of transactions) {
     if (t.frozen) continue;
-    const volume = t.volume || 0;
-    const totalCost = t.totalCost || 0;
     switch (t.type) {
       case 'purchase':
-        totalPurchased += volume;
-        totalPurchaseCost += totalCost;
+        totalPurchased += t.volume;
+        totalPurchaseCost += t.totalCost;
         break;
       case 'sale':
-      case 'bunker_sale':
-        totalSold += volume;
-        totalSaleIncome += totalCost;
+        totalSold += t.volume;
+        totalSaleIncome += t.totalCost;
         break;
       case 'base_to_bunker':
-        totalBaseToBunker += volume;
+        totalBaseToBunker += t.volume;
         break;
       case 'bunker_to_base':
-        totalBunkerToBase += volume;
+        totalBunkerToBase += t.volume;
         break;
       case 'drain':
-        totalDrained += volume;
+        totalDrained += t.volume;
         break;
       default:
         break;

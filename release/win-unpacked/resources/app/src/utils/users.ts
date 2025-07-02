@@ -80,6 +80,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     const token = localStorage.getItem('token');
     const currentUser = localStorage.getItem('currentUser');
     
+    // Только если есть И токен И данные пользователя - возвращаем пользователя
     if (token && currentUser) {
       return JSON.parse(currentUser);
     }

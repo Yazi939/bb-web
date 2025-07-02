@@ -459,7 +459,7 @@ const ExpensesCalendar: React.FC = () => {
       render: (type: string) => {
         const typeMap: Record<string, { color: string; text: string }> = {
           purchase: { color: 'green', text: 'Закупка' },
-          sale: { color: 'blue', text: 'Продажа' },
+          sale: { color: 'blue', text: 'Продажа с катера' },
           bunker_sale: { color: 'blue', text: 'Продажа с причала' },
           base_to_bunker: { color: 'orange', text: 'На бункер' },
           bunker_to_base: { color: 'purple', text: 'С бункера' },

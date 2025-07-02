@@ -4,8 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="./icon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:* ws://89.169.170.164:5000 http://89.169.170.164:5000 https://bunker-boats.ru;" />
-    <title>Bunkering boat</title>
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https://bunker-boats.ru;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        font-src 'self' data:;
+        connect-src 'self' https://bunker-boats.ru https://bunker-boats.ru/api wss://bunker-boats.ru ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:*;
+        worker-src 'self' blob:;
+    " />
+    <title>Bunker Boats</title>
     <script type="module" crossorigin src="./main.js"></script>
     <link rel="modulepreload" crossorigin href="./react-vendor.js">
     <link rel="modulepreload" crossorigin href="./antd-vendor.js">

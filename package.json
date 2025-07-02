@@ -2,7 +2,7 @@
   "name": "bunker-boats",
   "private": true,
   "version": "2.1.5",
-  "type": "module",
+  "type": "commonjs",
   "main": "main.cjs",
   "homepage": ".",
   "author": "Bunker Boats Team",
@@ -21,7 +21,7 @@
     "package": "electron-builder --win --publish never",
     "build:ts": "tsc -p tsconfig.preload.json",
     "build:backend": "tsc -p tsconfig.backend.json",
-    "postbuild": "copy src\\database\\api.js build\\database\\api.js"
+    "postbuild": "copy src\\database\\api.js build\\database\\api.js && copy src\\database\\queries.js build\\database\\queries.js"
   },
   "build": {
     "appId": "com.yourcompany.fuelapp",
@@ -53,7 +53,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico"
+      "icon": "public/bunker-logo.jpg"
     },
     "nsis": {
       "oneClick": false,

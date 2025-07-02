@@ -1,29 +1,35 @@
 import axios from 'axios';
 
-// Определяем базовый URL API в зависимости от окружения
-const getApiBaseUrl = () => {
-  // Если мы на HTTPS странице, используем HTTPS API через Nginx proxy
-  if (window.location.protocol === 'https:') {
+// Автоматическое определение API URL в зависимости от платформы
+const getApiUrl = () => {
+  // Если это веб-версия и загружена по HTTPS
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
     return 'https://bunker-boats.ru/api';
   }
-  // Для HTTP страниц используем прямое подключение
+  // Если переменная окружения задана
+  if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // По умолчанию для разработки
   return 'http://89.169.170.164:5000/api';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+const API_URL = getApiUrl();
+console.log('🔗 API Base URL:', API_URL);
 
-console.log('🔗 API Base URL:', API_BASE_URL);
-
-// Создаем экземпляр axios с базовой конфигурацией
+// Создаем инстанс axios
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
+  // Увеличиваем таймаут для запросов
+  timeout: 10000,
+  // Добавляем withCredentials для CORS
+  withCredentials: true
 });
 
-// Interceptor для добавления токена авторизации
+// Перехватчик для добавления токена авторизации
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -32,26 +38,23 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor для обработки ответов
+// Перехватчик для обработки ошибок
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('API Error:', error);
-    
-    // Если токен недействителен, перенаправляем на логин
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('currentUser');
-      window.location.href = '/';
+    if (error.response) {
+      // Ошибка от сервера
+      console.error('API Error:', error.response.data);
+    } else if (error.request) {
+      // Ошибка сети
+      console.error('Network Error:', error.request);
+    } else {
+      // Ошибка в настройках запроса
+      console.error('Request Error:', error.message);
     }
-    
     return Promise.reject(error);
   }
 );
@@ -93,15 +96,6 @@ export const orderService = {
   createOrder: (data) => api.post('/orders', data),
   updateOrder: (id, data) => api.put(`/orders/${id}`, data),
   deleteOrder: (id) => api.delete(`/orders/${id}`)
-};
-
-// Расходы
-export const expenseService = {
-  getExpenses: () => api.get('/expenses'),
-  getExpense: (id) => api.get(`/expenses/${id}`),
-  createExpense: (data) => api.post('/expenses', data),
-  updateExpense: (id, data) => api.put(`/expenses/${id}`, data),
-  deleteExpense: (id) => api.delete(`/expenses/${id}`)
 };
 
 export default api; 

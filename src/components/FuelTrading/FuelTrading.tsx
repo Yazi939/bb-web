@@ -619,7 +619,8 @@ const FuelTrading: React.FC = () => {
       render: (type) => {
         switch(type) {
           case 'purchase': return <Tag color="green">Покупка</Tag>;
-          case 'sale': return <Tag color="volcano">Продажа</Tag>;
+          case 'sale': return <Tag color="volcano">Продажа с катера</Tag>;
+          case 'bunker_sale': return <Tag color="cyan">Продажа с причала</Tag>;
           case 'base_to_bunker': return <Tag color="blue">База → Бункер</Tag>;
           case 'bunker_to_base': return <Tag color="purple">Бункер → База</Tag>;
           default: return <Tag>{type}</Tag>;
@@ -627,7 +628,8 @@ const FuelTrading: React.FC = () => {
       },
       filters: [
         { text: 'Покупка', value: 'purchase' },
-        { text: 'Продажа', value: 'sale' },
+        { text: 'Продажа с катера', value: 'sale' },
+        { text: 'Продажа с причала', value: 'bunker_sale' },
         ...(currentUser.role === 'admin' ? [
           { text: 'База → Бункер', value: 'base_to_bunker' },
           { text: 'Бункер → База', value: 'bunker_to_base' }

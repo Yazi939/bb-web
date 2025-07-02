@@ -2,7 +2,6 @@ directories:
   output: release
   buildResources: build
 appId: com.yourcompany.fuelapp
-productName: Bunkering boat
 publish:
   provider: github
   owner: Yazi939
@@ -24,6 +23,7 @@ extraResources:
       - '**/*'
 win:
   target: nsis
+  icon: public/bunker-logo.jpg
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true

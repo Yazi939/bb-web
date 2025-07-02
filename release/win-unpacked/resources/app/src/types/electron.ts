@@ -1,7 +1,7 @@
 export interface FuelTransaction {
   id: string;
   key: string;
-  type: 'purchase' | 'sale' | 'base_to_bunker' | 'bunker_to_base' | 'bunker_sale' | 'drain' | 'expense' | 'repair' | 'salary';
+  type: 'purchase' | 'sale' | 'bunker_sale' | 'base_to_bunker' | 'bunker_to_base' | 'expense' | 'repair' | 'salary';
   volume?: number;
   price?: number;
   totalCost?: number;
@@ -80,7 +80,6 @@ export interface ElectronAPI {
   downloadUpdate: () => Promise<void>;
   installUpdate: () => Promise<void>;
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
-  onUpdateNotAvailable?: (callback: (info?: UpdateInfo) => void) => void;
   onDownloadProgress: (callback: (progress: { percent: number }) => void) => void;
   onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => void;
   onUpdateError: (callback: (error: string) => void) => void;

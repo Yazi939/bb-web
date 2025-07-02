@@ -104,7 +104,6 @@ export const useFuelMetrics = (
       const stats = allFuelTypeStats[t.fuelType];
       switch (t.type) {
         case 'sale':
-        case 'bunker_sale':
           stats.sold += volume;
           stats.bunkerBalance -= volume;
           allBunkerBalance -= volume;
@@ -170,7 +169,6 @@ export const useFuelMetrics = (
       const totalCost = Number(t.totalCost) || 0;
       switch (t.type) {
         case 'sale':
-        case 'bunker_sale':
           dayStatsByType[t.fuelType].sold += volume;
           dayStatsByType[t.fuelType].saleIncome += totalCost;
           totalSaleIncome += totalCost;

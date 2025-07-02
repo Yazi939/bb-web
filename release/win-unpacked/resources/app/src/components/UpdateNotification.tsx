@@ -1,92 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Progress, Space, Typography } from 'antd';
+import { DownloadOutlined, ReloadOutlined, CloseOutlined } from '@ant-design/icons';
 import { UpdateInfo } from '../types/electron';
 
 const { Text } = Typography;
 
-// Типы уже определены в src/types/electron.ts
+declare global {
+  interface Window {
+    electronAPI?: {
+      checkForUpdates: () => void;
+      downloadUpdate: () => Promise<void>;
+      installUpdate: () => void;
+      onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
+      onDownloadProgress: (callback: (info: { percent: number }) => void) => void;
+      onUpdateDownloaded: (callback: () => void) => void;
+      onUpdateError: (callback: (error: Error) => void) => void;
+      onUpdateNotAvailable?: (callback: () => void) => void;
+    };
+  }
+}
 
 const UpdateNotification: React.FC = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isDownloaded, setIsDownloaded] = useState(false);
-  const [updateCheckDisabled, setUpdateCheckDisabled] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    // Проверяем, что API доступен
+    // Проверяем доступность Electron API
     if (!window.electronAPI) {
-      console.error('Electron API не доступен');
+      console.log('Electron API недоступен - вероятно веб-версия');
       return;
     }
 
-    // Проверяем, не отключена ли проверка обновлений
-    const lastCheckTime = localStorage.getItem('lastUpdateCheck');
-    const updateSkipTime = localStorage.getItem('updateSkipTime');
-    const currentTime = Date.now();
+    // Проверяем когда последний раз проверяли обновления
+    const lastCheck = localStorage.getItem('lastUpdateCheck');
+    const skipTime = localStorage.getItem('updateSkipTime');
+    const now = Date.now();
     
-    // Если пользователь нажал "напомнить позже", не проверяем 24 часа
-    if (updateSkipTime && currentTime - parseInt(updateSkipTime) < 24 * 60 * 60 * 1000) {
-      console.log('Проверка обновлений отложена пользователем');
-      setUpdateCheckDisabled(true);
+    // Если пользователь недавно отклонил обновление, не проверяем 24 часа
+    if (skipTime && (now - parseInt(skipTime)) < 24 * 60 * 60 * 1000) {
+      console.log('Пользователь недавно отклонил обновление, пропускаем');
       return;
     }
 
-    // Если последняя проверка была менее 6 часов назад, не проверяем снова
-    if (lastCheckTime && currentTime - parseInt(lastCheckTime) < 6 * 60 * 60 * 1000) {
-      console.log('Недавно проверялись обновления, пропускаем');
-      return;
-    }
-
-    // Слушаем события обновлений
-    window.electronAPI.onUpdateAvailable((info) => {
+    // Настраиваем обработчики событий
+    window.electronAPI.onUpdateAvailable((info: UpdateInfo) => {
       console.log('Доступно обновление:', info);
       
-      // Проверяем, не пропускал ли пользователь эту версию
-      const skipUpdateVersion = localStorage.getItem('skipUpdateVersion');
-      if (skipUpdateVersion === info.version) {
+      // Проверяем, не отклонил ли пользователь эту версию
+      const skipVersion = localStorage.getItem('skipUpdateVersion');
+      if (skipVersion === info.version) {
         console.log('Пользователь выбрал не напоминать об этой версии:', info.version);
         return;
       }
       
       setUpdateInfo(info);
-      setIsModalVisible(true);
+      setIsVisible(true);
     });
 
-    window.electronAPI.onDownloadProgress((progressObj) => {
-      setDownloadProgress(Math.round(progressObj.percent));
+    window.electronAPI.onDownloadProgress((info: { percent: number }) => {
+      setDownloadProgress(Math.round(info.percent));
     });
 
     window.electronAPI.onUpdateDownloaded(() => {
       setIsDownloading(false);
-      setIsDownloaded(true);
+      setIsReady(true);
     });
 
-    window.electronAPI.onUpdateError((error) => {
+    window.electronAPI.onUpdateError((error: Error) => {
       console.error('Ошибка обновления:', error);
       setIsDownloading(false);
     });
 
-    // Слушаем событие "обновление недоступно"
+    // Обработчик для случая когда обновлений нет
     if (window.electronAPI.onUpdateNotAvailable) {
       window.electronAPI.onUpdateNotAvailable(() => {
         console.log('Обновления не доступны, приложение актуально');
-        localStorage.setItem('lastUpdateCheck', currentTime.toString());
+        localStorage.setItem('lastUpdateCheck', now.toString());
       });
     }
 
-    // Проверяем наличие обновлений при запуске
-    if (!updateCheckDisabled) {
+    // Проверяем обновления только если не проверяли в этой сессии
+    if (!hasChecked) {
       console.log('Проверяем обновления...');
       window.electronAPI.checkForUpdates();
-      localStorage.setItem('lastUpdateCheck', currentTime.toString());
+      localStorage.setItem('lastUpdateCheck', now.toString());
     }
 
     return () => {
-      // Очистка слушателей не требуется, так как они привязаны к window.electronAPI
+      // Cleanup не требуется для большинства Electron API
     };
-  }, [updateCheckDisabled]);
+  }, [hasChecked]);
 
   const handleUpdate = async () => {
     setIsDownloading(true);
@@ -98,25 +105,13 @@ const UpdateNotification: React.FC = () => {
   };
 
   const handleLater = () => {
-    // Сохраняем время, когда пользователь нажал "напомнить позже" (24 часа)
-    localStorage.setItem('updateSkipTime', Date.now().toString());
-    setIsModalVisible(false);
-    setUpdateCheckDisabled(true);
-  };
-
-  const handleNeverRemind = () => {
-    // Сохраняем версию, для которой не нужно напоминать
-    if (updateInfo) {
-      localStorage.setItem('skipUpdateVersion', updateInfo.version);
-    }
-    setIsModalVisible(false);
-    setUpdateCheckDisabled(true);
+    setIsVisible(false);
   };
 
   return (
     <Modal
       title="Уважаемый сотрудник Bunker Boats"
-      open={isModalVisible}
+      open={isVisible}
       onCancel={handleLater}
       footer={null}
       closable={!isDownloading}
@@ -138,21 +133,18 @@ const UpdateNotification: React.FC = () => {
             </div>
           )}
 
-          {!isDownloading && !isDownloaded && (
-            <Space style={{ marginTop: 16 }} wrap>
+          {!isDownloading && !isReady && (
+            <Space style={{ marginTop: 16 }}>
               <Button type="primary" onClick={handleUpdate}>
                 Обновить сейчас
               </Button>
               <Button onClick={handleLater}>
                 Напомнить позже
               </Button>
-              <Button onClick={handleNeverRemind} type="text" size="small">
-                Пропустить эту версию
-              </Button>
             </Space>
           )}
 
-          {isDownloaded && (
+          {isReady && (
             <Space style={{ marginTop: 16 }}>
               <Button type="primary" onClick={handleInstall}>
                 Перезапустить и установить

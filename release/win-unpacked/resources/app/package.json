@@ -1,9 +1,13 @@
 {
-  "name": "fuel-app",
-  "version": "2.1.4",
-  "description": "Fuel management application",
-  "main": "main.cjs",
+  "name": "bunker-boats",
+  "private": true,
+  "version": "2.1.5",
   "type": "commonjs",
+  "main": "main.cjs",
+  "homepage": ".",
+  "author": "Bunker Boats Team",
+  "description": "Bunker Boats - система управления топливом и расходами",
+  "productName": "Bunker Boats",
   "dependencies": {
     "@ant-design/icons": "^5.3.0",
     "@types/socket.io-client": "^1.4.36",

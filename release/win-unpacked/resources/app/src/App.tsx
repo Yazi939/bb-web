@@ -9,7 +9,7 @@ import {
   DollarOutlined
 } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
-import { getCurrentUser, logoutUser, UserRole } from './utils/users';
+import { getCurrentUser, logoutUser, UserRole, User } from './utils/users';
 import Dashboard from './components/Dashboard/Dashboard';
 import FuelTrading from './components/FuelTrading/FuelTrading';
 import UserManagement from './components/UserManagement/UserManagement';
@@ -19,19 +19,13 @@ import Login from './components/Login/Login';
 import Preloader from './components/Preloader/Preloader';
 import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
 import ExpenseManagement from './components/ExpenseManagement/ExpenseManagement';
+
 import UpdateNotification from './components/UpdateNotification';
 import './App.css';
 
 const { Header, Content, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
-
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  role: UserRole;
-}
 
 const iconProps: AntdIconProps = {
   className: "white-icon"
@@ -113,16 +107,11 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let hideTimeout: NodeJS.Timeout;
-
     if (loading) {
       setShowLoader(true);
     } else {
       // showLoader теперь скрывается только после onFinish
     }
-    return () => {
-      clearTimeout(hideTimeout);
-    };
   }, [loading]);
 
   useEffect(() => {
@@ -234,7 +223,7 @@ const App: React.FC = () => {
         style={{ height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
       >
         <div className="logo">
-          {!collapsed && <span>FUEL Manager</span>}
+          {!collapsed && <span>Bunker Boats</span>}
         </div>
         <Menu 
           theme="dark" 

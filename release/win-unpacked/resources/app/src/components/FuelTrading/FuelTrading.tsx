@@ -62,11 +62,10 @@ interface FuelTypeData {
 type FuelTransactionType = FuelTransaction['type'];
 
 // Разрешённые типы операций для учёта топлива
-const allowedTypes: FuelTransactionType[] = ['purchase', 'sale', 'base_to_bunker', 'bunker_to_base', 'bunker_sale'];
+const allowedTypes: FuelTransactionType[] = ['purchase', 'sale', 'bunker_sale', 'base_to_bunker', 'bunker_to_base'];
 
 const FuelTrading: React.FC = () => {
   const [allTransactions, setAllTransactions] = useState<FuelTransaction[]>([]);
-  const [transactions, setTransactions] = useState<FuelTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | undefined>(undefined);
   const [filters, setFilters] = useState<any>({});
@@ -101,27 +100,28 @@ const FuelTrading: React.FC = () => {
   const fetchTransactions = async (page = 1, pageSize = 10) => {
     try {
       setLoading(true);
-      const response = await fuelService.getTransactions();
-      const fetchedTransactions = (Array.isArray(response) ? response : (response as any)?.data || []).map((t: any) => ({
-        ...t,
-        date: t.date || (t.createdAt ? t.createdAt.slice(0, 10) : dayjs().format('YYYY-MM-DD')),
-        timestamp: t.timestamp || new Date(t.createdAt || t.date).getTime(),
-        volume: t.volume || 0,
-        totalCost: t.totalCost || 0
-      }));
+      const response: any = await fuelService.getTransactions();
+      const responseData = Array.isArray(response) ? response : (response?.data || []);
+      
+      // ВРЕМЕННЫЙ ЛОГ: Проверяем формат времени от сервера (отключен)
+      // if (responseData.length > 0) {
+      //   console.log('=== ОТЛАДКА ВРЕМЕНИ ===');
+      //   console.log('Первая транзакция от сервера:', responseData[0]);
+      //   console.log('createdAt формат:', responseData[0].createdAt);
+      //   console.log('typeof createdAt:', typeof responseData[0].createdAt);
+      // }
+      
+      const fetchedTransactions = responseData.map((t: any) => {
+        return {
+          ...t,
+          volume: Number(t.volume) || 0,
+          totalCost: Number(t.totalCost) || 0
+        };
+      });
       
       setAllTransactions(fetchedTransactions);
       
-      setPagination(prev => ({
-        ...prev,
-        total: fetchedTransactions.length
-      }));
-
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      const paginatedTransactions = fetchedTransactions.slice(start, end);
-      
-      setTransactions(paginatedTransactions);
+      // НЕ устанавливаем transactions здесь - это делается через фильтрацию
     } catch (error) {
       console.error('Error fetching transactions:', error);
       notification.error({
@@ -145,37 +145,8 @@ const FuelTrading: React.FC = () => {
     socket.onDataUpdated((data) => {
       console.log('Получено обновление данных:', data);
       if (data.type === 'transactions') {
-        if (data.action === 'created') {
-          // Обрабатываем новую транзакцию так же как и при загрузке
-          const processedTransaction = {
-            ...data.data,
-            date: data.data.date || (data.data.createdAt ? data.data.createdAt.slice(0, 10) : dayjs().format('YYYY-MM-DD')),
-            timestamp: data.data.timestamp || new Date(data.data.createdAt || data.data.date).getTime(),
-            volume: data.data.volume || 0,
-            totalCost: data.data.totalCost || 0
-          };
-          
-          setAllTransactions(prev => {
-            if (prev.some(t => t.id === data.data.id)) {
-              console.log('Транзакция уже существует в allTransactions, пропускаем:', data.data.id);
-              return prev;
-            }
-            return [...prev, processedTransaction];
-          });
-          
-          setTransactions(prev => {
-            // Проверяем, нет ли уже такой транзакции
-            if (prev.some(t => t.id === data.data.id)) {
-              console.log('Транзакция уже существует, пропускаем:', data.data.id);
-              return prev;
-            }
-            return [...prev, processedTransaction];
-          });
-        } else if (data.action === 'updated') {
-          setTransactions(prev => prev.map(t => t.id === data.data.id ? data.data : t));
-        } else if (data.action === 'deleted') {
-          setTransactions(prev => prev.filter(t => t.id !== data.id));
-        }
+        // При обновлении данных просто перезагружаем все транзакции
+        fetchTransactions();
       }
     });
 
@@ -190,13 +161,34 @@ const FuelTrading: React.FC = () => {
   const filteredTransactions = allTransactions
     .filter(t => {
       const isNotFrozen = !t.frozen;
-      const transactionDate = dayjs(t.timestamp);
-      const startOfToday = dayjs().startOf('day');
-      const endOfToday = dayjs().endOf('day');
-      // Только сегодняшние операции
-      if (!(isNotFrozen && transactionDate.isSameOrAfter(startOfToday) && transactionDate.isSameOrBefore(endOfToday))) {
+      
+      // Получаем дату транзакции
+      let transactionDateStr = '';
+      if (t.createdAt) {
+        // Берем только дату из строки времени (первые 10 символов: YYYY-MM-DD)
+        transactionDateStr = t.createdAt.substring(0, 10);
+      } else {
         return false;
       }
+      
+      // Получаем сегодняшнюю дату в формате YYYY-MM-DD
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-' + 
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(today.getDate()).padStart(2, '0');
+      
+      console.log('Простая проверка даты:', {
+        transactionId: t.id,
+        transactionDate: transactionDateStr,
+        todayDate: todayStr,
+        isToday: transactionDateStr === todayStr
+      });
+      
+      // Только сегодняшние операции (сравниваем строки дат)
+      if (!(isNotFrozen && transactionDateStr === todayStr)) {
+        return false;
+      }
+      
       // Фильтр по типу топлива
       if (filterFuelType && t.fuelType !== filterFuelType) {
         return false;
@@ -216,73 +208,69 @@ const FuelTrading: React.FC = () => {
   // Фильтрация архивных транзакций
   useEffect(() => {
     if (selectedArchiveDate) {
-      const startOfDay = selectedArchiveDate.startOf('day');
-      const endOfDay = selectedArchiveDate.endOf('day');
+      // Получаем выбранную дату архива в формате YYYY-MM-DD
+      const selectedArchiveDateStr = selectedArchiveDate.format('YYYY-MM-DD');
       
       const filtered = allTransactions.filter(t => {
-        const transactionDate = dayjs(t.timestamp);
-        const isInDateRange = !t.frozen && 
-                             transactionDate.isSameOrAfter(startOfDay) && 
-                             transactionDate.isSameOrBefore(endOfDay);
+        const isNotFrozen = !t.frozen;
+        
+        // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
+        let transactionDateStr = '';
+        if (t.createdAt) {
+          transactionDateStr = t.createdAt.substring(0, 10);
+        } else {
+          return false;
+        }
         
         // Фильтр по типу оплаты для архива
         if (filterArchivePaymentMethod && t.paymentMethod !== filterArchivePaymentMethod) {
           return false;
         }
         
-        return isInDateRange;
+        console.log('Архив - проверка даты:', {
+          transactionId: t.id,
+          transactionDate: transactionDateStr,
+          selectedArchiveDate: selectedArchiveDateStr,
+          paymentMethod: t.paymentMethod,
+          filterPaymentMethod: filterArchivePaymentMethod,
+          matches: transactionDateStr === selectedArchiveDateStr
+        });
+        
+        // Простое сравнение строк дат + проверка заморозки
+        return isNotFrozen && transactionDateStr === selectedArchiveDateStr;
       });
       
       setArchiveDayTransactions(filtered);
+    } else {
+      setArchiveDayTransactions([]);
     }
   }, [selectedArchiveDate, allTransactions, filterArchivePaymentMethod]);
 
-  // Только топливные транзакции для таблицы (с учетом пагинации), отсортированные по времени
-  const fuelTransactions = transactions
-    .filter(t => allowedTypes.includes(t.type))
-    .sort((a, b) => {
-      const timeA = new Date(a.createdAt || a.date || Date.now()).getTime();
-      const timeB = new Date(b.createdAt || b.date || Date.now()).getTime();
-      return timeA - timeB; // Сначала старые (по возрастанию)
+  const handleTableChange = (paginationConfig: any) => {
+    setPagination({
+      ...pagination,
+      current: paginationConfig.current,
+      pageSize: paginationConfig.pageSize
     });
-
-  // ЛОГИ ДЛЯ ОТЛАДКИ
-  useEffect(() => {
-    console.log('transactions state:', transactions);
-    console.log('filterFuelType:', filterFuelType);
-    console.log('filterTransactionType:', filterTransactionType);
-    console.log('dateRange:', dateRange);
-    console.log('filteredTransactions:', filteredTransactions);
-  }, [transactions, filterFuelType, filterTransactionType, dateRange, filteredTransactions]);
-  
-  const handleTableChange = (pagination: any) => {
-    setPagination(pagination);
-    const start = (pagination.current - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    const paginatedTransactions = filteredTransactions.slice(start, end);
-    setTransactions(paginatedTransactions);
   };
-  
-  useEffect(() => {
-    // При изменении фильтров обновляем пагинацию
-    const start = (pagination.current - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    const paginatedTransactions = filteredTransactions.slice(start, end);
-    setTransactions(paginatedTransactions);
-    
-    setPagination(prev => ({
-      ...prev,
-      total: filteredTransactions.length
-    }));
-  }, [filteredTransactions, pagination.current, pagination.pageSize]);
   
   const loadUserInfo = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{"id": "", "role": ""}');
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error loading user info:', error);
-    }
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('currentUser');
+      
+      // Только если есть и токен и данные пользователя
+      if (token && userStr) {
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+             } else {
+         // Если нет токена или пользователя - устанавливаем пустого пользователя
+         setCurrentUser({ id: '', role: 'worker' });
+       }
+     } catch (error) {
+       console.error('Error loading user info:', error);
+       setCurrentUser({ id: '', role: 'worker' });
+     }
   };
   
   const saveTransactions = async () => {
@@ -384,7 +372,8 @@ const FuelTrading: React.FC = () => {
   const handleAddTransaction = async (values: any) => {
     try {
       const vesselValue = (values.type === 'base_to_bunker' || values.type === 'bunker_to_base') ? values.bunkerVessel : values.vessel;
-      const currentDate = dayjs().format('YYYY-MM-DD');
+      const now = new Date();
+      
       const newTransaction: FuelTransaction = {
         id: '', // Временное значение, будет заменено сервером
         key: '', // Временное значение, будет заменено сервером
@@ -393,8 +382,6 @@ const FuelTrading: React.FC = () => {
         volume: Number(values.volume),
         price: values.price ? Number(values.price) : 0,
         totalCost: (values.price && values.volume) ? Number(values.volume) * Number(values.price) : 0,
-        date: currentDate,
-        timestamp: Date.now(),
         frozen: false,
         notes: values.notes,
         customer: values.customer,
@@ -402,7 +389,8 @@ const FuelTrading: React.FC = () => {
         supplier: values.supplier,
         paymentMethod: values.paymentMethod,
         userId: currentUser.id,
-        createdAt: currentDate
+        timestamp: now.getTime(), // Отправляем timestamp для правильной обработки сервером
+        createdAt: now.toISOString()
       };
 
       const response = await fuelService.createTransaction(newTransaction);
@@ -411,8 +399,6 @@ const FuelTrading: React.FC = () => {
       if (response.data && response.data.id) {
         newTransaction.id = response.data.id;
         newTransaction.key = response.data.id;
-        // Добавляем транзакцию в состояние сразу
-        setTransactions(prev => [...prev, newTransaction]);
       }
       
       await fetchTransactions();
@@ -456,7 +442,6 @@ const FuelTrading: React.FC = () => {
   };
 
   const clearFilters = () => {
-    setDateRange(undefined);
     setFilterFuelType(null);
     setFilterTransactionType(null);
   };
@@ -511,7 +496,7 @@ const FuelTrading: React.FC = () => {
         paymentMethod: values.paymentMethod,
         notes: values.notes,
         date: values.date || editingTransaction.date,
-        timestamp: values.timestamp || editingTransaction.timestamp,
+        timestamp: editingTransaction.timestamp,
         userId: editingTransaction.userId,
         userRole: editingTransaction.userRole,
         createdAt: editingTransaction.createdAt
@@ -558,21 +543,10 @@ const FuelTrading: React.FC = () => {
   };
 
   const handleFreezeTransaction = (transaction: FuelTransaction) => {
-    const updatedTransaction = {
-      ...transaction,
-      frozen: !transaction.frozen,
-      frozenDate: transaction.frozen ? undefined : Date.now()
-    };
-    
-    setTransactions(transactions.map(t => 
-      t.key === transaction.key ? updatedTransaction : t
-    ));
-    
+    // Freeze functionality is not currently implemented
     notification.info({
-      message: transaction.frozen ? 'Топливо разморожено' : 'Топливо заморожено',
-      description: transaction.frozen 
-        ? 'Топливо снова учитывается в остатках и влияет на прибыль' 
-        : 'Топливо не учитывается в остатках и не влияет на прибыль'
+      message: 'Функция заморозки',
+      description: 'Функция заморозки транзакций временно отключена'
     });
   };
 
@@ -710,7 +684,7 @@ const FuelTrading: React.FC = () => {
         if (record.type === 'purchase') {
           return record.supplier ? <span><UserOutlined /> {record.supplier}</span> : '-';
         }
-        if (record.type === 'sale' || record.type === 'bunker_sale') {
+        if (record.type === 'sale') {
           return (
             <span>
               {record.customer ? <><UserOutlined /> {record.customer}</> : null}
@@ -732,7 +706,7 @@ const FuelTrading: React.FC = () => {
       dataIndex: 'paymentMethod',
       key: 'paymentMethod',
       render: (payment, record) => {
-        if ((record.type !== 'sale' && record.type !== 'bunker_sale') || !payment) return '-';
+        if (record.type !== 'sale' || !payment) return '-';
         switch(payment) {
           case 'cash': return 'Наличные';
           case 'card': return 'Терминал';
@@ -759,40 +733,44 @@ const FuelTrading: React.FC = () => {
       title: 'Дата и время',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 130,
       sorter: (a, b) => {
         if (!a.createdAt || !b.createdAt) return 0;
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       },
-      defaultSortOrder: 'ascend',
+      defaultSortOrder: 'descend',
       render: (createdAt, record) => {
-        if (!createdAt) {
-          // Fallback на обычную дату если нет createdAt
-          return record.date ? <span style={{ color: '#888', fontSize: 13 }}>{record.date}</span> : '-';
-        }
+        if (!createdAt) return '-';
         
-        // Сервер уже присылает московское время, используем его напрямую
-        // НЕ создаем new Date() чтобы избежать двойной конвертации временных зон
+        // Сервер возвращает время уже сконвертированное в московское время
+        // Парсим строку напрямую без создания Date объекта
         let displayDate, displayTime;
         
         if (typeof createdAt === 'string') {
-          // Если это строка вида "2025-01-18T22:43:52.000Z" или "2025-01-18 22:43:52"
+          // Если это строка вида "2025-07-02T19:28:16.000Z" 
           const dateStr = createdAt.replace('T', ' ').replace('Z', '').substring(0, 19);
+          const [datePart, timePart] = dateStr.split(' ');
+          if (datePart && timePart) {
+            const [year, month, day] = datePart.split('-');
+            displayDate = `${day}.${month}.${year}`;
+            displayTime = timePart;
+          } else {
+            displayDate = datePart || '';
+            displayTime = timePart || '';
+          }
+        } else {
+          // Если это Date объект, парсим его строкой
+          const isoString = new Date(createdAt).toISOString();
+          const dateStr = isoString.replace('T', ' ').replace('Z', '').substring(0, 19);
           const [datePart, timePart] = dateStr.split(' ');
           const [year, month, day] = datePart.split('-');
           displayDate = `${day}.${month}.${year}`;
           displayTime = timePart;
-        } else {
-          // Если это объект Date - используем как есть (сервер уже конвертировал)
-          const date = new Date(createdAt);
-          displayDate = date.toLocaleDateString('ru-RU');
-          displayTime = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
         
         return (
-          <div style={{ fontSize: 12 }}>
-            <div style={{ color: '#666', fontWeight: 500 }}>{displayDate}</div>
-            <div style={{ color: '#999', fontSize: 11 }}>{displayTime}</div>
+          <div style={{ color: '#888', fontSize: 13 }}>
+            <div>{displayDate}</div>
+            <div style={{ color: '#aaa', fontSize: 11 }}>{displayTime}</div>
           </div>
         );
       }
@@ -843,19 +821,10 @@ const FuelTrading: React.FC = () => {
     columns[columns.length - 1] // Последний столбец (действия)
   ];
 
-  useEffect(() => {
-    // If no user exists in localStorage, create a default admin
-    if (!localStorage.getItem('currentUser')) {
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: 'admin1',
-        name: 'Администратор',
-        role: 'admin'
-      }));
-    }
-  }, []);
+  // Убираем автоматическое создание пользователя - должна быть авторизация
 
-  // ВРЕМЕННО: выводим данные для отладки объёма
-  console.log('filteredTransactions:', filteredTransactions.map(t => ({ key: t.key, volume: t.volume, type: typeof t.volume })));
+  // ✅ Исправлено: таблица теперь использует filteredTransactions напрямую
+  // Логи отключены для предотвращения циклов рендеринга
 
   const tableData = Object.entries(metrics.fuelTypeStats).map(([fuelType, stats]) => ({
     key: fuelType,
@@ -866,7 +835,7 @@ const FuelTrading: React.FC = () => {
   // Функция экспорта в Excel
   const exportToExcel = () => {
     // Преобразуем данные для экспорта (например, fuelTransactions)
-    const data = fuelTransactions.map((item, idx) => ({
+    const data = transactions.map((item, idx) => ({
       '№': idx + 1,
       'Тип операции': item.type,
       'Тип топлива': item.fuelType,
@@ -874,7 +843,6 @@ const FuelTrading: React.FC = () => {
       'Цена (₽/л)': item.price,
       'Стоимость (₽)': item.totalCost,
       'Дата': item.date,
-      'Время создания': item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '',
       'Судно': item.vessel || '',
       'Поставщик': item.supplier || '',
       'Покупатель': item.customer || '',
@@ -888,10 +856,10 @@ const FuelTrading: React.FC = () => {
 
   // Вспомогательная функция для расчёта статистики по произвольному набору операций
   function calcStatsForTransactions(transactions: FuelTransaction[]) {
-    const totalPurchased = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.volume || 0), 0);
-    const totalSold = transactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.volume || 0), 0);
-    const totalPurchaseCost = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.totalCost || 0), 0);
-    const totalSaleIncome = transactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
+    const totalPurchased = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.volume, 0);
+    const totalSold = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.volume, 0);
+    const totalPurchaseCost = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.totalCost, 0);
+          const totalSaleIncome = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.totalCost, 0);
     const avgPurchasePrice = totalPurchased > 0 ? totalPurchaseCost / totalPurchased : 0;
     const soldCost = totalSold * avgPurchasePrice;
     const profit = totalSaleIncome - soldCost;
@@ -905,7 +873,7 @@ const FuelTrading: React.FC = () => {
     
     // Фильтруем транзакции на сегодня и только продажи
     const todaysSales = transactions.filter(t => {
-      const transactionDate = dayjs(t.timestamp);
+      const transactionDate = dayjs(t.createdAt);
       return (t.type === 'sale' || t.type === 'bunker_sale') && 
              !t.frozen && 
              transactionDate.isSameOrAfter(today) && 
@@ -948,11 +916,26 @@ const FuelTrading: React.FC = () => {
   }
 
   // Расчёт выручки за день
-  const dailyRevenue = calcDailyRevenueByPaymentMethod(allTransactions);
+  // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
+  const todayTransactions = allTransactions.filter(t => {
+    // Осторожно парсим время - проверяем есть ли уже временная зона
+    let timeStr = t.createdAt;
+    if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
+      timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+    }
+    const transactionDate = dayjs(timeStr);
+    const startOfToday = dayjs().startOf('day');
+    const endOfToday = dayjs().endOf('day');
+    return !t.frozen && 
+           transactionDate.isSameOrAfter(startOfToday) && 
+           transactionDate.isSameOrBefore(endOfToday);
+  });
+  
+  const dailyRevenue = calcDailyRevenueByPaymentMethod(todayTransactions);
 
-  // Отладочный вывод для проверки расчёта остатков по дизелю
-  console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
-  console.log('Все операции дизеля:', allTransactions.filter(t => t.fuelType === 'diesel'));
+  // Отладочный вывод для проверки расчёта остатков по дизелю (только при изменении)
+  // console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
+  // console.log('Все операции дизеля:', allTransactions.filter(t => t.fuelType === 'diesel'));
 
   return (
     <ConfigProvider locale={ruRU}>
@@ -972,7 +955,7 @@ const FuelTrading: React.FC = () => {
                 >
                   <Select placeholder="Выберите тип операции">
                     <Option value="purchase">Покупка топлива</Option>
-                    <Option value="sale">Продажа топлива с катера</Option>
+                    <Option value="sale">Продажа с катера</Option>
                     <Option value="bunker_sale">Продажа с причала</Option>
                     {currentUser.role === 'admin' && (
                       <>
@@ -1046,9 +1029,11 @@ const FuelTrading: React.FC = () => {
                         <Form.Item name="customer" label="Покупатель" rules={[{ required: true, message: 'Укажите покупателя' }]}> 
                           <Input placeholder="Укажите покупателя" />
                         </Form.Item>
-                        <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
-                          <Input placeholder="Укажите название катера" />
-                        </Form.Item>
+                        {type === 'sale' && (
+                          <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
+                            <Input placeholder="Укажите название катера" />
+                          </Form.Item>
+                        )}
                         <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true, message: 'Укажите способ оплаты' }]}> 
                           <Select placeholder="Выберите способ оплаты">
                             <Option value="cash">Наличные</Option>
@@ -1207,7 +1192,7 @@ const FuelTrading: React.FC = () => {
           
           <Col span={24} lg={14}>
             <Card 
-              title="История операций" 
+              title="Операции за сегодня" 
               extra={
                 <Space>
                   <Button
@@ -1219,7 +1204,7 @@ const FuelTrading: React.FC = () => {
                   <Button 
                     icon={<FilterOutlined />} 
                     onClick={() => clearFilters()}
-                    disabled={!dateRange && !filterFuelType && !filterTransactionType}
+                    disabled={!filterFuelType && !filterTransactionType}
                   >
                     Сбросить фильтры
                   </Button>
@@ -1229,14 +1214,6 @@ const FuelTrading: React.FC = () => {
               <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
                 <Row gutter={16}>
                   <Col span={12}>
-                    <Text>Период:</Text>
-                    <RangePicker 
-                      style={{ width: '100%', marginTop: 4 }} 
-                      value={dateRange}
-                      onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null] | undefined)}
-                    />
-                  </Col>
-                  <Col span={6}>
                     <Text>Тип топлива:</Text>
                     <Select 
                       style={{ width: '100%', marginTop: 4 }} 
@@ -1250,7 +1227,7 @@ const FuelTrading: React.FC = () => {
                       ))}
                     </Select>
                   </Col>
-                  <Col span={6}>
+                  <Col span={12}>
                     <Text>Тип операции:</Text>
                     <Select 
                       style={{ width: '100%', marginTop: 4 }} 
@@ -1261,6 +1238,7 @@ const FuelTrading: React.FC = () => {
                     >
                       <Option value="purchase">Покупка</Option>
                       <Option value="sale">Продажа с катера</Option>
+                      <Option value="bunker_sale">Продажа с причала</Option>
                       {currentUser.role === 'admin' && (
                         <>
                           <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
@@ -1274,9 +1252,9 @@ const FuelTrading: React.FC = () => {
               
               <Table 
                 columns={advancedMode ? advancedColumns : columns} 
-                dataSource={fuelTransactions} 
+                dataSource={filteredTransactions} 
                 pagination={{
-                  ...pagination,
+                  pageSize: 10,
                   showSizeChanger: true,
                   showTotal: (total: number) => `Всего ${total} записей`,
                   pageSizeOptions: ['10', '20', '50', '100'],
@@ -1284,54 +1262,168 @@ const FuelTrading: React.FC = () => {
                 }}
                 scroll={{ x: 'max-content' }}
                 rowClassName={() => 'fuel-table-row'}
-                onChange={handleTableChange}
                 loading={loading}
               />
             </Card>
 
-            {/* Блок выручки за день */}
+            {/* Блок выручки за день в столбик */}
             <Card title="Выручка за день" style={{ marginTop: 24 }}>
-              <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                <Statistic
-                  title="Наличные"
-                  value={dailyRevenue.cash}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#52c41a' }}
-                />
-                <Statistic
-                  title="Перевод"
-                  value={dailyRevenue.transfer}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#1890ff' }}
-                />
-                <Statistic
-                  title="Терминал"
-                  value={dailyRevenue.card}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#722ed1' }}
-                />
-                <Statistic
-                  title="Отложенный платеж"
-                  value={dailyRevenue.deferred}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ color: '#fa8c16' }}
-                />
-                <Divider style={{ margin: '12px 0' }} />
-                <Statistic
-                  title="Общая выручка"
-                  value={dailyRevenue.total}
-                  precision={2}
-                  prefix="₽"
-                  valueStyle={{ 
-                    color: '#3f8600', 
-                    fontSize: '24px',
-                    fontWeight: 'bold'
-                  }}
-                />
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Statistic
+                    title="Наличные"
+                    value={dailyRevenue.cash}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Перевод"
+                    value={dailyRevenue.transfer}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Терминал"
+                    value={dailyRevenue.card}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                </Col>
+                <Col span={24}>
+                  <Statistic
+                    title="Отложенный платеж"
+                    value={dailyRevenue.deferred}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ color: '#fa8c16' }}
+                  />
+                </Col>
+              </Row>
+              <Divider style={{ margin: '16px 0' }} />
+              <Row>
+                <Col span={24} style={{ textAlign: 'center' }}>
+                  <Statistic
+                    title="Общая выручка"
+                    value={dailyRevenue.total}
+                    precision={2}
+                    prefix="₽"
+                    valueStyle={{ 
+                      color: '#3f8600', 
+                      fontSize: '28px',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+
+                {/* Архив операций за день */}
+        <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+          <Col span={24}>
+            <Card title="Архив операций за день">
+              <Space direction="vertical" style={{ width: '100%' }}>
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Text>Дата:</Text>
+                    <AntdDatePicker
+                      value={selectedArchiveDate}
+                      onChange={setSelectedArchiveDate}
+                      placeholder="Выберите дату"
+                      style={{ width: '100%', marginTop: 4 }}
+                      allowClear
+                    />
+                  </Col>
+                  <Col span={8}>
+                    <Text>Способ оплаты:</Text>
+                    <Select
+                      value={filterArchivePaymentMethod}
+                      onChange={setFilterArchivePaymentMethod}
+                      placeholder="Все способы оплаты"
+                      style={{ width: '100%', marginTop: 4 }}
+                      allowClear
+                    >
+                      <Option value="cash">Наличные</Option>
+                      <Option value="card">Терминал</Option>
+                      <Option value="transfer">Перевод</Option>
+                      <Option value="deferred">Отложенный платеж</Option>
+                    </Select>
+                  </Col>
+                  <Col span={8}>
+                    <div style={{ marginTop: 28 }}>
+                      <Button 
+                        icon={<FilterOutlined />} 
+                        onClick={() => {
+                          setFilterArchivePaymentMethod(null);
+                          setSelectedArchiveDate(null);
+                        }}
+                        disabled={!selectedArchiveDate && !filterArchivePaymentMethod}
+                      >
+                        Сбросить фильтры архива
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+                
+                {selectedArchiveDate && (
+                  <Table
+                    columns={advancedMode ? advancedColumns : columns}
+                    dataSource={archiveDayTransactions}
+                    pagination={false}
+                    rowClassName={() => 'fuel-table-row'}
+                    scroll={{ x: 'max-content' }}
+                    style={{ marginTop: 16 }}
+                  />
+                )}
+                {selectedArchiveDate && archiveDayTransactions.length > 0 && (
+                  <Card title={`Статистика за ${selectedArchiveDate.format('DD.MM.YYYY')}`} size="small" style={{ marginTop: 16 }}>
+                    {(() => {
+                      const dayStats = calcStatsForTransactions(archiveDayTransactions);
+                      // Сводная таблица по видам топлива
+                      const fuelTypes = Array.from(new Set(archiveDayTransactions.map(t => t.fuelType)));
+                      const fuelRows = fuelTypes.map(fuelType => {
+                        const fuelTrans = archiveDayTransactions.filter(t => t.fuelType === fuelType);
+                        const purchased = fuelTrans.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.volume || 0), 0);
+                        const sold = fuelTrans.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.volume || 0), 0);
+                        const purchaseCost = fuelTrans.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.totalCost || 0), 0);
+                        const saleIncome = fuelTrans.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
+                        const profit = sold * (purchased > 0 ? purchaseCost / purchased : 0) > 0 ? saleIncome - sold * (purchaseCost / purchased) : 0;
+                        return { fuelType, purchased, sold, profit };
+                      });
+                      return (
+                        <div>
+                          <Row gutter={[16, 16]}>
+                            <Col span={12}><Statistic title="Куплено" value={dayStats.totalPurchased} precision={2} suffix="л" /></Col>
+                            <Col span={12}><Statistic title="Продано" value={dayStats.totalSold} precision={2} suffix="л" /></Col>
+                            <Col span={24}><Statistic title="Прибыль" value={dayStats.profit} precision={2} prefix="₽" valueStyle={{ color: dayStats.profit > 0 ? '#3f8600' : '#cf1322' }} /></Col>
+                          </Row>
+                          <div style={{ marginTop: 16 }}>
+                            <Table
+                              size="small"
+                              pagination={false}
+                              columns={[
+                                { title: 'Топливо', dataIndex: 'fuelType', key: 'fuelType', render: v => FUEL_TYPES.find(f => f.value === v)?.label || v },
+                                { title: 'Куплено (л)', dataIndex: 'purchased', key: 'purchased', render: v => v.toFixed(2) },
+                                { title: 'Продано (л)', dataIndex: 'sold', key: 'sold', render: v => v.toFixed(2) },
+                                { title: 'Прибыль (₽)', dataIndex: 'profit', key: 'profit', render: v => <span style={{ color: v > 0 ? '#3f8600' : '#cf1322' }}>{v.toFixed(2)}</span> }
+                              ]}
+                              dataSource={fuelRows}
+                              rowKey={row => String(row.fuelType || '')}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </Card>
+                )}
               </Space>
             </Card>
           </Col>
@@ -1355,7 +1447,8 @@ const FuelTrading: React.FC = () => {
             >
               <Select disabled>
                 <Option value="purchase">Покупка топлива</Option>
-                <Option value="sale">Продажа топлива с катера</Option>
+                <Option value="sale">Продажа с катера</Option>
+                <Option value="bunker_sale">Продажа с причала</Option>
                 <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
                 <Option value="bunker_to_base">Перемещение с бункеровщика на базу</Option>
               </Select>
@@ -1387,7 +1480,7 @@ const FuelTrading: React.FC = () => {
             >
               {({ getFieldValue }) => {
                 const type = getFieldValue('type');
-                return (type === 'purchase' || type === 'sale') ? (
+                return (type === 'purchase' || type === 'sale' || type === 'bunker_sale') ? (
                   <Form.Item
                     name="price"
                     label="Цена (₽/л)"
@@ -1419,14 +1512,16 @@ const FuelTrading: React.FC = () => {
             >
               {({ getFieldValue }) => {
                 const type = getFieldValue('type');
-                return type === 'sale' ? (
+                return (type === 'sale' || type === 'bunker_sale') ? (
                   <>
                     <Form.Item name="customer" label="Покупатель" rules={[{ required: true, message: 'Укажите покупателя' }]}> 
                       <Input placeholder="Укажите покупателя" />
                     </Form.Item>
-                    <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
-                      <Input placeholder="Укажите название катера" />
-                    </Form.Item>
+                    {type === 'sale' && (
+                      <Form.Item name="vessel" label="Название катера" rules={[{ required: true, message: 'Укажите название катера' }]}> 
+                        <Input placeholder="Укажите название катера" />
+                      </Form.Item>
+                    )}
                     <Form.Item name="paymentMethod" label="Способ оплаты" rules={[{ required: true, message: 'Укажите способ оплаты' }]}> 
                       <Select placeholder="Выберите способ оплаты">
                         <Option value="cash">Наличные</Option>
@@ -1463,6 +1558,7 @@ const FuelTrading: React.FC = () => {
                   switch(transactionToDelete.type) {
                     case 'purchase': return 'Покупка';
                     case 'sale': return 'Продажа с катера';
+                    case 'bunker_sale': return 'Продажа с причала';
                     case 'base_to_bunker': return 'Перемещение с базы на бункеровщик';
                     case 'bunker_to_base': return 'Перемещение с бункеровщика на базу';
                     default: return transactionToDelete.type;
@@ -1476,102 +1572,7 @@ const FuelTrading: React.FC = () => {
           )}
         </Modal>
 
-        <Card title="Архив операций за день" style={{ marginTop: 24 }}>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Text>Дата:</Text>
-                <AntdDatePicker
-                  value={selectedArchiveDate}
-                  onChange={setSelectedArchiveDate}
-                  placeholder="Выберите дату"
-                  style={{ width: '100%', marginTop: 4 }}
-                  allowClear
-                />
-              </Col>
-              <Col span={8}>
-                <Text>Способ оплаты:</Text>
-                <Select
-                  value={filterArchivePaymentMethod}
-                  onChange={setFilterArchivePaymentMethod}
-                  placeholder="Все способы оплаты"
-                  style={{ width: '100%', marginTop: 4 }}
-                  allowClear
-                >
-                  <Option value="cash">Наличные</Option>
-                  <Option value="card">Терминал</Option>
-                  <Option value="transfer">Перевод</Option>
-                  <Option value="deferred">Отложенный платеж</Option>
-                </Select>
-              </Col>
-              <Col span={8}>
-                <div style={{ marginTop: 28 }}>
-                  <Button 
-                    icon={<FilterOutlined />} 
-                    onClick={() => {
-                      setFilterArchivePaymentMethod(null);
-                      setSelectedArchiveDate(null);
-                    }}
-                    disabled={!selectedArchiveDate && !filterArchivePaymentMethod}
-                  >
-                    Сбросить фильтры архива
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-            {selectedArchiveDate && (
-              <Table
-                columns={advancedMode ? advancedColumns : columns}
-                dataSource={archiveDayTransactions}
-                pagination={false}
-                rowClassName={() => 'fuel-table-row'}
-                scroll={{ x: 'max-content' }}
-                style={{ marginTop: 16 }}
-              />
-            )}
-            {selectedArchiveDate && archiveDayTransactions.length > 0 && (
-              <Card title={`Статистика за ${selectedArchiveDate.format('DD.MM.YYYY')}`} size="small" style={{ marginTop: 16 }}>
-                {(() => {
-                  const dayStats = calcStatsForTransactions(archiveDayTransactions);
-                  // Сводная таблица по видам топлива
-                  const fuelTypes = Array.from(new Set(archiveDayTransactions.map(t => t.fuelType)));
-                  const fuelRows = fuelTypes.map(fuelType => {
-                    const fuelTrans = archiveDayTransactions.filter(t => t.fuelType === fuelType);
-                    const purchased = fuelTrans.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.volume || 0), 0);
-                    const sold = fuelTrans.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.volume || 0), 0);
-                    const purchaseCost = fuelTrans.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.totalCost || 0), 0);
-                    const saleIncome = fuelTrans.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
-                    const profit = sold * (purchased > 0 ? purchaseCost / purchased : 0) > 0 ? saleIncome - sold * (purchaseCost / purchased) : 0;
-                    return { fuelType, purchased, sold, profit };
-                  });
-                  return (
-                    <div>
-                      <Row gutter={[16, 16]}>
-                        <Col span={12}><Statistic title="Куплено" value={dayStats.totalPurchased} precision={2} suffix="л" /></Col>
-                        <Col span={12}><Statistic title="Продано" value={dayStats.totalSold} precision={2} suffix="л" /></Col>
-                        <Col span={24}><Statistic title="Прибыль" value={dayStats.profit} precision={2} prefix="₽" valueStyle={{ color: dayStats.profit > 0 ? '#3f8600' : '#cf1322' }} /></Col>
-                      </Row>
-                      <div style={{ marginTop: 16 }}>
-                        <Table
-                          size="small"
-                          pagination={false}
-                          columns={[
-                            { title: 'Топливо', dataIndex: 'fuelType', key: 'fuelType', render: v => FUEL_TYPES.find(f => f.value === v)?.label || v },
-                            { title: 'Куплено (л)', dataIndex: 'purchased', key: 'purchased', render: v => v.toFixed(2) },
-                            { title: 'Продано (л)', dataIndex: 'sold', key: 'sold', render: v => v.toFixed(2) },
-                            { title: 'Прибыль (₽)', dataIndex: 'profit', key: 'profit', render: v => <span style={{ color: v > 0 ? '#3f8600' : '#cf1322' }}>{v.toFixed(2)}</span> }
-                          ]}
-                          dataSource={fuelRows}
-                          rowKey={row => String(row.fuelType || '')}
-                        />
-                      </div>
-                    </div>
-                  );
-                })()}
-              </Card>
-            )}
-          </Space>
-        </Card>
+
 
         <style>{`
           .fuel-table-row {

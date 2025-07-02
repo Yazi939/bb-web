@@ -1,55 +1,278 @@
+/* ===== EXPENSE MANAGEMENT АДАПТИВНЫЕ СТИЛИ ===== */
+
 .expenseManagement {
-  padding: 24px;
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.headerActions .ant-btn {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.headerActions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Статистика расходов */
 .statisticsRow {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.statisticsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
 }
 
 .statisticsCard {
   text-align: center;
-  padding: 16px;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  background: linear-gradient(135deg, #fa8c16 0%, #d46b08 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.statisticsCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(20px, -20px);
+}
+
+.statisticsCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
 }
 
 .statisticsIcon {
   font-size: 24px;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
 }
 
 .statisticsLabel {
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-xs);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .statisticsValue {
   font-size: 24px;
   font-weight: bold;
+  position: relative;
+  z-index: 1;
 }
 
 .totalAmount {
-  color: #f5222d !important;
+  color: white !important;
 }
 
 .totalCount {
-  color: #52c41a !important;
+  color: white !important;
 }
 
+/* Основная таблица */
 .tableContainer {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow-x: auto;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
 }
 
+.tableHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.tableTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 900px;
+}
+
+/* Типы расходов */
+.typeTag {
+  border-radius: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+/* Действия в таблице */
+.tableActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tableActions .ant-btn {
+  border-radius: var(--border-radius);
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Мобильные карточки расходов */
+.mobileCards {
+  display: none;
+  padding: var(--spacing-md);
+}
+
+.expenseCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #fa8c16;
+  background: white;
+  transition: var(--transition);
+}
+
+.expenseCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.expenseCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.expenseCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #fa8c16;
+}
+
+.expenseCardType {
+  font-size: 12px;
+  background: #fa8c16;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.expenseCardActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+
+.expenseCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.expenseCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.expenseCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.expenseCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.expenseCardAmount {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Модальная форма */
 .modalForm {
-  margin-top: 16px;
+  margin-top: var(--spacing-md);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.formGridFull {
+  grid-column: 1 / -1;
 }
 
 .formActions {
   margin-bottom: 0;
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
 }
 
 .amountText {
@@ -64,31 +287,409 @@
   white-space: nowrap;
 }
 
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Large Desktop: 1200px+ */
+@media (min-width: 1200px) {
+  .statisticsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
   .expenseManagement {
-    padding: 16px;
+    padding: var(--spacing-md);
+  }
+  
+  .headerTitle {
+    font-size: 20px;
+  }
+  
+  .statisticsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .expenseManagement {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .statisticsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .statisticsCard {
+    padding: var(--spacing-md);
   }
   
   .statisticsValue {
     font-size: 20px;
   }
   
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+  }
+  
+  .responsiveTable {
+    min-width: 900px; /* Увеличил для планшетов */
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 10px !important; /* Увеличил padding */
+    font-size: 14px;
+    white-space: normal; /* Разрешил перенос текста */
+    word-break: break-word; /* Разрыв длинных слов */
+    line-height: 1.5; /* Улучшил межстрочный интервал */
+    min-width: 110px; /* Минимальная ширина колонки */
+  }
+  
+  /* Колонка с описанием - может быть длинной */
+  .responsiveTable .ant-table-cell:nth-child(2) {
+    min-width: 150px;
+  }
+  
+  /* Числовые колонки не переносим */
+  .responsiveTable .ant-table-cell[data-title*="Сумма"],
+  .responsiveTable .ant-table-cell .amountText {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 120px;
+  }
+  
+  /* Колонка с типом */
+  .responsiveTable .ant-table-cell .typeTag {
+    white-space: nowrap;
+  }
+  
+  /* Колонка с действиями */
+  .responsiveTable .ant-table-cell:last-child {
+    min-width: 130px;
+    white-space: nowrap;
+  }
+  
   .ellipsisCell {
-    max-width: 120px;
+    max-width: 180px; /* Увеличил для планшетов */
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 576px) {
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
   .expenseManagement {
-    padding: 12px;
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .headerTitle {
+    font-size: 18px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .headerActions .ant-btn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Переключение на карточки */
+  .tableContainer .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Статистика в одну колонку */
+  .statisticsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
   
   .statisticsCard {
-    padding: 12px;
+    padding: var(--spacing-md);
+  }
+  
+  .statisticsValue {
+    font-size: 20px;
+  }
+  
+  /* Форма в одну колонку */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .formActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .formActions .ant-btn {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .formActions .ant-btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .expenseCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .expenseCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .expenseCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .expenseCardField:last-child {
+    border-bottom: none;
+  }
+  
+  .expenseCardAmount {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .expenseManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerTitle {
+    font-size: 16px;
+  }
+  
+  .headerActions {
+    gap: var(--spacing-xs);
+  }
+  
+  .headerActions .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .statisticsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .statisticsCard {
+    padding: var(--spacing-sm);
   }
   
   .statisticsValue {
     font-size: 18px;
   }
+  
+  .statisticsIcon {
+    font-size: 20px;
+  }
+  
+  .expenseCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .expenseCardTitle {
+    font-size: 14px;
+  }
+  
+  .expenseCardActions .ant-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .tableHeader {
+    padding: var(--spacing-sm);
+  }
+  
+  .tableTitle {
+    font-size: 16px;
+  }
+  
+  .modalForm {
+    padding: var(--spacing-sm);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .expenseManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .headerActions .ant-btn {
+    width: 100%;
+  }
+  
+  .expenseCardContent {
+    display: block;
+  }
+  
+  .expenseCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .expenseCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .expenseCardActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .formActions {
+    gap: var(--spacing-xs);
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .tableActions .ant-btn,
+  .expenseCardActions .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .headerActions .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .ant-form-item .ant-input,
+  .ant-form-item .ant-select,
+  .ant-form-item .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.expenseCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statisticsCard {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.expenseCardActions .ant-btn:focus,
+.tableActions .ant-btn:focus {
+  outline: 2px solid #fa8c16;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+[data-theme='dark'] .expenseManagement {
+  background: #141414;
+}
+
+[data-theme='dark'] .statisticsCard {
+  background: linear-gradient(135deg, #d46b08 0%, #ad4e00 100%);
+}
+
+[data-theme='dark'] .expenseCard {
+  background: #1f1f1f;
+  border-left-color: #fa8c16;
+}
+
+[data-theme='dark'] .expenseCardField {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .expenseCardHeader {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .expenseCardAmount {
+  border-top-color: #303030;
+}
+
+[data-theme='dark'] .tableContainer {
+  background: #1f1f1f;
+}
+
+[data-theme='dark'] .tableHeader {
+  background: #262626;
+  border-bottom-color: #303030;
 } 

@@ -1,35 +1,746 @@
+/* ===== SHIFT MANAGEMENT АДАПТИВНЫЕ СТИЛИ ===== */
+
 .container {
-  padding: 24px;
-}
-
-.header {
-  margin-bottom: 24px;
-}
-
-.filters {
-  margin-bottom: 16px;
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
 }
 
 .shiftManagement {
-  padding: 24px;
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.headerActions .ant-btn {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.headerActions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Фильтры и добавление смен */
+.filters {
+  margin-bottom: var(--spacing-md);
+  background: white;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  align-items: end;
 }
 
 .addShiftCard {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
 }
 
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.formGridFull {
+  grid-column: 1 / -1;
+}
+
+/* Статистика смен */
 .statsCard {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
 }
 
-@media (max-width: 992px) {
-  .statsCard {
-    margin-bottom: 16px;
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.statItem {
+  text-align: center;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  background: linear-gradient(135deg, #13c2c2 0%, #08979c 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.statItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(15px, -15px);
+}
+
+.statItem:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.statIcon {
+  font-size: 24px;
+  margin-bottom: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--spacing-xs);
+  position: relative;
+  z-index: 1;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+
+/* Основная таблица смен */
+.tableCard {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tableHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.tableTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 800px;
+}
+
+/* Типы смен */
+.shiftTypeTag {
+  border-radius: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.shiftTypeTag.day {
+  background: #1890ff;
+  color: white;
+}
+
+.shiftTypeTag.night {
+  background: #722ed1;
+  color: white;
+}
+
+/* Действия в таблице */
+.tableActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tableActions .ant-btn {
+  border-radius: var(--border-radius);
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Мобильные карточки смен */
+.mobileCards {
+  display: none;
+  padding: var(--spacing-md);
+}
+
+.shiftCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #13c2c2;
+  background: white;
+  transition: var(--transition);
+}
+
+.shiftCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.shiftCard.dayShift {
+  border-left-color: #1890ff;
+}
+
+.shiftCard.nightShift {
+  border-left-color: #722ed1;
+}
+
+.shiftCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.shiftCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #13c2c2;
+}
+
+.shiftCardEmployee {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 2px;
+}
+
+.shiftCardActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+
+.shiftCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.shiftCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.shiftCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.shiftCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.shiftCardSalary {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid #f0f0f0;
+}
+
+.totalSalaryText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #13c2c2;
+}
+
+/* Модальное окно смены */
+.shiftModal .ant-modal-content {
+  border-radius: var(--border-radius);
+}
+
+.shiftModal .ant-modal-body {
+  padding: var(--spacing-lg);
+}
+
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Large Desktop: 1200px+ */
+@media (min-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 768px) {
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .container,
   .shiftManagement {
-    padding: 12px;
+    padding: var(--spacing-md);
   }
+  
+  .headerTitle {
+    font-size: 20px;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .container,
+  .shiftManagement {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .statItem {
+    padding: var(--spacing-md);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+  }
+  
+  .responsiveTable {
+    min-width: 850px; /* Увеличил для планшетов */
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 10px !important; /* Увеличил padding */
+    font-size: 14px;
+    white-space: normal; /* Разрешил перенос текста */
+    word-break: break-word; /* Разрыв длинных слов */
+    line-height: 1.5; /* Улучшил межстрочный интервал */
+    min-width: 110px; /* Минимальная ширина колонки */
+  }
+  
+  /* Колонка с сотрудником */
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    min-width: 130px;
+  }
+  
+  /* Колонки с датой и временем */
+  .responsiveTable .ant-table-cell:nth-child(2),
+  .responsiveTable .ant-table-cell:nth-child(3),
+  .responsiveTable .ant-table-cell:nth-child(4) {
+    white-space: nowrap;
+    min-width: 120px;
+  }
+  
+  /* Колонка с зарплатой */
+  .responsiveTable .ant-table-cell[data-title*="Зарплата"] {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 110px;
+  }
+  
+  /* Колонка с типом смены */
+  .responsiveTable .ant-table-cell .shiftTypeTag {
+    white-space: nowrap;
+  }
+  
+  /* Колонка с действиями */
+  .responsiveTable .ant-table-cell:last-child {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  .container,
+  .shiftManagement {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .headerTitle {
+    font-size: 18px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .headerActions .ant-btn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Переключение на карточки */
+  .tableCard .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Статистика в одну колонку */
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .statItem {
+    padding: var(--spacing-md);
+  }
+  
+  .statValue {
+    font-size: 18px;
+  }
+  
+  /* Фильтры в одну колонку */
+  .filtersRow {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Форма в одну колонку */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters {
+    padding: var(--spacing-sm);
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .shiftCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .shiftCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .shiftCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .shiftCardField:last-child {
+    border-bottom: none;
+  }
+  
+  .shiftCardSalary {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .container,
+  .shiftManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerTitle {
+    font-size: 16px;
+  }
+  
+  .headerActions {
+    gap: var(--spacing-xs);
+  }
+  
+  .headerActions .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .statsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .statItem {
+    padding: var(--spacing-sm);
+  }
+  
+  .statValue {
+    font-size: 16px;
+  }
+  
+  .statIcon {
+    font-size: 20px;
+  }
+  
+  .shiftCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .shiftCardTitle {
+    font-size: 14px;
+  }
+  
+  .shiftCardActions .ant-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .tableHeader {
+    padding: var(--spacing-sm);
+  }
+  
+  .tableTitle {
+    font-size: 16px;
+  }
+  
+  .filters {
+    padding: var(--spacing-xs);
+  }
+  
+  /* Модальное окно на мобильных */
+  .shiftModal {
+    margin: var(--spacing-sm);
+    max-width: calc(100vw - 16px);
+  }
+  
+  .shiftModal .ant-modal-body {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .container,
+  .shiftManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .headerActions .ant-btn {
+    width: 100%;
+  }
+  
+  .shiftCardContent {
+    display: block;
+  }
+  
+  .shiftCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .shiftCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .shiftCardActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .tableActions .ant-btn,
+  .shiftCardActions .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .headerActions .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .ant-form-item .ant-input,
+  .ant-form-item .ant-select,
+  .ant-form-item .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.shiftCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statItem {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.shiftCardActions .ant-btn:focus,
+.tableActions .ant-btn:focus {
+  outline: 2px solid #13c2c2;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+[data-theme='dark'] .container,
+[data-theme='dark'] .shiftManagement {
+  background: #141414;
+}
+
+[data-theme='dark'] .statItem {
+  background: linear-gradient(135deg, #08979c 0%, #006d75 100%);
+}
+
+[data-theme='dark'] .shiftCard {
+  background: #1f1f1f;
+  border-left-color: #13c2c2;
+}
+
+[data-theme='dark'] .shiftCard.dayShift {
+  border-left-color: #177ddc;
+}
+
+[data-theme='dark'] .shiftCard.nightShift {
+  border-left-color: #531dab;
+}
+
+[data-theme='dark'] .shiftCardField {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .shiftCardHeader {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .shiftCardSalary {
+  border-top-color: #303030;
+}
+
+[data-theme='dark'] .filters,
+[data-theme='dark'] .tableCard {
+  background: #1f1f1f;
+}
+
+[data-theme='dark'] .tableHeader {
+  background: #262626;
+  border-bottom-color: #303030;
 } 

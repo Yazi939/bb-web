@@ -41,7 +41,7 @@ const Logo: React.FC = () => {
         <line x1="40" y1="10" x2="40" y2="5" stroke="#2b6cb0" strokeWidth="1" />
         <path d="M40 5L45 6L40 7Z" fill="#e53e3e" />
         
-        <text x="75" y="24" fontFamily="Arial" fontSize="14" fontWeight="bold" fill="white">Bunkering boat</text>
+        <text x="75" y="24" fontFamily="Arial" fontSize="14" fontWeight="bold" fill="white">Bunker Boats</text>
       </svg>
     </div>
   );
