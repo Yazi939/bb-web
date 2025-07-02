@@ -208,26 +208,36 @@ const FuelTrading: React.FC = () => {
   // Фильтрация архивных транзакций
   useEffect(() => {
     if (selectedArchiveDate) {
-      const startOfDay = selectedArchiveDate.startOf('day');
-      const endOfDay = selectedArchiveDate.endOf('day');
+      // Получаем выбранную дату архива в формате YYYY-MM-DD
+      const selectedArchiveDateStr = selectedArchiveDate.format('YYYY-MM-DD');
       
       const filtered = allTransactions.filter(t => {
-        // Осторожно парсим время - проверяем есть ли уже временная зона
-        let timeStr = t.createdAt;
-        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        const isNotFrozen = !t.frozen;
+        
+        // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
+        let transactionDateStr = '';
+        if (t.createdAt) {
+          transactionDateStr = t.createdAt.substring(0, 10);
+        } else {
+          return false;
         }
-        const transactionDate = dayjs(timeStr);
-        const isInDateRange = !t.frozen && 
-                             transactionDate.isSameOrAfter(startOfDay) && 
-                             transactionDate.isSameOrBefore(endOfDay);
         
         // Фильтр по типу оплаты для архива
         if (filterArchivePaymentMethod && t.paymentMethod !== filterArchivePaymentMethod) {
           return false;
         }
         
-        return isInDateRange;
+        console.log('Архив - проверка даты:', {
+          transactionId: t.id,
+          transactionDate: transactionDateStr,
+          selectedArchiveDate: selectedArchiveDateStr,
+          paymentMethod: t.paymentMethod,
+          filterPaymentMethod: filterArchivePaymentMethod,
+          matches: transactionDateStr === selectedArchiveDateStr
+        });
+        
+        // Простое сравнение строк дат + проверка заморозки
+        return isNotFrozen && transactionDateStr === selectedArchiveDateStr;
       });
       
       setArchiveDayTransactions(filtered);
