@@ -210,23 +210,35 @@ const ExpensesCalendar: React.FC = () => {
 
   const onSelect = (date: Dayjs) => {
     try {
-      const localDate = date.startOf('day');
-      const startOfDay = localDate.startOf('day');
-      const endOfDay = localDate.endOf('day');
+      // Получаем выбранную дату в формате YYYY-MM-DD
+      const selectedDateStr = date.format('YYYY-MM-DD');
       
-      // Фильтруем транзакции только за выбранный день из разрешенных типов
+      // Фильтруем транзакции только за выбранный день - ПРОСТОЕ СРАВНЕНИЕ СТРОК
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        // Осторожно парсим время - проверяем есть ли уже временная зона
-        let timeStr = t.createdAt || t.date;
-        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        
+        // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
+        let transactionDateStr = '';
+        if (t.createdAt) {
+          transactionDateStr = t.createdAt.substring(0, 10);
+        } else if (t.date) {
+          transactionDateStr = t.date.substring(0, 10);
+        } else {
+          return false;
         }
-        const transactionDate = dayjs(timeStr);
-        return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
+        
+        console.log('Календарь - проверка даты:', {
+          transactionId: t.id,
+          transactionDate: transactionDateStr,
+          selectedDate: selectedDateStr,
+          matches: transactionDateStr === selectedDateStr
+        });
+        
+        // Простое сравнение строк дат
+        return transactionDateStr === selectedDateStr;
       });
       
-      setSelectedDate(localDate);
+      setSelectedDate(date);
       setSelectedTransactions(dayTransactions);
       setIsModalVisible(true);
     } catch (error) {
@@ -237,20 +249,25 @@ const ExpensesCalendar: React.FC = () => {
 
   const dateCellRender = (date: Dayjs) => {
     try {
-      const localDate = date.startOf('day');
-      const startOfDay = localDate.startOf('day');
-      const endOfDay = localDate.endOf('day');
+      // Получаем дату ячейки в формате YYYY-MM-DD
+      const cellDateStr = date.format('YYYY-MM-DD');
       
-      // Фильтруем транзакции только за этот день из разрешенных типов
+      // Фильтруем транзакции только за этот день - ПРОСТОЕ СРАВНЕНИЕ СТРОК
       const dayTransactions = allTransactions.filter(t => {
         if (!allowedTypes.includes(t.type) || t.frozen) return false;
-        // Осторожно парсим время - проверяем есть ли уже временная зона
-        let timeStr = t.createdAt || t.date;
-        if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-          timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        
+        // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
+        let transactionDateStr = '';
+        if (t.createdAt) {
+          transactionDateStr = t.createdAt.substring(0, 10);
+        } else if (t.date) {
+          transactionDateStr = t.date.substring(0, 10);
+        } else {
+          return false;
         }
-        const transactionDate = dayjs(timeStr);
-        return transactionDate.isSameOrAfter(startOfDay) && transactionDate.isSameOrBefore(endOfDay);
+        
+        // Простое сравнение строк дат
+        return transactionDateStr === cellDateStr;
       });
       
       if (dayTransactions.length === 0) return null;
@@ -270,7 +287,7 @@ const ExpensesCalendar: React.FC = () => {
         }, 0);
 
       return (
-        <div className="calendar-cell" onClick={() => onSelect(localDate)}>
+        <div className="calendar-cell" onClick={() => onSelect(date)}>
           <div className="transactions-count">{dayTransactions.length} операций</div>
           <div className="transactions-volume">{totalVolume.toFixed(2)} л</div>
           <div className="transactions-cost">{totalCost.toFixed(2)} ₽</div>
