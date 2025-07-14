@@ -1,16 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/bunker-logo.jpg" />
-    <link rel="shortcut icon" type="image/jpeg" href="/bunker-logo.jpg" />
-    <link rel="manifest" href="/manifest-web.json" />
+    <link rel="icon" type="image/x-icon" href="./icon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Bunker Boats - система управления топливом и расходами" />
-    <meta name="theme-color" content="#1890ff" />
-    <link rel="apple-touch-icon" href="/bunker-logo.jpg" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/bunker-logo.jpg" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/bunker-logo.jpg" />
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self' https://bunker-boats.ru;
         script-src 'self' 'unsafe-inline' 'unsafe-eval';
@@ -21,10 +14,13 @@
         worker-src 'self' blob:;
     " />
     <title>Bunker Boats</title>
-    <link rel="stylesheet" href="./main.css">
+    <script type="module" crossorigin src="./main.js"></script>
+    <link rel="modulepreload" crossorigin href="./react-vendor.js">
+    <link rel="modulepreload" crossorigin href="./antd-vendor.js">
+    <link rel="modulepreload" crossorigin href="./utils-vendor.js">
+    <link rel="stylesheet" crossorigin href="./main.css">
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="./main.js"></script>
+    <div id="root"></div>
   </body>
 </html> 
