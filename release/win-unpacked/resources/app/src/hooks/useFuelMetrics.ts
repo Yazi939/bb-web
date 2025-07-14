@@ -108,6 +108,11 @@ export const useFuelMetrics = (
           stats.bunkerBalance -= volume;
           allBunkerBalance -= volume;
           break;
+        case 'bunker_sale':
+          stats.sold += volume;
+          stats.baseBalance -= volume;
+          allBaseBalance -= volume;
+          break;
         case 'purchase':
           stats.purchased += volume;
           stats.baseBalance += volume;
@@ -169,6 +174,7 @@ export const useFuelMetrics = (
       const totalCost = Number(t.totalCost) || 0;
       switch (t.type) {
         case 'sale':
+        case 'bunker_sale': // Добавляем обработку продаж с причала
           dayStatsByType[t.fuelType].sold += volume;
           dayStatsByType[t.fuelType].saleIncome += totalCost;
           totalSaleIncome += totalCost;

@@ -1,7 +1,7 @@
 {
   "name": "bunker-boats",
   "private": true,
-  "version": "2.1.5",
+  "version": "2.1.6",
   "type": "commonjs",
   "main": "main.cjs",
   "homepage": ".",

@@ -31,11 +31,11 @@ export function calculateFuelBalances(transactions: FuelTransaction[]): FuelBala
       case 'purchase':
         totalPurchased += volume;
         break;
-      case 'sale': // Продажа с катера - вычитается из базы
-        totalSoldFromBase += volume;
-        break;
-      case 'bunker_sale': // Продажа с причала - вычитается из бункера
+      case 'sale': // Продажа с катера - вычитается из бункера
         totalSoldFromBunker += volume;
+        break;
+      case 'bunker_sale': // Продажа с причала - вычитается из базы
+        totalSoldFromBase += volume;
         break;
       case 'base_to_bunker':
         totalBaseToBunker += volume;
@@ -79,12 +79,12 @@ export function calculateFuelStats(transactions: FuelTransaction[]): FuelStats {
         totalPurchased += volume;
         totalPurchaseCost += totalCost;
         break;
-      case 'sale': // Продажа с катера - вычитается из базы
-        totalSoldFromBase += volume;
+      case 'sale': // Продажа с катера - вычитается из бункера
+        totalSoldFromBunker += volume;
         totalSaleIncome += totalCost;
         break;
-      case 'bunker_sale': // Продажа с причала - вычитается из бункера
-        totalSoldFromBunker += volume;
+      case 'bunker_sale': // Продажа с причала - вычитается из базы
+        totalSoldFromBase += volume;
         totalSaleIncome += totalCost;
         break;
       case 'base_to_bunker':

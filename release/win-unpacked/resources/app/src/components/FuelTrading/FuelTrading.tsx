@@ -868,16 +868,10 @@ const FuelTrading: React.FC = () => {
 
   // Функция для расчёта выручки по способам оплаты за день
   function calcDailyRevenueByPaymentMethod(transactions: FuelTransaction[]) {
-    const today = dayjs().startOf('day');
-    const endOfToday = dayjs().endOf('day');
-    
-    // Фильтруем транзакции на сегодня и только продажи
+    // Принимаем уже отфильтрованные по времени транзакции
+    // Дополнительно фильтруем только продажи
     const todaysSales = transactions.filter(t => {
-      const transactionDate = dayjs(t.createdAt);
-      return (t.type === 'sale' || t.type === 'bunker_sale') && 
-             !t.frozen && 
-             transactionDate.isSameOrAfter(today) && 
-             transactionDate.isSameOrBefore(endOfToday);
+      return (t.type === 'sale' || t.type === 'bunker_sale') && !t.frozen;
     });
 
     const revenue = {
@@ -918,17 +912,41 @@ const FuelTrading: React.FC = () => {
   // Расчёт выручки за день
   // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
   const todayTransactions = allTransactions.filter(t => {
-    // Осторожно парсим время - проверяем есть ли уже временная зона
+    if (t.frozen) return false;
+    
+    // Пытаемся получить дату из разных полей
+    let transactionDate;
+    if (t.createdAt) {
     let timeStr = t.createdAt;
     if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-      timeStr = timeStr + '+03:00'; // Добавляем московскую зону только если её нет
+        timeStr = timeStr + '+03:00';
     }
-    const transactionDate = dayjs(timeStr);
-    const startOfToday = dayjs().startOf('day');
-    const endOfToday = dayjs().endOf('day');
-    return !t.frozen && 
-           transactionDate.isSameOrAfter(startOfToday) && 
-           transactionDate.isSameOrBefore(endOfToday);
+      transactionDate = dayjs(timeStr);
+    } else if (t.timestamp) {
+      transactionDate = dayjs(t.timestamp);
+    } else if (t.date) {
+      transactionDate = dayjs(t.date);
+    } else {
+      return false; // Нет даты - исключаем транзакцию
+    }
+    
+    // Определяем рабочий день: с 06:00 до 06:00 следующего дня
+    const now = dayjs();
+    let workDayStart = now.hour(6).minute(0).second(0).millisecond(0);
+    
+    // Если сейчас раньше 06:00, то рабочий день начался вчера в 06:00
+    if (now.hour() < 6) {
+      workDayStart = workDayStart.subtract(1, 'day');
+    }
+    
+    const workDayEnd = workDayStart.add(1, 'day');
+    
+    // Отладка - раскомментировать для проверки
+    console.log('Транзакция:', t.id, 'Тип:', t.type, 'Способ оплаты:', t.paymentMethod, 'Сумма:', t.totalCost, 'Дата:', transactionDate.format(), 'Рабочий день:', workDayStart.format(), 'до', workDayEnd.format(), 'Попадает:', transactionDate.isSameOrAfter(workDayStart) && transactionDate.isBefore(workDayEnd));
+    
+    return transactionDate.isValid() && 
+           transactionDate.isSameOrAfter(workDayStart) && 
+           transactionDate.isBefore(workDayEnd);
   });
   
   const dailyRevenue = calcDailyRevenueByPaymentMethod(todayTransactions);

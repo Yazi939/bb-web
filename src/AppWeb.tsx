@@ -9,7 +9,7 @@ import {
   DollarOutlined, CloseOutlined
 } from '@ant-design/icons';
 import type { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon';
-import { User, UserRole } from './utils/users';
+import { getCurrentUser, logoutUser, UserRole, User } from './utils/users';
 import Dashboard from './components/Dashboard/Dashboard';
 import FuelTrading from './components/FuelTrading/FuelTrading';
 import UserManagement from './components/UserManagement/UserManagement';
@@ -114,18 +114,25 @@ const AppWeb: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      console.log('🔐 Checking auth...');
-      
-      // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА - всегда требуем авторизацию заново
-      localStorage.removeItem('token');
-      localStorage.removeItem('currentUser');
-      console.log('🔐 Tokens cleared - login required');
-      
-      setLoading(false);
+    const initApp = async () => {
+      try {
+        const user = await getCurrentUser();
+        console.log('getCurrentUser:', user);
+        if (user) {
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error('Error during app initialization:', error);
+        notification.error({
+          message: 'Ошибка инициализации',
+          description: 'Не удалось загрузить данные пользователей. Пожалуйста, перезагрузите приложение.'
+        });
+      } finally {
+        setLoading(false);
+      }
     };
-
-    checkAuth();
+    initApp();
   }, []);
 
   useEffect(() => {
@@ -164,14 +171,10 @@ const AppWeb: React.FC = () => {
 
   const handleUserMenuClick: MenuProps['onClick'] = async (e) => {
     if (e.key === 'logout') {
-      localStorage.removeItem('token');
+      await logoutUser();
       setIsLoggedIn(false);
       setCurrentUser(null);
       setCurrentView('fuel');
-      notification.success({
-        message: 'Выход выполнен',
-        description: 'Вы успешно вышли из системы'
-      });
     }
   };
 

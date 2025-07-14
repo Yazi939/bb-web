@@ -1,13 +1,599 @@
+/* ===== USER MANAGEMENT АДАПТИВНЫЕ СТИЛИ ===== */
+
 .userManagement {
-  padding: 24px;
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.headerActions .ant-btn {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.headerActions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Статистика пользователей */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.statCard {
+  text-align: center;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
+  color: white;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.statCard .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.statCard .ant-statistic-content {
+  color: white;
+}
+
+/* Основная таблица */
+.tableCard {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 600px;
+}
+
+/* Роли пользователей */
 .roleTag {
+  border-radius: 12px;
   font-weight: 500;
+  padding: 4px 12px;
+  font-size: 12px;
 }
 
-@media (max-width: 768px) {
-  .userManagement {
-    padding: 12px;
+.roleTag.admin {
+  background: #ff4d4f;
+  color: white;
+}
+
+.roleTag.moderator {
+  background: #1890ff;
+  color: white;
+}
+
+.roleTag.worker {
+  background: #52c41a;
+  color: white;
+}
+
+/* Действия в таблице */
+.tableActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tableActions .ant-btn {
+  border-radius: var(--border-radius);
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Мобильные карточки пользователей */
+.mobileCards {
+  display: none;
+}
+
+.userCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #722ed1;
+  transition: var(--transition);
+}
+
+.userCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.userCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.userCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #722ed1;
+}
+
+.userCardUsername {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 2px;
+}
+
+.userCardActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+
+.userCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.userCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.userCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.userCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.userCardRole {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Форма пользователя */
+.userForm {
+  padding: var(--spacing-lg);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.formActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}
+
+/* Модальное окно */
+.userModal .ant-modal-content {
+  border-radius: var(--border-radius);
+}
+
+.userModal .ant-modal-body {
+  padding: 0;
+}
+
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Large Desktop: 1200px+ */
+@media (min-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .userManagement {
+    padding: var(--spacing-md);
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .headerTitle {
+    font-size: 20px;
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .userManagement {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+  }
+  
+  .responsiveTable {
+    min-width: 700px; /* Увеличил для планшетов */
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 10px !important; /* Увеличил padding */
+    font-size: 14px;
+    white-space: normal; /* Разрешил перенос текста */
+    word-break: break-word; /* Разрыв длинных слов */
+    line-height: 1.5; /* Улучшил межстрочный интервал */
+    min-width: 100px; /* Минимальная ширина колонки */
+  }
+  
+  /* Колонка с именем пользователя */
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    min-width: 130px;
+  }
+  
+  /* Колонка с email */
+  .responsiveTable .ant-table-cell:nth-child(2) {
+    min-width: 150px;
+  }
+  
+  /* Колонка с ролью */
+  .responsiveTable .ant-table-cell .roleTag {
+    white-space: nowrap;
+  }
+  
+  /* Колонка с действиями */
+  .responsiveTable .ant-table-cell:last-child {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  .userManagement {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .headerTitle {
+    font-size: 18px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .headerActions .ant-btn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Переключение на карточки */
+  .tableCard .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Статистика в одну колонку */
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .statCard {
+    padding: var(--spacing-md);
+  }
+  
+  /* Форма в одну колонку */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .formActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .formActions .ant-btn {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .formActions .ant-btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .userCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .userCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .userCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .userCardField:last-child {
+    border-bottom: none;
+  }
+  
+  .userCardRole {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .userManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerTitle {
+    font-size: 16px;
+  }
+  
+  .headerActions {
+    gap: var(--spacing-xs);
+  }
+  
+  .headerActions .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .statsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .statCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .statCard .ant-statistic-content-value {
+    font-size: 18px !important;
+  }
+  
+  .userCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .userCardTitle {
+    font-size: 14px;
+  }
+  
+  .userCardActions .ant-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  /* Модальное окно на мобильных */
+  .userModal {
+    margin: var(--spacing-sm);
+    max-width: calc(100vw - 16px);
+  }
+  
+  .userForm {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .userManagement {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .headerActions .ant-btn {
+    width: 100%;
+  }
+  
+  .userCardContent {
+    display: block;
+  }
+  
+  .userCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .userCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .userCardActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .formActions {
+    gap: var(--spacing-xs);
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .tableActions .ant-btn,
+  .userCardActions .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .headerActions .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .ant-form-item .ant-input,
+  .ant-form-item .ant-select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.userCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statCard {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.userCardActions .ant-btn:focus,
+.tableActions .ant-btn:focus {
+  outline: 2px solid #722ed1;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+[data-theme='dark'] .statCard {
+  background: linear-gradient(135deg, #531dab 0%, #391085 100%);
+}
+
+[data-theme='dark'] .userCard {
+  background: #1f1f1f;
+  border-left-color: #722ed1;
+}
+
+[data-theme='dark'] .userCardField {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .userCardHeader {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .userCardRole {
+  border-top-color: #303030;
 } 
