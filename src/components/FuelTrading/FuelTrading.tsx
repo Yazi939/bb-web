@@ -868,16 +868,10 @@ const FuelTrading: React.FC = () => {
 
   // Функция для расчёта выручки по способам оплаты за день
   function calcDailyRevenueByPaymentMethod(transactions: FuelTransaction[]) {
-    const today = dayjs().startOf('day');
-    const endOfToday = dayjs().endOf('day');
-    
-    // Фильтруем транзакции на сегодня и только продажи
+    // Принимаем уже отфильтрованные по времени транзакции
+    // Дополнительно фильтруем только продажи
     const todaysSales = transactions.filter(t => {
-      const transactionDate = dayjs(t.createdAt);
-      return (t.type === 'sale' || t.type === 'bunker_sale') && 
-             !t.frozen && 
-             transactionDate.isSameOrAfter(today) && 
-             transactionDate.isSameOrBefore(endOfToday);
+      return (t.type === 'sale' || t.type === 'bunker_sale') && !t.frozen;
     });
 
     const revenue = {

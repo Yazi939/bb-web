@@ -18,36 +18,41 @@ export interface FuelStats {
  */
 export function calculateFuelBalances(transactions: FuelTransaction[]): FuelBalances {
   let totalPurchased = 0;
-  let totalSold = 0;
+  let totalSoldFromBase = 0; // Продажи с базы (с катера)
+  let totalSoldFromBunker = 0; // Продажи с бункера (с причала)
   let totalBaseToBunker = 0;
   let totalBunkerToBase = 0;
   let totalDrained = 0;
 
   for (const t of transactions) {
     if (t.frozen) continue; // не учитывать замороженные
+    const volume = t.volume || 0;
     switch (t.type) {
       case 'purchase':
-        totalPurchased += t.volume;
+        totalPurchased += volume;
         break;
-      case 'sale':
-        totalSold += t.volume;
+      case 'sale': // Продажа с катера - вычитается из базы
+        totalSoldFromBase += volume;
+        break;
+      case 'bunker_sale': // Продажа с причала - вычитается из бункера
+        totalSoldFromBunker += volume;
         break;
       case 'base_to_bunker':
-        totalBaseToBunker += t.volume;
+        totalBaseToBunker += volume;
         break;
       case 'bunker_to_base':
-        totalBunkerToBase += t.volume;
+        totalBunkerToBase += volume;
         break;
       case 'drain':
-        totalDrained += t.volume;
+        totalDrained += volume;
         break;
       default:
         break;
     }
   }
 
-  const baseBalance = totalPurchased - totalDrained - totalBaseToBunker + totalBunkerToBase;
-  const bunkerBalance = totalBaseToBunker - totalBunkerToBase - totalSold - totalDrained;
+  const baseBalance = totalPurchased - totalDrained - totalBaseToBunker + totalBunkerToBase - totalSoldFromBase;
+  const bunkerBalance = totalBaseToBunker - totalBunkerToBase - totalSoldFromBunker;
 
   return { baseBalance, bunkerBalance };
 }
@@ -57,7 +62,8 @@ export function calculateFuelBalances(transactions: FuelTransaction[]): FuelBala
  */
 export function calculateFuelStats(transactions: FuelTransaction[]): FuelStats {
   let totalPurchased = 0;
-  let totalSold = 0;
+  let totalSoldFromBase = 0; // Продажи с базы (с катера)
+  let totalSoldFromBunker = 0; // Продажи с бункера (с причала)
   let totalBaseToBunker = 0;
   let totalBunkerToBase = 0;
   let totalDrained = 0;
@@ -66,32 +72,39 @@ export function calculateFuelStats(transactions: FuelTransaction[]): FuelStats {
 
   for (const t of transactions) {
     if (t.frozen) continue;
+    const volume = t.volume || 0;
+    const totalCost = t.totalCost || 0;
     switch (t.type) {
       case 'purchase':
-        totalPurchased += t.volume;
-        totalPurchaseCost += t.totalCost;
+        totalPurchased += volume;
+        totalPurchaseCost += totalCost;
         break;
-      case 'sale':
-        totalSold += t.volume;
-        totalSaleIncome += t.totalCost;
+      case 'sale': // Продажа с катера - вычитается из базы
+        totalSoldFromBase += volume;
+        totalSaleIncome += totalCost;
+        break;
+      case 'bunker_sale': // Продажа с причала - вычитается из бункера
+        totalSoldFromBunker += volume;
+        totalSaleIncome += totalCost;
         break;
       case 'base_to_bunker':
-        totalBaseToBunker += t.volume;
+        totalBaseToBunker += volume;
         break;
       case 'bunker_to_base':
-        totalBunkerToBase += t.volume;
+        totalBunkerToBase += volume;
         break;
       case 'drain':
-        totalDrained += t.volume;
+        totalDrained += volume;
         break;
       default:
         break;
     }
   }
 
-  const baseBalance = totalPurchased - totalDrained - totalBaseToBunker + totalBunkerToBase;
-  const bunkerBalance = totalBaseToBunker - totalBunkerToBase - totalSold - totalDrained;
+  const baseBalance = totalPurchased - totalDrained - totalBaseToBunker + totalBunkerToBase - totalSoldFromBase;
+  const bunkerBalance = totalBaseToBunker - totalBunkerToBase - totalSoldFromBunker;
   const avgPurchasePrice = totalPurchased > 0 ? totalPurchaseCost / totalPurchased : 0;
+  const totalSold = totalSoldFromBase + totalSoldFromBunker;
   const soldCost = totalSold * avgPurchasePrice;
   const profit = totalSaleIncome - soldCost;
   const frozenVolume = totalPurchased - totalSold;

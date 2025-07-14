@@ -1,7 +1,7 @@
 export interface FuelTransaction {
   id: string;
   key: string;
-  type: 'purchase' | 'sale' | 'bunker_sale' | 'drain' | 'base_to_bunker' | 'bunker_to_base';
+  type: 'purchase' | 'sale' | 'bunker_sale' | 'drain' | 'base_to_bunker' | 'bunker_to_base' | 'expense' | 'repair' | 'salary';
   volume: number;
   price: number;
   totalCost: number;
@@ -14,4 +14,5 @@ export interface FuelTransaction {
   notes?: string;
   edited?: boolean;
   editTimestamp?: number;
+  frozen?: boolean;
 } 
