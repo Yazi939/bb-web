@@ -18,7 +18,7 @@ import Orders from './components/Orders/Orders';
 import Login from './components/Login/Login';
 import Preloader from './components/Preloader/Preloader';
 import ExpensesCalendar from './components/ExpensesCalendar/ExpensesCalendar';
-import ExpenseManagement from './components/ExpenseManagement/ExpenseManagement';
+import ExpenseManagement from './components/ExpenseManagement/ExpenseManagementWeb';
 
 import UpdateNotification from './components/UpdateNotification';
 import './App.css';
@@ -84,22 +84,27 @@ const userMenuItems: MenuItem[] = [
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState<string>('fuel');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showLoader, setShowLoader] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentView, setCurrentView] = useState('fuel');
+  const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(true);
 
+  // Базовая отладка загрузки
+  console.log('🚀 App component loaded!');
+  console.log('📱 Window width:', window.innerWidth);
+  console.log('📱 isMobile detected:', isMobile);
+  console.log('📱 User agent:', navigator.userAgent);
+
+  // Инициализация состояния при загрузке
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 767;
       setIsMobile(mobile);
-      if (!mobile) {
-        setCollapsed(false);
-        setShowOverlay(false);
-      }
+      console.log('📱 Resize detected:', { width: window.innerWidth, isMobile: mobile });
     };
 
     window.addEventListener('resize', handleResize);
@@ -142,10 +147,7 @@ const App: React.FC = () => {
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     setCurrentView(e.key);
-    if (isMobile) {
-      setCollapsed(true);
-      setShowOverlay(false);
-    }
+    closeMenu();
   };
 
   const handleUserMenuClick: MenuProps['onClick'] = async (e) => {
@@ -158,8 +160,28 @@ const App: React.FC = () => {
   };
 
   const toggleMenu = () => {
-    setCollapsed(!collapsed);
-    setShowOverlay(!showOverlay);
+    console.log('🔧 Toggle menu called:', { isMobile, mobileMenuOpen });
+    
+    if (isMobile) {
+      const newMobileMenuOpen = !mobileMenuOpen;
+      setMobileMenuOpen(newMobileMenuOpen);
+      setShowOverlay(newMobileMenuOpen);
+      console.log('🔧 Mobile menu toggle:', { 
+        wasClosed: !mobileMenuOpen, 
+        willBeOpen: newMobileMenuOpen,
+        isMobile: isMobile 
+      });
+    } else {
+      setCollapsed(!collapsed);
+      setShowOverlay(false);
+    }
+  };
+
+  const closeMenu = () => {
+    if (isMobile) {
+      setMobileMenuOpen(false);
+      setShowOverlay(false);
+    }
   };
 
   const renderContent = () => {

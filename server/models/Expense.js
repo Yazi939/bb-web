@@ -6,13 +6,13 @@ const Expense = sequelize.define('Expense', {
     type: DataTypes.STRING,
     primaryKey: true
   },
-  title: {
+  type: {
     type: DataTypes.STRING,
     allowNull: false
   },
   description: {
     type: DataTypes.TEXT,
-    allowNull: true
+    allowNull: false
   },
   amount: {
     type: DataTypes.DECIMAL(10, 2),
@@ -28,9 +28,18 @@ const Expense = sequelize.define('Expense', {
   paymentMethod: {
     type: DataTypes.STRING,
     allowNull: false,
+    defaultValue: 'cash',
     validate: {
       isIn: [['cash', 'card', 'transfer', 'deferred']]
     }
+  },
+  supplier: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  invoice: {
+    type: DataTypes.STRING,
+    allowNull: true
   },
   date: {
     type: DataTypes.DATEONLY,
@@ -41,9 +50,9 @@ const Expense = sequelize.define('Expense', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  userRole: {
+  createdBy: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   },
   notes: {
     type: DataTypes.TEXT,
@@ -52,6 +61,11 @@ const Expense = sequelize.define('Expense', {
   timestamp: {
     type: DataTypes.BIGINT,
     allowNull: false
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'active'
   }
 }, {
   timestamps: true,

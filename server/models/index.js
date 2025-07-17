@@ -3,8 +3,9 @@ const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const FuelTransaction = require('./FuelTransaction');
+const Expense = require('./Expense');
 
-// Определение модели User
+// Определение модели User  
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.STRING,
@@ -24,7 +25,7 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 'worker',
     validate: {
-      isIn: [['admin', 'worker']]
+      isIn: [['admin', 'moderator', 'worker', 'pier', 'bunker']]
     }
   },
   lastSync: {
@@ -124,5 +125,6 @@ module.exports = {
     User,
     Shift,
     Data,
-    FuelTransaction
+    FuelTransaction,
+    Expense
 }; 

@@ -17,8 +17,12 @@ const authController = {
         });
       }
 
+      // Генерируем уникальный ID
+      const userId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      
       // Создание пользователя
       const user = await User.create({
+        id: userId,
         username,
         password,
         role: role || 'worker'

@@ -11,6 +11,7 @@ import { mockTransactions } from '../../utils/mockData';
 import { fuelService } from '../../services/api';
 import crypto from 'crypto';
 import type { FuelTransaction } from '../../types/electron';
+import { getVisibleTransactionTypes, canViewTransaction, UserRole } from '../../utils/users';
 import * as XLSX from 'xlsx';
 import ruRU from 'antd/es/locale/ru_RU';
 import { DatePicker as AntdDatePicker } from 'antd';
@@ -82,7 +83,13 @@ const FuelTrading: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<{ id: string; role: string }>({ id: '', role: '' });
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<FuelTransaction | null>(null);
-  const metrics = useFuelMetrics(allTransactions, dateRange);
+  // Фильтруем транзакции по ролевым ограничениям для статистики
+  const roleFilteredTransactions = allTransactions.filter(t => 
+    canViewTransaction(t.type, currentUser.role as UserRole)
+  );
+  
+  const absoluteMetrics = useFuelMetrics(allTransactions, dateRange); // Остатки должны быть абсолютными для всех ролей
+  const roleBasedMetrics = useFuelMetrics(roleFilteredTransactions, dateRange); // Статистика по роли
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -157,10 +164,15 @@ const FuelTrading: React.FC = () => {
     };
   }, []);
 
-  // Фильтрация транзакций для отображения (только за сегодня + фильтры), отсортированные по времени
+  // Фильтрация транзакций для отображения (только за сегодня + фильтры + ролевые ограничения)
   const filteredTransactions = allTransactions
     .filter(t => {
       const isNotFrozen = !t.frozen;
+      
+      // Ролевая фильтрация - пользователь может видеть только определенные типы транзакций
+      if (!canViewTransaction(t.type, currentUser.role as UserRole)) {
+        return false;
+      }
       
       // Получаем дату транзакции
       let transactionDateStr = '';
@@ -213,6 +225,11 @@ const FuelTrading: React.FC = () => {
       
       const filtered = allTransactions.filter(t => {
         const isNotFrozen = !t.frozen;
+        
+        // Ролевая фильтрация для архива
+        if (!canViewTransaction(t.type, currentUser.role as UserRole)) {
+          return false;
+        }
         
         // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
         let transactionDateStr = '';
@@ -275,7 +292,7 @@ const FuelTrading: React.FC = () => {
   
   const saveTransactions = async () => {
     try {
-      const updatedTransactions = transactions.map(t => ({
+      const updatedTransactions = allTransactions.map((t: FuelTransaction) => ({
         ...t,
         volume: t.volume !== undefined ? Number(t.volume) : 0,
         price: t.price !== undefined ? Number(t.price) : 0,
@@ -293,13 +310,13 @@ const FuelTrading: React.FC = () => {
     }
   };
   
-  // Расчетные данные по активным транзакциям (используем filteredTransactions вместо transactions)
+  // Расчетные данные по активным транзакциям за день (используем filteredTransactions для статистики по роли)
   const totalPurchased = filteredTransactions
     .filter(t => t.type === 'purchase')
     .reduce((sum, t) => sum + (t.volume || 0), 0);
     
   const totalSold = filteredTransactions
-    .filter(t => t.type === 'sale')
+    .filter(t => t.type === 'sale' || t.type === 'bunker_sale')
     .reduce((sum, t) => sum + (t.volume || 0), 0);
     
   const totalPurchaseCost = filteredTransactions
@@ -307,7 +324,7 @@ const FuelTrading: React.FC = () => {
     .reduce((sum, t) => sum + (t.totalCost || 0), 0);
     
   const totalSaleIncome = filteredTransactions
-    .filter(t => t.type === 'sale')
+    .filter(t => t.type === 'sale' || t.type === 'bunker_sale')
     .reduce((sum, t) => sum + (t.totalCost || 0), 0);
     
   const totalBaseToBunker = filteredTransactions
@@ -337,8 +354,8 @@ const FuelTrading: React.FC = () => {
     ? (coefficient - 1) * 100
     : 0;
     
-  // Итоговые остатки по всем операциям (не зависят от дня)
-  const totalFuelTypeStats = metrics.fuelTypeStats;
+  // Итоговые остатки по всем операциям (не зависят от дня) - используем абсолютные данные
+  const totalFuelTypeStats = absoluteMetrics.fuelTypeStats;
 
   // Статистика за день (продажи, покупки, прибыль и т.д.)
   // ... как раньше, на основе filteredTransactions ...
@@ -347,11 +364,11 @@ const FuelTrading: React.FC = () => {
   const fuelTypeData = FUEL_TYPES.map(fuelType => {
     const dayStats = filteredTransactions.filter(t => t.fuelType === fuelType.value);
     const purchased = dayStats.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.volume || 0), 0);
-    const sold = dayStats.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.volume || 0), 0);
+    const sold = dayStats.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + (t.volume || 0), 0);
     const baseToBunker = dayStats.filter(t => t.type === 'base_to_bunker').reduce((sum, t) => sum + (t.volume || 0), 0);
     const bunkerToBase = dayStats.filter(t => t.type === 'bunker_to_base').reduce((sum, t) => sum + (t.volume || 0), 0);
     const purchaseCost = dayStats.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.totalCost || 0), 0);
-    const saleIncome = dayStats.filter(t => t.type === 'sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
+    const saleIncome = dayStats.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
     const profit = sold * (purchased > 0 ? purchaseCost / purchased : 0) > 0 ? saleIncome - sold * (purchaseCost / purchased) : 0;
     // Остатки — итоговые
     const baseBalance = totalFuelTypeStats[fuelType.value]?.baseBalance || 0;
@@ -626,15 +643,17 @@ const FuelTrading: React.FC = () => {
           default: return <Tag>{type}</Tag>;
         }
       },
-      filters: [
-        { text: 'Покупка', value: 'purchase' },
-        { text: 'Продажа с катера', value: 'sale' },
-        { text: 'Продажа с причала', value: 'bunker_sale' },
-        ...(currentUser.role === 'admin' ? [
+      filters: (() => {
+        const visibleTypes = getVisibleTransactionTypes(currentUser.role as UserRole);
+        const allFilters = [
+          { text: 'Покупка', value: 'purchase' },
+          { text: 'Продажа с катера', value: 'sale' },
+          { text: 'Продажа с причала', value: 'bunker_sale' },
           { text: 'База → Бункер', value: 'base_to_bunker' },
           { text: 'Бункер → База', value: 'bunker_to_base' }
-        ] : [])
-      ],
+        ];
+        return allFilters.filter(filter => visibleTypes.includes(filter.value));
+      })(),
       onFilter: (value, record) => record.type === value,
     },
     {
@@ -826,7 +845,7 @@ const FuelTrading: React.FC = () => {
   // ✅ Исправлено: таблица теперь использует filteredTransactions напрямую
   // Логи отключены для предотвращения циклов рендеринга
 
-  const tableData = Object.entries(metrics.fuelTypeStats).map(([fuelType, stats]) => ({
+  const tableData = Object.entries(roleBasedMetrics.fuelTypeStats).map(([fuelType, stats]) => ({
     key: fuelType,
     fuelType,
     ...stats
@@ -835,7 +854,7 @@ const FuelTrading: React.FC = () => {
   // Функция экспорта в Excel
   const exportToExcel = () => {
     // Преобразуем данные для экспорта (например, fuelTransactions)
-    const data = transactions.map((item, idx) => ({
+    const data = allTransactions.map((item: FuelTransaction, idx: number) => ({
       '№': idx + 1,
       'Тип операции': item.type,
       'Тип топлива': item.fuelType,
@@ -856,10 +875,10 @@ const FuelTrading: React.FC = () => {
 
   // Вспомогательная функция для расчёта статистики по произвольному набору операций
   function calcStatsForTransactions(transactions: FuelTransaction[]) {
-    const totalPurchased = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.volume, 0);
-    const totalSold = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.volume, 0);
-    const totalPurchaseCost = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + t.totalCost, 0);
-          const totalSaleIncome = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + t.totalCost, 0);
+    const totalPurchased = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.volume || 0), 0);
+    const totalSold = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + (t.volume || 0), 0);
+    const totalPurchaseCost = transactions.filter(t => t.type === 'purchase').reduce((sum, t) => sum + (t.totalCost || 0), 0);
+          const totalSaleIncome = transactions.filter(t => t.type === 'sale' || t.type === 'bunker_sale').reduce((sum, t) => sum + (t.totalCost || 0), 0);
     const avgPurchasePrice = totalPurchased > 0 ? totalPurchaseCost / totalPurchased : 0;
     const soldCost = totalSold * avgPurchasePrice;
     const profit = totalSaleIncome - soldCost;
@@ -874,6 +893,10 @@ const FuelTrading: React.FC = () => {
       return (t.type === 'sale' || t.type === 'bunker_sale') && !t.frozen;
     });
 
+    console.log('--- ДЕТАЛЬНАЯ ОТЛАДКА ВЫРУЧКИ ---');
+    console.log('Транзакций для расчета выручки:', todaysSales.length);
+    console.log('Только продажи:', todaysSales);
+
     const revenue = {
       cash: 0,      // Наличные
       card: 0,      // Терминал
@@ -882,74 +905,83 @@ const FuelTrading: React.FC = () => {
       total: 0      // Общая выручка
     };
 
-    todaysSales.forEach(transaction => {
+    todaysSales.forEach((transaction, index) => {
       const amount = transaction.totalCost || 0;
+      console.log(`Транзакция ${index + 1}:`, {
+        id: transaction.id,
+        type: transaction.type,
+        amount: amount,
+        paymentMethod: transaction.paymentMethod,
+        volume: transaction.volume,
+        price: transaction.price
+      });
+      
       revenue.total += amount;
       
       switch (transaction.paymentMethod) {
         case 'cash':
           revenue.cash += amount;
+          console.log(`  -> Добавлено к наличным: ${amount}`);
           break;
         case 'card':
           revenue.card += amount;
+          console.log(`  -> Добавлено к терминалу: ${amount}`);
           break;
         case 'transfer':
           revenue.transfer += amount;
+          console.log(`  -> Добавлено к переводу: ${amount}`);
           break;
         case 'deferred':
           revenue.deferred += amount;
+          console.log(`  -> Добавлено к отложенному: ${amount}`);
           break;
         default:
-          // Если способ оплаты не указан, относим к наличным
           revenue.cash += amount;
+          console.log(`  -> Добавлено к наличным (по умолчанию): ${amount}, paymentMethod: ${transaction.paymentMethod}`);
           break;
       }
     });
+
+    console.log('Итоговая выручка по способам оплаты:', revenue);
+    console.log('--- КОНЕЦ ДЕТАЛЬНОЙ ОТЛАДКИ ---');
 
     return revenue;
   }
 
   // Расчёт выручки за день
-  // Статистика за сегодня - используем только сегодняшние операции (без дополнительных фильтров)
+  // Используем ТОТ ЖЕ алгоритм фильтрации + ролевые ограничения
   const todayTransactions = allTransactions.filter(t => {
     if (t.frozen) return false;
     
-    // Пытаемся получить дату из разных полей
-    let transactionDate;
+    // Ролевая фильтрация - учитываем только транзакции, доступные пользователю
+    if (!canViewTransaction(t.type, currentUser.role as UserRole)) {
+      return false;
+    }
+    
+    // Получаем дату транзакции (только дату, первые 10 символов: YYYY-MM-DD)
+    let transactionDateStr = '';
     if (t.createdAt) {
-    let timeStr = t.createdAt;
-    if (timeStr && !timeStr.includes('+') && !timeStr.endsWith('Z')) {
-        timeStr = timeStr + '+03:00';
-    }
-      transactionDate = dayjs(timeStr);
-    } else if (t.timestamp) {
-      transactionDate = dayjs(t.timestamp);
-    } else if (t.date) {
-      transactionDate = dayjs(t.date);
+      transactionDateStr = t.createdAt.substring(0, 10);
     } else {
-      return false; // Нет даты - исключаем транзакцию
+      return false;
     }
     
-    // Определяем рабочий день: с 06:00 до 06:00 следующего дня
-    const now = dayjs();
-    let workDayStart = now.hour(6).minute(0).second(0).millisecond(0);
+    // Получаем сегодняшнюю дату в формате YYYY-MM-DD
+    const todayDateStr = dayjs().format('YYYY-MM-DD');
     
-    // Если сейчас раньше 06:00, то рабочий день начался вчера в 06:00
-    if (now.hour() < 6) {
-      workDayStart = workDayStart.subtract(1, 'day');
-    }
-    
-    const workDayEnd = workDayStart.add(1, 'day');
-    
-    // Отладка - раскомментировать для проверки
-    console.log('Транзакция:', t.id, 'Тип:', t.type, 'Способ оплаты:', t.paymentMethod, 'Сумма:', t.totalCost, 'Дата:', transactionDate.format(), 'Рабочий день:', workDayStart.format(), 'до', workDayEnd.format(), 'Попадает:', transactionDate.isSameOrAfter(workDayStart) && transactionDate.isBefore(workDayEnd));
-    
-    return transactionDate.isValid() && 
-           transactionDate.isSameOrAfter(workDayStart) && 
-           transactionDate.isBefore(workDayEnd);
+    // Простое сравнение строк дат (точно как в архиве)
+    return transactionDateStr === todayDateStr;
   });
   
+  console.log('=== ОТЛАДКА ДНЕВНОЙ ВЫРУЧКИ ===');
+  console.log('Всего транзакций:', allTransactions.length);
+  console.log('Сегодняшних транзакций:', todayTransactions.length);
+  console.log('Сегодняшние транзакции:', todayTransactions);
+  
   const dailyRevenue = calcDailyRevenueByPaymentMethod(todayTransactions);
+  
+  console.log('Дневная выручка:', dailyRevenue);
+  console.log('=== КОНЕЦ ОТЛАДКИ ===');
 
   // Отладочный вывод для проверки расчёта остатков по дизелю (только при изменении)
   // console.log('Остаток дизеля на бункере:', metrics.fuelTypeStats['diesel']?.bunkerBalance);
@@ -975,7 +1007,7 @@ const FuelTrading: React.FC = () => {
                     <Option value="purchase">Покупка топлива</Option>
                     <Option value="sale">Продажа с катера</Option>
                     <Option value="bunker_sale">Продажа с причала</Option>
-                    {currentUser.role === 'admin' && (
+                    {(currentUser.role === 'admin' || currentUser.role === 'bunker') && (
                       <>
                         <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
                         <Option value="bunker_to_base">Перемещение с бункеровщика на базу</Option>
@@ -1257,7 +1289,7 @@ const FuelTrading: React.FC = () => {
                       <Option value="purchase">Покупка</Option>
                       <Option value="sale">Продажа с катера</Option>
                       <Option value="bunker_sale">Продажа с причала</Option>
-                      {currentUser.role === 'admin' && (
+                      {(currentUser.role === 'admin' || currentUser.role === 'bunker') && (
                         <>
                           <Option value="base_to_bunker">Перемещение с базы на бункеровщик</Option>
                           <Option value="bunker_to_base">Перемещение с бункеровщика на базу</Option>

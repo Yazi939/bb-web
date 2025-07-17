@@ -29,7 +29,15 @@ const UserManagement: React.FC = () => {
   const loadUsers = async () => {
     try {
       const response = await userService.getUsers();
-      setUsers(Array.isArray(response.data) ? response.data : response.data.users || []);
+      const usersData = Array.isArray(response.data) ? response.data : response.data.users || [];
+      
+      console.log('🔍 Диагностика пользователей:', {
+        response,
+        usersData,
+        userIds: usersData.map((u: User) => ({ name: u.name, id: u.id, hasId: !!u.id }))
+      });
+      
+      setUsers(usersData);
     } catch (error) {
       message.error('Ошибка при загрузке пользователей');
       console.error(error);
@@ -118,6 +126,15 @@ const UserManagement: React.FC = () => {
       title: 'Имя',
       dataIndex: 'name',
       key: 'name',
+      render: (name: string, record: any) => (
+        <div>
+          {name}
+          <br />
+          <small style={{ color: '#999', fontSize: '11px' }}>
+            ID: {record.id || 'НЕТ ID'}
+          </small>
+        </div>
+      ),
     },
     {
       title: 'Логин',
@@ -131,23 +148,43 @@ const UserManagement: React.FC = () => {
       render: (role: UserRoleType) => {
         let color = '';
         let label = '';
+        let description = '';
         
         switch (role) {
           case 'admin':
             color = 'red';
             label = 'Администратор';
+            description = 'Полный доступ';
             break;
           case 'moderator':
             color = 'blue';
             label = 'Модератор';
+            description = 'Управление без удаления';
+            break;
+          case 'pier':
+            color = 'cyan';
+            label = 'Причал';
+            description = 'Продажи и приобретения';
+            break;
+          case 'bunker':
+            color = 'orange';
+            label = 'Бункеровщик';
+            description = 'Продажи и операции с бункером';
             break;
           case 'worker':
             color = 'green';
             label = 'Работник';
+            description = 'Просмотр продаж';
             break;
         }
         
-        return <Tag color={color}>{label}</Tag>;
+        return (
+          <div>
+            <Tag color={color}>{label}</Tag>
+            <br />
+            <small style={{ color: '#666', fontSize: '11px' }}>{description}</small>
+          </div>
+        );
       },
     },
     {
@@ -160,13 +197,32 @@ const UserManagement: React.FC = () => {
             size="small" 
             onClick={() => handleEditUser(record)}
           />
-          <Button 
-            icon={<DeleteOutlined />} 
-            size="small" 
-            danger 
-            onClick={() => handleDeleteUser(record.id)}
-            disabled={record.id === currentUser?.id}
-          />
+          {!record.id ? (
+            <span style={{ fontSize: '11px', color: '#ff4d4f' }}>
+              Нет ID - нельзя удалить
+            </span>
+          ) : record.id === currentUser?.id ? (
+            <span style={{ fontSize: '11px', color: '#999' }}>
+              Ваш аккаунт
+            </span>
+          ) : (
+            <Button 
+              icon={<DeleteOutlined />} 
+              size="small" 
+              danger 
+              onClick={() => {
+                console.log('🔍 Диагностика удаления:', {
+                  recordId: record.id,
+                  recordUsername: record.username,
+                  currentUserId: currentUser?.id,
+                  currentUserName: currentUser?.name,
+                  hasId: !!record.id,
+                  isSameUser: record.id === currentUser?.id
+                });
+                handleDeleteUser(record.id);
+              }}
+            />
+          )}
         </Space>
       ),
     },
@@ -174,6 +230,54 @@ const UserManagement: React.FC = () => {
   
   return (
     <div className={styles.userManagement}>
+      <Card 
+        title="Области видимости ролей" 
+        style={{ marginBottom: 24 }}
+        size="small"
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ padding: '12px', border: '1px solid #ff4d4f', borderRadius: '6px', backgroundColor: '#fff2f0' }}>
+            <Tag color="red" style={{ marginBottom: '8px' }}>Администратор</Tag>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              <strong>Видит:</strong> ВСЕ операции<br />
+              <strong>Может:</strong> Создавать, редактировать, удалять операции, управлять пользователями
+            </div>
+          </div>
+          
+          <div style={{ padding: '12px', border: '1px solid #1890ff', borderRadius: '6px', backgroundColor: '#f6ffff' }}>
+            <Tag color="blue" style={{ marginBottom: '8px' }}>Модератор</Tag>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              <strong>Видит:</strong> ВСЕ операции<br />
+              <strong>Может:</strong> Редактировать операции, просматривать отчеты
+            </div>
+          </div>
+          
+          <div style={{ padding: '12px', border: '1px solid #13c2c2', borderRadius: '6px', backgroundColor: '#f6ffff' }}>
+            <Tag color="cyan" style={{ marginBottom: '8px' }}>Причал</Tag>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              <strong>Видит:</strong> Продажи с причала (bunker_sale) и приобретения (purchase)<br />
+              <strong>Может:</strong> Создавать, редактировать свои операции и просматривать статистику
+            </div>
+          </div>
+          
+          <div style={{ padding: '12px', border: '1px solid #fa8c16', borderRadius: '6px', backgroundColor: '#fff7e6' }}>
+            <Tag color="orange" style={{ marginBottom: '8px' }}>Бункеровщик</Tag>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              <strong>Видит:</strong> Продажи с катера (sale) и операции с бункером (base_to_bunker, bunker_to_base)<br />
+              <strong>Может:</strong> Создавать, редактировать свои операции и просматривать статистику
+            </div>
+          </div>
+          
+          <div style={{ padding: '12px', border: '1px solid #52c41a', borderRadius: '6px', backgroundColor: '#f6ffed' }}>
+            <Tag color="green" style={{ marginBottom: '8px' }}>Работник</Tag>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              <strong>Видит:</strong> Обе продажи (sale + bunker_sale)<br />
+              <strong>Может:</strong> Только просматривать операции
+            </div>
+          </div>
+        </div>
+      </Card>
+      
       <Card
         title="Управление пользователями"
         extra={
@@ -234,11 +338,121 @@ const UserManagement: React.FC = () => {
             label="Роль"
             rules={[{ required: true, message: 'Выберите роль' }]}
           >
-            <Select>
-              <Option value="admin">Администратор</Option>
-              <Option value="moderator">Модератор</Option>
-              <Option value="worker">Работник</Option>
+            <Select placeholder="Выберите роль пользователя">
+              <Option value="admin">
+                <div>
+                  <strong>Администратор</strong>
+                  <br />
+                  <small style={{ color: '#666' }}>Полный доступ ко всем операциям и функциям</small>
+                </div>
+              </Option>
+              <Option value="moderator">
+                <div>
+                  <strong>Модератор</strong>
+                  <br />
+                  <small style={{ color: '#666' }}>Может редактировать, но не удалять операции</small>
+                </div>
+              </Option>
+              <Option value="pier">
+                <div>
+                  <strong>Причал</strong>
+                  <br />
+                  <small style={{ color: '#666' }}>Видит продажи с причала и приобретения (bunker_sale + purchase)</small>
+                </div>
+              </Option>
+              <Option value="bunker">
+                <div>
+                  <strong>Бункеровщик</strong>
+                  <br />
+                  <small style={{ color: '#666' }}>Видит продажи с катера и операции с бункером (sale + base_to_bunker + bunker_to_base)</small>
+                </div>
+              </Option>
+              <Option value="worker">
+                <div>
+                  <strong>Работник</strong>
+                  <br />
+                  <small style={{ color: '#666' }}>Видит обе продажи, но без административных функций</small>
+                </div>
+              </Option>
             </Select>
+          </Form.Item>
+          
+          <Form.Item shouldUpdate={(prevValues, currentValues) => prevValues.role !== currentValues.role}>
+            {({ getFieldValue }) => {
+              const selectedRole = getFieldValue('role');
+              if (!selectedRole) return null;
+              
+              let roleInfo = null;
+              switch (selectedRole) {
+                case 'admin':
+                  roleInfo = {
+                    title: 'Администратор',
+                    color: '#ff4d4f',
+                    bgColor: '#fff2f0',
+                    permissions: 'ВСЕ операции',
+                    actions: 'Полный доступ ко всем функциям системы'
+                  };
+                  break;
+                case 'moderator':
+                  roleInfo = {
+                    title: 'Модератор',
+                    color: '#1890ff',
+                    bgColor: '#f6ffff',
+                    permissions: 'ВСЕ операции',
+                    actions: 'Может редактировать операции, просматривать отчеты'
+                  };
+                  break;
+                case 'pier':
+                  roleInfo = {
+                    title: 'Причал',
+                    color: '#13c2c2',
+                    bgColor: '#f6ffff',
+                    permissions: 'Продажи с причала и приобретения (bunker_sale + purchase)',
+                    actions: 'Создание, редактирование своих операций и просмотр статистики'
+                  };
+                  break;
+                case 'bunker':
+                  roleInfo = {
+                    title: 'Бункеровщик',
+                    color: '#fa8c16',
+                    bgColor: '#fff7e6',
+                    permissions: 'Продажи с катера и операции с бункером (sale + base_to_bunker + bunker_to_base)',
+                    actions: 'Создание, редактирование своих операций и просмотр статистики'
+                  };
+                  break;
+                case 'worker':
+                  roleInfo = {
+                    title: 'Работник',
+                    color: '#52c41a',
+                    bgColor: '#f6ffed',
+                    permissions: 'Обе продажи (sale + bunker_sale)',
+                    actions: 'Только просмотр операций'
+                  };
+                  break;
+                default:
+                  return null;
+              }
+              
+              return (
+                <div style={{ 
+                  padding: '12px', 
+                  border: `1px solid ${roleInfo.color}`, 
+                  borderRadius: '6px', 
+                  backgroundColor: roleInfo.bgColor,
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ marginBottom: '8px' }}>
+                    <Tag color={selectedRole === 'admin' ? 'red' : selectedRole === 'moderator' ? 'blue' : selectedRole === 'pier' ? 'cyan' : selectedRole === 'bunker' ? 'orange' : 'green'}>
+                      {roleInfo.title}
+                    </Tag>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>
+                    <strong>Область видимости:</strong> {roleInfo.permissions}<br />
+                    <strong>Возможности:</strong> {roleInfo.actions}
+                  </div>
+                </div>
+              );
+            }}
           </Form.Item>
           
           <Form.Item>

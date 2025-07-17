@@ -2,7 +2,7 @@ import { mockUsers } from './mockData';
 import { userService } from '../services/api';
 
 // Типы пользователей
-export type UserRole = 'admin' | 'moderator' | 'worker';
+export type UserRole = 'admin' | 'moderator' | 'worker' | 'pier' | 'bunker';
 
 // Интерфейс пользователя
 export interface User {
@@ -42,6 +42,26 @@ export const rolePermissions = {
     canAddUsers: false,
     canViewReports: false,
     canExport: false,
+    canManageOrders: false,
+    canManageShifts: false,
+  },
+  pier: {
+    canEdit: true,
+    canDelete: false,
+    canFreeze: false,
+    canAddUsers: false,
+    canViewReports: true,
+    canExport: true,
+    canManageOrders: false,
+    canManageShifts: false,
+  },
+  bunker: {
+    canEdit: true,
+    canDelete: false,
+    canFreeze: false,
+    canAddUsers: false,
+    canViewReports: true,
+    canExport: true,
     canManageOrders: false,
     canManageShifts: false,
   }
@@ -104,4 +124,26 @@ export const checkPermission = async (permission: keyof typeof rolePermissions.a
   if (!user) return false;
   
   return rolePermissions[user.role][permission] || false;
+};
+
+// Определение типов транзакций, доступных для роли
+export const getVisibleTransactionTypes = (role: UserRole): string[] => {
+  switch (role) {
+    case 'admin':
+    case 'moderator':
+      return ['purchase', 'sale', 'bunker_sale', 'base_to_bunker', 'bunker_to_base'];
+    case 'pier':
+      return ['bunker_sale', 'purchase']; // Причал видит продажи с причала и приобретения
+    case 'bunker':
+      return ['sale', 'base_to_bunker', 'bunker_to_base']; // Бункеровщик видит продажи с катера и все операции с бункером
+    case 'worker':
+    default:
+      return ['sale', 'bunker_sale']; // Рабочий видит обе продажи
+  }
+};
+
+// Проверка, может ли пользователь видеть транзакцию
+export const canViewTransaction = (transactionType: string, userRole: UserRole): boolean => {
+  const visibleTypes = getVisibleTransactionTypes(userRole);
+  return visibleTypes.includes(transactionType);
 }; 
