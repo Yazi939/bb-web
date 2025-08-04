@@ -21,6 +21,38 @@
   color: white !important;
 }
 
+/* ===== ГЛОБАЛЬНЫЕ ИСПРАВЛЕНИЯ ТАБЛИЦ ===== */
+@media (max-width: 991px) {
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 10px 8px !important;
+    border-right: 1px solid #f0f0f0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  .ant-table-tbody > tr > td:last-child {
+    border-right: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .ant-table-wrapper {
+    display: none !important;
+  }
+  
+  .mobileCards {
+    display: block !important;
+  }
+}
+
 .logo {
   height: 64px;
   display: flex;
