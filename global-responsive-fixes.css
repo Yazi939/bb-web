@@ -1,0 +1,399 @@
+/* ===== ГЛОБАЛЬНЫЕ ИСПРАВЛЕНИЯ АДАПТИВНОСТИ ДЛЯ ВСЕХ СТРАНИЦ ===== */
+
+/* Общие исправления для планшетов (768px - 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+  
+  /* ===== ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ ТАБЛИЦ ===== */
+  
+  /* Улучшение прокрутки таблиц */
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Базовые стили для всех ячеек таблиц */
+  .ant-table-cell {
+    padding: 14px 10px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  /* Заголовки таблиц */
+  .ant-table-thead > tr > th {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #fafafa !important;
+  }
+  
+  /* Теги в таблицах */
+  .ant-tag {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 2px !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Кнопки действий в таблицах */
+  .ant-btn {
+    margin: 2px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+  }
+  
+  /* ===== СПЕЦИФИЧНЫЕ ИСПРАВЛЕНИЯ ДЛЯ КАЖДОГО КОМПОНЕНТА ===== */
+  
+  /* UserManagement - Управление пользователями */
+  ._responsiveTable_q58au_169 {
+    min-width: 900px !important;
+    table-layout: fixed !important;
+  }
+  
+  ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605 {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* ShiftManagement - Управление сменами */
+  ._responsiveTable_n2c6q_343 {
+    min-width: 950px !important;
+    table-layout: fixed !important;
+  }
+  
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799 {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Orders - Заказы */
+  ._responsiveTable_95vwv_189 {
+    min-width: 1000px !important;
+    table-layout: fixed !important;
+  }
+  
+  ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577 {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Expenses - Расходы */
+  ._responsiveTable_rk18t_285 {
+    min-width: 950px !important;
+    table-layout: fixed !important;
+  }
+  
+  ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723 {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* ===== FUEL TRADING - ОСНОВНЫЕ ИСПРАВЛЕНИЯ ===== */
+  
+  /* Контейнер для FuelTrading */
+  .fuelTrading .tableWrapper,
+  .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 -16px !important;
+    padding: 0 16px !important;
+    border-radius: 8px !important;
+  }
+  
+  /* Основная таблица FuelTrading */
+  .fuelTrading .responsiveTable,
+  .responsiveTable {
+    min-width: 1200px !important;
+    table-layout: fixed !important;
+  }
+  
+  /* Все ячейки таблицы FuelTrading */
+  .fuelTrading .responsiveTable .ant-table-cell,
+  .responsiveTable .ant-table-cell {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Фиксированные ширины колонок для FuelTrading */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(1),
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(2),
+  .responsiveTable .ant-table-cell:nth-child(2) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(3),
+  .responsiveTable .ant-table-cell:nth-child(3) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(4),
+  .responsiveTable .ant-table-cell:nth-child(4) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(5),
+  .responsiveTable .ant-table-cell:nth-child(5) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(6),
+  .responsiveTable .ant-table-cell:nth-child(6) {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(7),
+  .responsiveTable .ant-table-cell:nth-child(7) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    white-space: nowrap !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(8),
+  .responsiveTable .ant-table-cell:nth-child(8) {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+    white-space: nowrap !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(9),
+  .responsiveTable .ant-table-cell:nth-child(9) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(10),
+  .responsiveTable .ant-table-cell:nth-child(10) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell:last-child,
+  .responsiveTable .ant-table-cell:last-child {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+  
+  /* ===== УЛУЧШЕНИЯ ПРОКРУТКИ НА TOUCH УСТРОЙСТВАХ ===== */
+  
+  .ant-table-wrapper::-webkit-scrollbar {
+    height: 8px !important;
+  }
+  
+  .ant-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 4px !important;
+  }
+  
+  .ant-table-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1 !important;
+    border-radius: 4px !important;
+  }
+  
+  .ant-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8 !important;
+  }
+  
+  /* ===== УЛУЧШЕНИЯ ДЛЯ ФОРМ И ЭЛЕМЕНТОВ УПРАВЛЕНИЯ ===== */
+  
+  /* Кнопки */
+  .ant-btn {
+    min-height: 36px !important;
+    padding: 0 16px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Поля ввода */
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    min-height: 40px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Карточки */
+  .ant-card {
+    margin-bottom: 16px !important;
+  }
+  
+  .ant-card-head {
+    padding: 16px 20px !important;
+  }
+  
+  .ant-card-body {
+    padding: 20px !important;
+  }
+  
+  /* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ HUAWEI УСТРОЙСТВ ===== */
+  
+  .huawei-device .ant-table-cell {
+    padding: 18px 14px !important;
+    line-height: 1.7 !important;
+  }
+  
+  .huawei-device .fuelTrading .responsiveTable .ant-table-cell,
+  .huawei-device .responsiveTable .ant-table-cell {
+    padding: 18px 16px !important;
+    line-height: 1.7 !important;
+  }
+  
+  /* ===== УЛУЧШЕНИЯ ЧИТАЕМОСТИ ===== */
+  
+  .ant-table-cell {
+    letter-spacing: 0.3px !important;
+    word-spacing: 1px !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    border-bottom: 1px solid #f0f0f0 !important;
+  }
+  
+  /* ===== ИСПРАВЛЕНИЯ ДЛЯ МОДАЛЬНЫХ ОКОН ===== */
+  
+  .ant-modal {
+    max-width: calc(100vw - 32px) !important;
+    margin: 16px auto !important;
+  }
+  
+  .ant-modal-content {
+    border-radius: 8px !important;
+  }
+  
+  .ant-modal-body {
+    padding: 24px !important;
+  }
+}
+
+/* ===== ДОПОЛНИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ БОЛЬШИХ ПЛАНШЕТОВ (iPad Pro) ===== */
+@media (max-width: 1024px) and (min-width: 992px) {
+  
+  .fuelTrading .responsiveTable,
+  .responsiveTable {
+    min-width: 1100px !important;
+  }
+  
+  .ant-table-cell {
+    padding: 14px 10px !important;
+    font-size: 13px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell,
+  .responsiveTable .ant-table-cell {
+    padding: 14px 10px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ===== ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ===== */
+@media (max-width: 767px) {
+  
+  /* Скрываем таблицы на мобильных */
+  .ant-table-wrapper {
+    display: none !important;
+  }
+  
+  /* Показываем мобильные карточки */
+  .mobile-cards {
+    display: block !important;
+  }
+  
+  /* Улучшения для мобильных карточек */
+  .mobile-card {
+    margin-bottom: 12px !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+/* ===== ГЛОБАЛЬНЫЕ УТИЛИТЫ ===== */
+
+/* Принудительное скрытие горизонтальной прокрутки */
+.no-horizontal-scroll {
+  overflow-x: hidden !important;
+}
+
+/* Улучшенная прокрутка */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+}
+
+/* Предотвращение выделения текста при прокрутке */
+.prevent-select {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Улучшенная типографика для планшетов */
+@media (max-width: 991px) and (min-width: 768px) {
+  body {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+  
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 18px !important; }
+  h4 { font-size: 16px !important; }
+  h5 { font-size: 14px !important; }
+  h6 { font-size: 12px !important; }
+} 

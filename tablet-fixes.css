@@ -1,0 +1,419 @@
+/* Улучшения адаптивности таблиц для планшетов, особенно Huawei */
+
+/* Обнаружение Huawei устройств через User-Agent (добавляется через JS) */
+.huawei-device {
+  --tablet-cell-padding: 18px 16px;
+  --tablet-cell-min-width: 160px;
+  --tablet-line-height: 1.7;
+}
+
+/* Общие улучшения для планшетов (768px - 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+  
+  /* Пользователи - UserManagement */
+  ._responsiveTable_q58au_169 {
+    min-width: 800px !important;
+  }
+  
+  ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605 {
+    padding: var(--tablet-cell-padding, 16px 14px) !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: var(--tablet-line-height, 1.6) !important;
+    min-width: var(--tablet-cell-min-width, 140px) !important;
+    max-width: 280px !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605:nth-child(1) {
+    min-width: 170px !important;
+  }
+  
+  ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605:nth-child(2) {
+    min-width: 190px !important;
+  }
+  
+  ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605:last-child {
+    min-width: 150px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Смены - ShiftManagement */
+  ._responsiveTable_n2c6q_343 {
+    min-width: 900px !important;
+  }
+  
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799 {
+    padding: var(--tablet-cell-padding, 16px 14px) !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: var(--tablet-line-height, 1.6) !important;
+    min-width: var(--tablet-cell-min-width, 140px) !important;
+    max-width: 280px !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(1) {
+    min-width: 170px !important;
+  }
+  
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(2),
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(3),
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(4) {
+    white-space: nowrap !important;
+    min-width: 150px !important;
+  }
+  
+  ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:last-child {
+    min-width: 150px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Заказы - Orders */
+  ._responsiveTable_95vwv_189 {
+    min-width: 1000px !important;
+  }
+  
+  ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577 {
+    padding: var(--tablet-cell-padding, 16px 14px) !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: var(--tablet-line-height, 1.6) !important;
+    min-width: var(--tablet-cell-min-width, 140px) !important;
+    max-width: 280px !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577:nth-child(1) {
+    min-width: 170px !important;
+  }
+  
+  ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577:last-child {
+    min-width: 160px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Расходы - Expenses */
+  ._responsiveTable_rk18t_285 {
+    min-width: 950px !important;
+  }
+  
+  ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723 {
+    padding: var(--tablet-cell-padding, 16px 14px) !important;
+    font-size: 14px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: var(--tablet-line-height, 1.6) !important;
+    min-width: var(--tablet-cell-min-width, 140px) !important;
+    max-width: 280px !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723:nth-child(2) {
+    min-width: 180px !important;
+  }
+  
+  ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723:last-child {
+    min-width: 160px !important;
+    white-space: nowrap !important;
+  }
+
+  /* ===== FUEL TRADING - СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ ПЛАНШЕТОВ ===== */
+  
+  /* Основная таблица FuelTrading с hash классами */
+  .fuelTrading .responsiveTable,
+  .responsiveTable {
+    min-width: 1100px !important;
+    table-layout: fixed !important;
+  }
+  
+  /* Все ячейки таблицы FuelTrading */
+  .fuelTrading .responsiveTable .ant-table-cell,
+  .responsiveTable .ant-table-cell {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Колонка "Тип" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(1),
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  
+  /* Колонка "Топливо" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(2),
+  .responsiveTable .ant-table-cell:nth-child(2) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+  
+  /* Колонка "Объем (л)" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(3),
+  .responsiveTable .ant-table-cell:nth-child(3) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка "Цена (₽/л)" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(4),
+  .responsiveTable .ant-table-cell:nth-child(4) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка "Стоимость (₽)" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(5),
+  .responsiveTable .ant-table-cell:nth-child(5) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка "Судно/Клиент/Поставщик" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(6),
+  .responsiveTable .ant-table-cell:nth-child(6) {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  /* Колонка "Оплата" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(7),
+  .responsiveTable .ant-table-cell:nth-child(7) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка "Статус" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(8),
+  .responsiveTable .ant-table-cell:nth-child(8) {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка "Дата и время" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(9),
+  .responsiveTable .ant-table-cell:nth-child(9) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+  }
+  
+  /* Колонка "Примечания" */
+  .fuelTrading .responsiveTable .ant-table-cell:nth-child(10),
+  .responsiveTable .ant-table-cell:nth-child(10) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  /* Колонка "Действия" (последняя) */
+  .fuelTrading .responsiveTable .ant-table-cell:last-child,
+  .responsiveTable .ant-table-cell:last-child {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+  
+  /* Теги в таблице */
+  .fuelTrading .responsiveTable .ant-tag,
+  .responsiveTable .ant-tag {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 2px 0 !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Кнопки действий */
+  .fuelTrading .responsiveTable .ant-btn,
+  .responsiveTable .ant-btn {
+    margin: 2px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Заголовки таблицы */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th,
+  .responsiveTable .ant-table-thead > tr > th {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #fafafa !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Wrapper для горизонтальной прокрутки */
+  .fuelTrading .tableWrapper,
+  .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 -16px !important;
+    padding: 0 16px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Специальные стили для Huawei планшетов */
+@media (max-width: 991px) and (min-width: 768px) {
+  .huawei-device ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605,
+  .huawei-device ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799,
+  .huawei-device ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577,
+  .huawei-device ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723 {
+    padding: 18px 16px !important;
+    min-width: 160px !important;
+    line-height: 1.7 !important;
+  }
+  
+  .huawei-device ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605:nth-child(1),
+  .huawei-device ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(1),
+  .huawei-device ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577:nth-child(1),
+  .huawei-device ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723:nth-child(1) {
+    min-width: 180px !important;
+  }
+  
+  .huawei-device ._responsiveTable_q58au_169 ._ant-table-cell_q58au_605:nth-child(2),
+  .huawei-device ._responsiveTable_n2c6q_343 ._ant-table-cell_n2c6q_799:nth-child(2),
+  .huawei-device ._responsiveTable_95vwv_189 ._ant-table-cell_95vwv_577:nth-child(2),
+  .huawei-device ._responsiveTable_rk18t_285 ._ant-table-cell_rk18t_723:nth-child(2) {
+    min-width: 200px !important;
+  }
+  
+  /* Huawei стили для FuelTrading */
+  .huawei-device .fuelTrading .responsiveTable .ant-table-cell,
+  .huawei-device .responsiveTable .ant-table-cell {
+    padding: 18px 16px !important;
+    line-height: 1.7 !important;
+  }
+}
+
+/* Дополнительные улучшения для всех таблиц на планшетах */
+@media (max-width: 991px) and (min-width: 768px) {
+  
+  /* Улучшение читаемости текста */
+  .ant-table-cell {
+    letter-spacing: 0.3px !important;
+    word-spacing: 1px !important;
+  }
+  
+  /* Улучшение отступов между строками таблицы */
+  .ant-table-tbody > tr > td {
+    border-bottom: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Предотвращение наложения для тегов и кнопок */
+  ._roleTag_q58au_179,
+  ._shiftTypeTag_n2c6q_353,
+  ._statusTag_95vwv_199,
+  ._typeTag_rk18t_295 {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 2px !important;
+  }
+  
+  /* Улучшение кнопок действий в таблицах */
+  ._tableActions_q58au_225,
+  ._tableActions_n2c6q_389,
+  ._tableActions_95vwv_213,
+  ._tableActions_rk18t_311 {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+  
+  ._tableActions_q58au_225 ._ant-btn_q58au_63,
+  ._tableActions_n2c6q_389 ._ant-btn_n2c6q_75,
+  ._tableActions_95vwv_213 ._ant-btn_95vwv_63,
+  ._tableActions_rk18t_311 ._ant-btn_rk18t_69 {
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Дополнительные стили для улучшения адаптивности FuelTrading */
+  .fuelTrading .ant-table-wrapper {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .fuelTrading .ant-table {
+    border-radius: 0 !important;
+  }
+  
+  /* Улучшение прокрутки на touch устройствах */
+  .fuelTrading .tableWrapper::-webkit-scrollbar {
+    height: 8px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 4px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1 !important;
+    border-radius: 4px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8 !important;
+  }
+}
+
+/* Дополнительные стили для очень больших планшетов (iPad Pro и подобные) */
+@media (max-width: 1024px) and (min-width: 992px) {
+  .fuelTrading .responsiveTable,
+  .responsiveTable {
+    min-width: 1000px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-cell,
+  .responsiveTable .ant-table-cell {
+    padding: 14px 10px !important;
+    font-size: 13px !important;
+  }
+} 

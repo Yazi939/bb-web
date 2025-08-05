@@ -1,0 +1,684 @@
+/* ===== DASHBOARD АДАПТИВНЫЕ СТИЛИ ===== */
+
+.dashboard {
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Фильтры и контролы */
+.controlsSection {
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.datePickerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.datePickerLabel {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Основные метрики */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.metricCard {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.metricCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(30px, -30px);
+}
+
+.metricCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.metricCard .ant-statistic {
+  padding: var(--spacing-lg);
+  position: relative;
+  z-index: 1;
+}
+
+.metricCard .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.metricCard .ant-statistic-content {
+  color: white;
+}
+
+.metricCard .ant-statistic-content-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Вторичные метрики */
+.secondaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.secondaryCard {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  border-left: 4px solid #52c41a;
+}
+
+.secondaryCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.secondaryCard.revenue {
+  border-left-color: #52c41a;
+}
+
+.secondaryCard.cost {
+  border-left-color: #fa8c16;
+}
+
+.secondaryCard.profit {
+  border-left-color: #13c2c2;
+}
+
+.secondaryCard.balance {
+  border-left-color: #722ed1;
+}
+
+/* Таблица данных */
+.tableSection {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+}
+
+.tableSectionHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.tableSectionTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 800px;
+}
+
+.responsiveTable .ant-table-cell {
+  white-space: nowrap;
+}
+
+/* Мобильные карточки для замены таблицы */
+.mobileCards {
+  display: none;
+  padding: var(--spacing-md);
+}
+
+.dataCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #1890ff;
+  background: white;
+  transition: var(--transition);
+}
+
+.dataCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.dataCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dataCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.dataCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.dataCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.dataCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.dataCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Статус индикаторы */
+.successText {
+  color: #52c41a;
+  font-size: 14px;
+  margin-top: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.warningText {
+  color: #faad14;
+  font-size: 14px;
+  margin-top: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.infoText {
+  color: #1890ff;
+  font-size: 14px;
+  margin-top: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.errorText {
+  color: #ff4d4f;
+  font-size: 14px;
+  margin-top: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.successIcon,
+.errorIcon {
+  font-size: 16px;
+}
+
+.successIcon {
+  color: #52c41a;
+}
+
+.errorIcon {
+  color: #ff4d4f;
+}
+
+/* Карточки для графиков и диаграмм */
+.statCard {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  height: 100%;
+  transition: var(--transition);
+}
+
+.statCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.chartContainer {
+  height: 300px;
+  padding: var(--spacing-md);
+}
+
+.vehicleChart {
+  height: 100%;
+}
+
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Extra Large Desktop: 1400px+ */
+@media (min-width: 1400px) {
+  .dashboard {
+    padding: var(--spacing-xl);
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .secondaryMetrics {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Large Desktop: 1200px - 1399px */
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .secondaryMetrics {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .dashboard {
+    padding: var(--spacing-md);
+  }
+  
+  .header h1 {
+    font-size: 24px;
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .secondaryMetrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .metricCard .ant-statistic-content-value {
+    font-size: 20px;
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .dashboard {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .header h1 {
+    font-size: 22px;
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .secondaryMetrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .metricCard .ant-statistic {
+    padding: var(--spacing-md);
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+  }
+  
+  .responsiveTable {
+    min-width: 850px; /* Увеличил для планшетов */
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 8px !important;
+    font-size: 13px;
+    white-space: nowrap !important;
+    line-height: 1.4;
+    min-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    border-right: 1px solid #f0f0f0;
+  }
+  
+  /* Колонка с названием */
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    min-width: 140px;
+  }
+  
+  /* Числовые колонки не переносим */
+  .responsiveTable .ant-table-cell[data-title*="Значение"],
+  .responsiveTable .ant-table-cell[data-title*="Сумма"],
+  .responsiveTable .ant-table-cell[data-title*="Количество"] {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 120px;
+  }
+  
+  /* Колонки с датой */
+  .responsiveTable .ant-table-cell[data-title*="Дата"] {
+    white-space: nowrap;
+    min-width: 130px;
+  }
+  
+  .chartContainer {
+    height: 250px;
+    padding: var(--spacing-sm);
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  .dashboard {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .header h1 {
+    font-size: 20px;
+  }
+  
+  /* Переключение на карточки вместо таблиц */
+  .tableSection .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Метрики в одну колонку */
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .secondaryMetrics {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .metricCard {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .metricCard .ant-statistic {
+    padding: var(--spacing-md);
+  }
+  
+  .metricCard .ant-statistic-content-value {
+    font-size: 20px;
+  }
+  
+  /* Контролы на всю ширину */
+  .datePickerContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .controlsSection {
+    padding: var(--spacing-sm);
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .dataCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .dataCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .dataCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .dataCardField:last-child {
+    border-bottom: none;
+  }
+  
+  .chartContainer {
+    height: 200px;
+    padding: var(--spacing-xs);
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .dashboard {
+    padding: var(--spacing-xs);
+  }
+  
+  .header h1 {
+    font-size: 18px;
+  }
+  
+  .metricsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .secondaryMetrics {
+    gap: var(--spacing-xs);
+  }
+  
+  .metricCard .ant-statistic {
+    padding: var(--spacing-sm);
+  }
+  
+  .metricCard .ant-statistic-content-value {
+    font-size: 18px;
+  }
+  
+  .metricCard .ant-statistic-title {
+    font-size: 12px;
+  }
+  
+  .dataCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .dataCardTitle {
+    font-size: 14px;
+  }
+  
+  .tableSectionHeader {
+    padding: var(--spacing-sm);
+  }
+  
+  .tableSectionTitle {
+    font-size: 16px;
+  }
+  
+  .controlsSection {
+    padding: var(--spacing-xs);
+  }
+  
+  .chartContainer {
+    height: 180px;
+    padding: var(--spacing-xs);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .dashboard {
+    padding: var(--spacing-xs);
+  }
+  
+  .header h1 {
+    font-size: 16px;
+  }
+  
+  .metricCard .ant-statistic {
+    padding: var(--spacing-xs);
+  }
+  
+  .metricCard .ant-statistic-content-value {
+    font-size: 16px;
+  }
+  
+  .dataCardContent {
+    display: block;
+  }
+  
+  .dataCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .chartContainer {
+    height: 150px;
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.dataCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metricCard {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.metricCard:focus-within {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+[data-theme='dark'] .dashboard {
+  background: #141414;
+}
+
+[data-theme='dark'] .metricCard {
+  background: linear-gradient(135deg, #177ddc 0%, #0958d9 100%);
+}
+
+[data-theme='dark'] .secondaryCard {
+  background: #1f1f1f;
+}
+
+[data-theme='dark'] .dataCard {
+  background: #1f1f1f;
+  border-left-color: #177ddc;
+}
+
+[data-theme='dark'] .dataCardField {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .controlsSection,
+[data-theme='dark'] .tableSection {
+  background: #1f1f1f;
+}
+
+[data-theme='dark'] .tableSectionHeader {
+  background: #262626;
+  border-bottom-color: #303030;
+} 

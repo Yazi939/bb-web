@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Bunker Boats - система управления топливом и расходами" />
+    <title>Bunker Boats</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Bunker Boats">
+    <meta name="theme-color" content="#001529">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bunker Boats">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#001529">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="msapplication-navbutton-color" content="#001529">
+    <meta name="msapplication-starturl" content="/">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA Display Control -->
+    <meta name="display-mode" content="standalone">
+    <meta name="web-app-capable" content="yes">
+    
+    <!-- Apple Touch Icons for iOS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="./icon-192x192.png">
+    
+    <!-- Standard icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./icon-192x192.png">
+    <link rel="shortcut icon" href="./icon-192x192.png">
+    
+    <!-- Manifest with cache busting -->
+    <link rel="manifest" href="./manifest-web.json?v=2.1.9" />
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" crossorigin src="./main.js"></script>
+    <link rel="modulepreload" crossorigin href="./react-vendor.js">
+    <link rel="modulepreload" crossorigin href="./antd-vendor.js">
+    <link rel="modulepreload" crossorigin href="./utils-vendor.js">
+    <link rel="stylesheet" crossorigin href="./main.css">
+</body>
+</html> 

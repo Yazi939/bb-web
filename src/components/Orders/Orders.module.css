@@ -1,0 +1,583 @@
+/* ===== ORDERS АДАПТИВНЫЕ СТИЛИ ===== */
+
+.orders {
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.headerActions .ant-btn {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.headerActions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Поиск и фильтры */
+.searchContainer {
+  margin-bottom: var(--spacing-lg);
+}
+
+.searchInput {
+  max-width: 400px;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Статистика заказов */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.statCard {
+  text-align: center;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  color: white;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.statCard .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.statCard .ant-statistic-content {
+  color: white;
+}
+
+/* Основная таблица */
+.tableCard {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 900px;
+}
+
+/* Статусы заказов */
+.statusTag {
+  border-radius: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+/* Действия в таблице */
+.tableActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tableActions .ant-btn {
+  border-radius: var(--border-radius);
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Форма заказа */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.spanFull {
+  grid-column: 1 / -1;
+}
+
+/* Мобильные карточки заказов */
+.mobileCards {
+  display: none;
+}
+
+.orderCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #52c41a;
+  transition: var(--transition);
+}
+
+.orderCard:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.orderCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.orderCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #52c41a;
+}
+
+.orderCardCustomer {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-top: 2px;
+}
+
+.orderCardActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+
+.orderCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.orderCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.orderCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.orderCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.orderCardStatus {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Модальное окно */
+.orderModal .ant-modal-content {
+  border-radius: var(--border-radius);
+}
+
+.orderModal .ant-modal-body {
+  padding: var(--spacing-lg);
+}
+
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Large Desktop: 1200px+ */
+@media (min-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .orders {
+    padding: var(--spacing-md);
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .headerTitle {
+    font-size: 20px;
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  .orders {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+  }
+  
+  .responsiveTable {
+    min-width: 950px; /* Увеличил для планшетов */
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 8px !important;
+    font-size: 13px;
+    white-space: nowrap !important;
+    line-height: 1.4;
+    min-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    border-right: 1px solid #f0f0f0;
+  }
+  
+  /* Колонка с клиентом - может быть длинной */
+  .responsiveTable .ant-table-cell:nth-child(1) {
+    min-width: 140px;
+  }
+  
+  /* Числовые колонки не переносим */
+  .responsiveTable .ant-table-cell[data-title*="Сумма"],
+  .responsiveTable .ant-table-cell[data-title*="Количество"] {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 120px;
+  }
+  
+  /* Колонка статуса */
+  .responsiveTable .ant-table-cell .ant-tag {
+    white-space: nowrap;
+  }
+  
+  /* Колонка с действиями */
+  .responsiveTable .ant-table-cell:last-child {
+    min-width: 130px;
+    white-space: nowrap;
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  .orders {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .headerTitle {
+    font-size: 18px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .headerActions .ant-btn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Переключение на карточки */
+  .tableCard .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Статистика в одну колонку */
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .statCard {
+    padding: var(--spacing-md);
+  }
+  
+  /* Поиск на всю ширину */
+  .searchInput {
+    max-width: 100%;
+  }
+  
+  /* Форма в одну колонку */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .spanFull {
+    grid-column: span 1;
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .orderCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .orderCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .orderCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .orderCardField:last-child {
+    border-bottom: none;
+  }
+  
+  .orderCardStatus {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .orders {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerTitle {
+    font-size: 16px;
+  }
+  
+  .headerActions {
+    gap: var(--spacing-xs);
+  }
+  
+  .headerActions .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .statsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .statCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .statCard .ant-statistic-content-value {
+    font-size: 18px !important;
+  }
+  
+  .orderCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .orderCardTitle {
+    font-size: 14px;
+  }
+  
+  .orderCardActions .ant-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  /* Модальное окно на мобильных */
+  .orderModal {
+    margin: var(--spacing-sm);
+    max-width: calc(100vw - 16px);
+  }
+  
+  .orderModal .ant-modal-body {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .orders {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .headerActions .ant-btn {
+    width: 100%;
+  }
+  
+  .orderCardContent {
+    display: block;
+  }
+  
+  .orderCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .orderCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .orderCardActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .tableActions .ant-btn,
+  .orderCardActions .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .headerActions .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .ant-form-item .ant-input,
+  .ant-form-item .ant-select,
+  .ant-form-item .ant-picker {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.orderCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.statCard {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.orderCardActions .ant-btn:focus,
+.tableActions .ant-btn:focus {
+  outline: 2px solid #52c41a;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+[data-theme='dark'] .statCard {
+  background: linear-gradient(135deg, #389e0d 0%, #237804 100%);
+}
+
+[data-theme='dark'] .orderCard {
+  background: #1f1f1f;
+  border-left-color: #52c41a;
+}
+
+[data-theme='dark'] .orderCardField {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .orderCardHeader {
+  border-bottom-color: #303030;
+}
+
+[data-theme='dark'] .orderCardStatus {
+  border-top-color: #303030;
+} 

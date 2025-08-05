@@ -1,0 +1,673 @@
+/* ===== FUEL TRADING АДАПТИВНЫЕ СТИЛИ ===== */
+
+.fuelTrading {
+  padding: var(--spacing-lg);
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.headerActions .ant-btn {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.headerActions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* Филтры */
+.filtersCard {
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  align-items: end;
+}
+
+/* Статистика метрик */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.metricCard {
+  text-align: center;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.metricCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.metricCard .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.metricCard .ant-statistic-content {
+  color: white;
+}
+
+/* Основная таблица */
+.tableCard {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsiveTable {
+  min-width: 800px;
+}
+
+/* Адаптивные действия в таблице */
+.tableActions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tableActions .ant-btn {
+  border-radius: var(--border-radius);
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Формы добавления операций */
+.addTransactionCard {
+  margin-bottom: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.formGridFull {
+  grid-column: 1 / -1;
+}
+
+/* Мобильные карточки для замены таблицы */
+.mobileCards {
+  display: none;
+}
+
+.mobileCard {
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid #1890ff;
+}
+
+.mobileCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mobileCardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.mobileCardActions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.mobileCardContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+}
+
+.mobileCardField {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileCardLabel {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 2px;
+}
+
+.mobileCardValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Продвинутый режим */
+.advancedToggle {
+  margin-bottom: var(--spacing-md);
+}
+
+/* Экспорт панель */
+.exportActions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+}
+
+/* ===== АДАПТИВНОСТЬ ПО БРЕЙКПОИНТАМ ===== */
+
+/* Large Desktop: 1200px+ */
+@media (min-width: 1200px) {
+  .metricsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  .fuelTrading {
+    padding: var(--spacing-md);
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .headerTitle {
+    font-size: 20px;
+  }
+}
+
+/* Tablet: 768px - 991px - УЛУЧШЕННАЯ АДАПТИВНОСТЬ */
+@media (max-width: 991px) and (min-width: 768px) {
+  .fuelTrading {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+  
+  .filtersRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* КРИТИЧЕСКИ ВАЖНО: Улучшенная адаптивность таблицы для планшетов */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding: 0 var(--spacing-md);
+    border-radius: 8px;
+  }
+  
+  .responsiveTable {
+    min-width: 1200px !important; /* Увеличено для планшетов */
+    table-layout: fixed !important; /* Фиксированная ширина колонок */
+  }
+  
+  /* Оптимизированные стили ячеек для планшетов */
+  .responsiveTable :global(.ant-table-cell) {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Специфичные ширины колонок для FuelTrading */
+  .responsiveTable :global(.ant-table-cell:nth-child(1)) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(2)) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(3)) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(4)) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(5)) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(6)) {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(7)) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    white-space: nowrap !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(8)) {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+    white-space: nowrap !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(9)) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:nth-child(10)) {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .responsiveTable :global(.ant-table-cell:last-child) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+  
+  /* Заголовки таблицы */
+  .responsiveTable :global(.ant-table-thead > tr > th) {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #fafafa !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Теги в таблице */
+  .responsiveTable :global(.ant-tag) {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 2px 0 !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Кнопки действий */
+  .responsiveTable :global(.ant-btn) {
+    margin: 2px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Улучшение прокрутки на touch устройствах */
+  .tableWrapper::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+  
+  /* Числовые колонки не переносим */
+  .responsiveTable :global(.ant-table-cell[data-title*="Количество"]),
+  .responsiveTable :global(.ant-table-cell[data-title*="Цена"]),
+  .responsiveTable :global(.ant-table-cell[data-title*="Сумма"]) {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 110px;
+  }
+  
+  /* Колонка с действиями */
+  .responsiveTable :global(.ant-table-cell:last-child) {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  .fuelTrading {
+    padding: var(--spacing-sm);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .headerTitle {
+    font-size: 18px;
+  }
+  
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .headerActions .ant-btn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  /* Переключение на карточки вместо таблицы */
+  .tableCard .ant-table-wrapper {
+    display: none;
+  }
+  
+  .mobileCards {
+    display: block;
+  }
+  
+  /* Метрики в одну колонку */
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .metricCard {
+    padding: var(--spacing-md);
+  }
+  
+  /* Фильтры в одну колонку */
+  .filtersRow {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Форма в одну колонку */
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Улучшенные мобильные карточки */
+  .mobileCard {
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .mobileCardContent {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+  
+  .mobileCardField {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .mobileCardField:last-child {
+    border-bottom: none;
+  }
+  
+  /* Экспорт действия стекаются */
+  .exportActions {
+    flex-direction: column;
+  }
+  
+  .exportActions .ant-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .fuelTrading {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerTitle {
+    font-size: 16px;
+  }
+  
+  .headerActions {
+    gap: var(--spacing-xs);
+  }
+  
+  .headerActions .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .metricsGrid {
+    gap: var(--spacing-xs);
+  }
+  
+  .metricCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .metricCard .ant-statistic-content-value {
+    font-size: 18px !important;
+  }
+  
+  .mobileCard {
+    padding: var(--spacing-sm);
+  }
+  
+  .mobileCardTitle {
+    font-size: 14px;
+  }
+  
+  .mobileCardActions .ant-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .fuelTrading {
+    padding: var(--spacing-xs);
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .headerActions .ant-btn {
+    width: 100%;
+  }
+  
+  .mobileCardContent {
+    display: block;
+  }
+  
+  .mobileCardField {
+    margin-bottom: var(--spacing-xs);
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ TOUCH УСТРОЙСТВ ===== */
+@media (hover: none) and (pointer: coarse) {
+  .tableActions .ant-btn,
+  .mobileCardActions .ant-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .headerActions .ant-btn {
+    min-height: 44px;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .ant-form-item .ant-input,
+  .ant-form-item .ant-select,
+  .ant-form-item .ant-picker {
+    min-height: 44px;
+    font-size: 16px; /* Предотвращает зум на iOS */
+  }
+}
+
+/* ===== АНИМАЦИИ И ПЕРЕХОДЫ ===== */
+.mobileCard {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metricCard {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== УЛУЧШЕНИЯ ДОСТУПНОСТИ ===== */
+.mobileCardActions .ant-btn:focus,
+.tableActions .ant-btn:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА (если будет добавлена) ===== */
+[data-theme='dark'] .metricCard {
+  background: linear-gradient(135deg, #434343 0%, #000000 100%);
+}
+
+[data-theme='dark'] .mobileCard {
+  background: #1f1f1f;
+  border-left-color: #177ddc;
+}
+
+[data-theme='dark'] .mobileCardField {
+  border-bottom-color: #303030;
+} 

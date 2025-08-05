@@ -1,0 +1,738 @@
+/* ===== MODERN RESPONSIVE DESIGN ===== */
+/* Переменные для консистентности */
+:root {
+  --sidebar-width: 256px;
+  --sidebar-collapsed: 80px;
+  --header-height: 64px;
+  --mobile-header-height: 56px;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --box-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+/* ===== ОСНОВНЫЕ СТИЛИ ===== */
+.white-icon {
+  color: white !important;
+}
+
+.logo {
+  height: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  margin: var(--spacing-md) 0;
+  transition: var(--transition);
+}
+
+/* ===== SIDEBAR АДАПТИВНЫЕ СТИЛИ ===== */
+.main-sidebar {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition);
+  width: var(--sidebar-width);
+}
+
+.main-sidebar .ant-menu {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 72px;
+  border-right: none;
+}
+
+.sidebar-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: inherit;
+  padding: var(--spacing-md) 0;
+  text-align: center;
+  background: #001529;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1;
+}
+
+.collapse-button {
+  color: white;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  transition: var(--transition);
+}
+
+.collapse-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* ===== HEADER СТИЛИ ===== */
+.site-header {
+  background: #001529 !important;
+  padding: 0 var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--box-shadow);
+  z-index: 100;
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.site-title {
+  margin: 0;
+  font-size: 18px;
+  color: white;
+  font-weight: 600;
+}
+
+.mobile-menu-button {
+  display: none;
+  margin-right: var(--spacing-sm);
+  color: white;
+  background: transparent;
+  border: none;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.mobile-menu-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.user-info:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.username {
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--spacing-sm);
+  line-height: 1.2;
+  color: white;
+}
+
+.user-role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.site-content {
+  background: #f0f2f5;
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--spacing-lg);
+  transition: var(--transition);
+}
+
+.site-layout {
+  transition: var(--transition);
+  margin-left: var(--sidebar-width);
+}
+
+/* ===== ГЛОБАЛЬНЫЕ АДАПТИВНЫЕ СТИЛИ ===== */
+
+/* Таблицы */
+.ant-table-wrapper {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.ant-table {
+  border-radius: var(--border-radius);
+}
+
+.ant-card {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.ant-card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* ===== СОВРЕМЕННЫЕ БРЕЙКПОИНТЫ ===== */
+
+/* Extra Large Desktop: 1400px+ */
+@media (min-width: 1400px) {
+  .site-content {
+    padding: var(--spacing-xl);
+  }
+  
+  .ant-card {
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+/* Large Desktop: 1200px - 1399px */
+@media (max-width: 1399px) and (min-width: 1200px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+  
+  .site-layout {
+    margin-left: 240px;
+  }
+  
+  .site-content {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Desktop: 992px - 1199px */
+@media (max-width: 1199px) and (min-width: 992px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+  
+  .site-layout {
+    margin-left: 220px;
+  }
+  
+  .logo span {
+    font-size: 16px;
+  }
+  
+  .ant-menu-item {
+    padding: 0 var(--spacing-md) !important;
+  }
+  
+  .site-content {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Tablet: 768px - 991px */
+@media (max-width: 991px) and (min-width: 768px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+  
+  .mobile-menu-button {
+    display: block;
+  }
+  
+  .main-sidebar {
+    position: fixed;
+    left: -200px;
+    z-index: 200;
+    box-shadow: var(--box-shadow-hover);
+  }
+  
+  .main-sidebar.mobile-open {
+    left: 0;
+  }
+  
+  .site-layout {
+    margin-left: 0;
+  }
+  
+  .site-content {
+    padding: var(--spacing-md);
+  }
+  
+  .site-header {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .username {
+    display: none;
+  }
+  
+  /* Адаптивные таблицы для планшетов */
+  .ant-table {
+    font-size: 14px;
+  }
+  
+  .ant-table-cell {
+    padding: var(--spacing-sm) !important;
+  }
+  
+  .ant-btn {
+    font-size: 14px;
+    height: 36px;
+    padding: 0 var(--spacing-md);
+  }
+}
+
+/* Mobile Large: 576px - 767px */
+@media (max-width: 767px) {
+  :root {
+    --header-height: var(--mobile-header-height);
+    --sidebar-width: 280px;
+  }
+  
+  .mobile-menu-button {
+    display: block;
+  }
+  
+  .main-sidebar {
+    position: fixed;
+    left: -280px;
+    z-index: 200;
+    width: 280px;
+    box-shadow: var(--box-shadow-hover);
+    transition: var(--transition);
+  }
+  
+  .main-sidebar.mobile-open {
+    left: 0;
+  }
+  
+  .logo {
+    height: 56px;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0;
+  }
+  
+  .site-layout {
+    margin-left: 0;
+  }
+  
+  .site-header {
+    height: var(--mobile-header-height);
+    padding: 0 var(--spacing-md);
+  }
+  
+  .site-content {
+    padding: var(--spacing-md);
+    min-height: calc(100vh - var(--mobile-header-height));
+  }
+  
+  .site-title {
+    font-size: 16px;
+  }
+  
+  .username {
+    display: none;
+  }
+  
+  /* Мобильный оверлей */
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+  }
+  
+  .mobile-menu-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Адаптивные карточки */
+  .ant-card {
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius);
+  }
+  
+  .ant-card-head {
+    padding: var(--spacing-md);
+    min-height: auto;
+  }
+  
+  .ant-card-body {
+    padding: var(--spacing-md);
+  }
+  
+  /* Адаптивные формы */
+  .ant-form-item {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .ant-input,
+  .ant-select,
+  .ant-picker {
+    height: 44px;
+    border-radius: var(--border-radius);
+    font-size: 16px; /* Предотвращает зум на iOS */
+  }
+  
+  /* Адаптивные модалы */
+  .ant-modal {
+    margin: var(--spacing-md);
+    max-width: calc(100vw - 32px);
+  }
+  
+  .ant-modal-content {
+    border-radius: var(--border-radius);
+  }
+  
+  /* Адаптивные кнопки */
+  .ant-btn {
+    height: 44px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    min-width: 44px; /* Для лучшего тач-таргета */
+  }
+  
+  .ant-btn-icon-only {
+    width: 44px;
+  }
+  
+  /* КРИТИЧНО: Адаптивные таблицы для мобильных */
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .ant-table {
+    min-width: 500px !important; /* Уменьшил для мобильных */
+  }
+  
+  .ant-table-cell {
+    padding: 8px 4px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    max-width: 80px !important;
+    min-width: 60px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Первая колонка чуть шире */
+  .ant-table-thead > tr > th:first-child,
+  .ant-table-tbody > tr > td:first-child {
+    max-width: 100px !important;
+    min-width: 80px !important;
+  }
+}
+
+/* Tablet: 768px - 991px - УСИЛЕННЫЕ глобальные стили таблиц */
+@media (max-width: 991px) and (min-width: 768px) {
+  .ant-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 -16px !important;
+    padding: 0 16px !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background: #fff;
+  }
+  
+  .ant-table {
+    min-width: 800px !important;
+  }
+  
+  .ant-table-thead > tr > th {
+    background: #fafafa !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #f0f0f0 !important;
+    white-space: nowrap !important;
+    padding: 10px 6px !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    font-size: 13px !important;
+    min-width: 80px !important;
+    max-width: 150px !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 10px 6px !important;
+    border-right: 1px solid #f0f0f0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 13px !important;
+    min-width: 80px !important;
+    max-width: 150px !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Принудительное ограничение ширины колонок */
+  .ant-table-thead > tr > th:first-child,
+  .ant-table-tbody > tr > td:first-child {
+    min-width: 120px !important;
+    max-width: 180px !important;
+  }
+  
+  .ant-table-thead > tr > th:last-child,
+  .ant-table-tbody > tr > td:last-child {
+    min-width: 100px !important;
+    max-width: 140px !important;
+  }
+}
+
+/* Mobile Large: 576px - 767px - Переключение на карточки */
+@media (max-width: 767px) {
+  .ant-table-wrapper {
+    display: none !important;
+  }
+  
+  .mobileCards {
+    display: block !important;
+  }
+}
+
+/* Mobile Small: 375px - 575px */
+@media (max-width: 575px) {
+  .site-content {
+    padding: var(--spacing-sm);
+  }
+  
+  .ant-card-head {
+    padding: var(--spacing-sm);
+  }
+  
+  .ant-card-body {
+    padding: var(--spacing-sm);
+  }
+  
+  .site-header {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  .site-title {
+    font-size: 14px;
+  }
+  
+  /* Еще более компактные таблицы */
+  .ant-table-cell {
+    padding: var(--spacing-xs) var(--spacing-xs) !important;
+    font-size: 12px;
+    max-width: 80px;
+  }
+  
+  .ant-btn {
+    height: 40px;
+    font-size: 14px;
+    padding: 0 var(--spacing-sm);
+  }
+}
+
+/* Mobile Extra Small: до 374px */
+@media (max-width: 374px) {
+  .site-content {
+    padding: var(--spacing-xs);
+  }
+  
+  .main-sidebar {
+    width: 100vw;
+    left: -100vw;
+  }
+  
+  .ant-card {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .ant-table {
+    min-width: 500px;
+  }
+  
+  .ant-table-cell {
+    max-width: 60px;
+    font-size: 11px;
+  }
+}
+
+/* ===== СОВРЕМЕННЫЕ СТИЛИ КОМПОНЕНТОВ ===== */
+
+/* Dashboard карточки статистики */
+.dashboard-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.statistics-card {
+  height: 100%;
+  transition: var(--transition);
+}
+
+.statistics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.statistic-item {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.statistic-title {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.statistic-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* Таблицы */
+.table-card {
+  margin-top: var(--spacing-lg);
+}
+
+.table-toolbar {
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+/* Fuel management */
+.fuel-management-panel {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  box-shadow: var(--box-shadow);
+}
+
+.fuel-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.fuel-stat-item {
+  background: #f8f9fa;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.fuel-stat-title {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-bottom: var(--spacing-xs);
+}
+
+.fuel-stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* ===== УЛУЧШЕННАЯ АДАПТИВНОСТЬ ДЛЯ ПЛАНШЕТОВ ===== */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .ant-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .ant-table {
+    min-width: 800px;
+  }
+  
+  .ant-table-cell {
+    padding: var(--spacing-sm) var(--spacing-xs) !important;
+    font-size: 14px;
+  }
+  
+  .ant-card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .ant-card-body {
+    padding: var(--spacing-md);
+  }
+  
+  .ant-btn {
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .ant-btn-sm {
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  .ant-form-item {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .ant-input,
+  .ant-select,
+  .ant-picker {
+    height: 40px;
+  }
+}
+
+/* ===== ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ ===== */
+.mobile-hide {
+  display: block;
+}
+
+.mobile-show {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-hide {
+    display: none;
+  }
+  
+  .mobile-show {
+    display: block;
+  }
+}
+
+/* Быстрые утилиты для отступов */
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+
+/* Адаптивный текст */
+.text-responsive {
+  font-size: clamp(14px, 2.5vw, 18px);
+}
+
+.title-responsive {
+  font-size: clamp(18px, 4vw, 24px);
+}

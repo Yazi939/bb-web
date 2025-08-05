@@ -1,0 +1,330 @@
+/* ===== СПЕЦИАЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ FUEL TRADING НА ПЛАНШЕТАХ ===== */
+
+/* Исправления для планшетов (768px - 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+  
+  /* ===== ОСНОВНЫЕ КОНТЕЙНЕРЫ ===== */
+  
+  .fuelTrading {
+    padding: 16px !important;
+  }
+  
+  .fuelTrading .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 -16px !important;
+    padding: 0 16px !important;
+    border-radius: 8px !important;
+    position: relative !important;
+  }
+  
+  /* ===== ОСНОВНАЯ ТАБЛИЦА ===== */
+  
+  .fuelTrading .responsiveTable {
+    min-width: 1300px !important; /* Увеличено для предотвращения наложения */
+    table-layout: fixed !important;
+    width: 1300px !important;
+  }
+  
+  /* ===== ЗАГОЛОВКИ ТАБЛИЦЫ ===== */
+  
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #fafafa !important;
+    border-right: 1px solid #f0f0f0 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  
+  /* ===== ЯЧЕЙКИ ДАННЫХ ===== */
+  
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td {
+    padding: 16px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    vertical-align: top !important;
+    border-right: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+  
+  /* ===== СПЕЦИФИЧНЫЕ ШИРИНЫ КОЛОНОК ===== */
+  
+  /* Колонка 1: Тип операции */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(1),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(1) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  
+  /* Колонка 2: Топливо */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(2),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(2) {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+  }
+  
+  /* Колонка 3: Объем (л) */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(3),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(3) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка 4: Цена (₽/л) */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(4),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(4) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка 5: Стоимость (₽) */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(5),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(5) {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка 6: Судно/Клиент/Поставщик */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(6),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(6) {
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  /* Колонка 7: Оплата */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(7),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(7) {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка 8: Статус */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(8),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(8) {
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Колонка 9: Дата и время */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(9),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(9) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    white-space: nowrap !important;
+    font-size: 13px !important;
+  }
+  
+  /* Колонка 10: Примечания */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(10),
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(10) {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  /* Колонка 11: Действия (последняя) */
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th:last-child,
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:last-child {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+  
+  /* ===== СТИЛИ ДЛЯ СОДЕРЖИМОГО ЯЧЕЕК ===== */
+  
+  /* Теги статуса и типов */
+  .fuelTrading .responsiveTable .ant-tag {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    margin: 2px 0 !important;
+    font-size: 12px !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Кнопки действий */
+  .fuelTrading .responsiveTable .ant-btn {
+    margin: 2px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Иконки в ячейках */
+  .fuelTrading .responsiveTable .anticon {
+    font-size: 14px !important;
+    margin-right: 4px !important;
+  }
+  
+  /* ===== УЛУЧШЕНИЯ ПРОКРУТКИ ===== */
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar {
+    height: 10px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 5px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1 !important;
+    border-radius: 5px !important;
+  }
+  
+  .fuelTrading .tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8 !important;
+  }
+  
+  /* ===== ДОПОЛНИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ ===== */
+  
+  /* Исправление для чередующихся строк */
+  .fuelTrading .responsiveTable .ant-table-tbody > tr:nth-child(even) {
+    background-color: #fafafa !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-tbody > tr:hover {
+    background-color: #e6f7ff !important;
+  }
+  
+  /* Исправление для пустых ячеек */
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:empty::before {
+    content: "-";
+    color: #bfbfbf;
+  }
+  
+  /* Исправление для длинного текста в ячейках */
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td > span {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  
+  /* Исправление для дат */
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(9) > div {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ СТИЛИ ДЛЯ HUAWEI УСТРОЙСТВ ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .huawei-device .fuelTrading .responsiveTable .ant-table-thead > tr > th,
+  .huawei-device .fuelTrading .responsiveTable .ant-table-tbody > tr > td {
+    padding: 18px 16px !important;
+    line-height: 1.7 !important;
+  }
+  
+  .huawei-device .fuelTrading .responsiveTable {
+    min-width: 1400px !important;
+    width: 1400px !important;
+  }
+  
+  .huawei-device .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(6),
+  .huawei-device .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(6) {
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+  }
+  
+  .huawei-device .fuelTrading .responsiveTable .ant-table-thead > tr > th:nth-child(10),
+  .huawei-device .fuelTrading .responsiveTable .ant-table-tbody > tr > td:nth-child(10) {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+}
+
+/* ===== ИСПРАВЛЕНИЯ ДЛЯ БОЛЬШИХ ПЛАНШЕТОВ (iPad Pro) ===== */
+@media (max-width: 1024px) and (min-width: 992px) {
+  .fuelTrading .responsiveTable {
+    min-width: 1200px !important;
+    width: 1200px !important;
+  }
+  
+  .fuelTrading .responsiveTable .ant-table-thead > tr > th,
+  .fuelTrading .responsiveTable .ant-table-tbody > tr > td {
+    padding: 14px 10px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ===== ПРИНУДИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ПРОБЛЕМНЫХ СЛУЧАЕВ ===== */
+
+/* Принудительное исправление наложения */
+.fuelTrading .ant-table-wrapper {
+  overflow: visible !important;
+}
+
+.fuelTrading .ant-table-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.fuelTrading .ant-table {
+  margin: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+/* Исправление для архивной таблицы */
+.fuelTrading .ant-card .ant-table-wrapper {
+  margin: 0 !important;
+}
+
+.fuelTrading .ant-card .ant-table-wrapper .ant-table {
+  margin: 0 !important;
+}
+
+/* Глобальное исправление для всех таблиц FuelTrading */
+@media (max-width: 991px) and (min-width: 768px) {
+  .fuelTrading * {
+    box-sizing: border-box !important;
+  }
+  
+  .fuelTrading .ant-table-cell {
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  
+  .fuelTrading .ant-table-thead .ant-table-cell {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+  }
+} 
