@@ -274,9 +274,11 @@
   .tableWrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 calc(-1 * var(--spacing-md));
-    padding: 0 var(--spacing-md);
+    margin: 0 !important;
+    padding: 0 !important;
     border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
   }
   
   .responsiveTable {
@@ -473,9 +475,11 @@
   .tableWrapper {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    margin: 0 calc(-1 * var(--spacing-sm)) !important;
-    padding: 0 var(--spacing-sm) !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border-radius: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   .responsiveTable {

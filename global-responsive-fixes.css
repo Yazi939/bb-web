@@ -120,9 +120,11 @@
   .tableWrapper {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    margin: 0 -16px !important;
-    padding: 0 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border-radius: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   .fuelTrading .responsiveTable, 
@@ -329,9 +331,11 @@
   .ant-table-wrapper {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    margin: 0 -12px !important;
-    padding: 0 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border-radius: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   .ant-table {
