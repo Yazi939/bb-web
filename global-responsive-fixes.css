@@ -341,9 +341,9 @@
   }
   
   .ant-table {
-    min-width: 100vw !important; /* Точно по ширине экрана */
+    min-width: 100% !important; /* Ширина контейнера, не viewport */
     table-layout: fixed !important;
-    width: 100vw !important; /* Заполняем всю ширину viewport */
+    width: 100% !important; /* Заполняем ширину контейнера */
   }
   
   .ant-table-cell {
@@ -392,8 +392,8 @@
   /* Специальные стили для FuelTrading таблицы на мобильных */
   .fuelTrading .responsiveTable,
   .responsiveTable {
-    min-width: 100vw !important;
-    width: 100vw !important;
+    min-width: 100% !important;
+    width: 100% !important;
     table-layout: fixed !important;
   }
   
@@ -403,8 +403,8 @@
     -webkit-overflow-scrolling: touch !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
   }
   

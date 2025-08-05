@@ -483,9 +483,9 @@
   }
   
   .responsiveTable {
-    min-width: 100vw !important; /* Точно по ширине экрана */
+    min-width: 100% !important; /* Ширина контейнера, не viewport */
     table-layout: fixed !important;
-    width: 100vw !important; /* Заполняем всю ширину viewport */
+    width: 100% !important; /* Заполняем ширину контейнера */
   }
   
   .responsiveTable .ant-table-cell {
