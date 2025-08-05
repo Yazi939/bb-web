@@ -3,208 +3,203 @@
  * для улучшения адаптивности таблиц
  */
 
+// ===== DEVICE DETECTION AND RESPONSIVE CSS LOADING =====
+
 (function() {
     'use strict';
     
-    // Функция для обнаружения Huawei устройств
-    function detectHuaweiDevice() {
+    // Функция для определения устройств Huawei
+    function isHuaweiDevice() {
         const userAgent = navigator.userAgent.toLowerCase();
         const vendor = navigator.vendor ? navigator.vendor.toLowerCase() : '';
         
-        // Проверяем различные способы обнаружения Huawei устройств
-        const huaweiKeywords = [
-            'huawei',
-            'honor',
-            'hi3660',
-            'kirin',
-            'hisilicon',
-            'emui',
-            'harmonyos'
+        // Проверяем User Agent на наличие Huawei идентификаторов
+        const huaweiIdentifiers = [
+            'huawei', 'honor', 'hisuite', 'hicloud', 'emui', 'harmonyos'
         ];
         
-        const isHuawei = huaweiKeywords.some(keyword => 
-            userAgent.includes(keyword) || vendor.includes(keyword)
+        const isHuaweiUA = huaweiIdentifiers.some(identifier => 
+            userAgent.includes(identifier)
         );
         
-        // Дополнительная проверка через WebGL renderer (если доступен)
+        // Дополнительная проверка через WebGL renderer
         let isHuaweiGPU = false;
         try {
             const canvas = document.createElement('canvas');
             const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (gl) {
-                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                if (debugInfo) {
-                    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
-                    isHuaweiGPU = renderer.includes('mali') || renderer.includes('adreno') || renderer.includes('kirin');
-                }
+                const renderer = gl.getParameter(gl.RENDERER).toLowerCase();
+                isHuaweiGPU = renderer.includes('mali') || renderer.includes('adreno') || renderer.includes('kirin');
             }
         } catch (e) {
-            console.log('WebGL detection failed:', e);
+            // Игнорируем ошибки WebGL
         }
         
-        return isHuawei || isHuaweiGPU;
+        return isHuaweiUA || (isHuaweiGPU && userAgent.includes('android'));
     }
     
-    // Функция для обнаружения планшетов
+    // Функция для определения планшетов
     function isTabletDevice() {
         const userAgent = navigator.userAgent.toLowerCase();
-        const isTablet = /tablet|ipad|playbook|silk|(android(?!.*mobile))/i.test(userAgent);
-        
-        // Дополнительная проверка по размерам экрана
         const screenWidth = window.screen.width;
         const screenHeight = window.screen.height;
-        const minSize = Math.min(screenWidth, screenHeight);
-        const maxSize = Math.max(screenWidth, screenHeight);
+        const maxScreenSize = Math.max(screenWidth, screenHeight);
+        const minScreenSize = Math.min(screenWidth, screenHeight);
         
-        // Планшеты обычно имеют размеры от 768px до 1024px по меньшей стороне
-        const isSizeTablet = minSize >= 768 && minSize <= 1024 && maxSize >= 1024;
-        
-        return isTablet || isSizeTablet;
-    }
-    
-    // Функция для применения классов устройства
-    function applyDeviceClasses() {
-        const body = document.body;
-        const html = document.documentElement;
-        
-        if (detectHuaweiDevice()) {
-            body.classList.add('huawei-device');
-            html.classList.add('huawei-device');
-            console.log('Huawei device detected - applying enhanced tablet styles');
-        }
-        
-        if (isTabletDevice()) {
-            body.classList.add('tablet-device');
-            html.classList.add('tablet-device');
-            console.log('Tablet device detected');
-        }
-        
-        // Логирование информации о устройстве для отладки
-        console.log('Device info:', {
-            userAgent: navigator.userAgent,
-            vendor: navigator.vendor,
-            screenWidth: window.screen.width,
-            screenHeight: window.screen.height,
-            isHuawei: detectHuaweiDevice(),
-            isTablet: isTabletDevice()
-        });
-    }
-    
-    // Функция для динамической загрузки CSS файлов
-    function loadResponsiveCSS() {
-        const cssFiles = [
-            { 
-                href: './tablet-fixes.css', 
-                id: 'tablet-fixes-css',
-                description: 'Tablet fixes CSS'
-            },
-            { 
-                href: './global-responsive-fixes.css', 
-                id: 'global-responsive-css',
-                description: 'Global responsive fixes CSS'
-            },
-            { 
-                href: './fuel-trading-tablet-fixes.css', 
-                id: 'fuel-trading-tablet-css',
-                description: 'FuelTrading tablet fixes CSS'
-            }
+        // Проверяем User Agent на планшетные идентификаторы
+        const tabletIdentifiers = [
+            'ipad', 'tablet', 'kindle', 'silk', 'playbook', 'gt-p', 'sm-t', 
+            'nexus 7', 'nexus 9', 'nexus 10', 'xoom', 'sch-i800', 'android.*mobile'
         ];
         
-        cssFiles.forEach(cssFile => {
-            // Проверяем, не загружен ли уже файл
-            if (document.querySelector(`#${cssFile.id}`)) {
-                return;
+        const isTabletUA = tabletIdentifiers.some(identifier => {
+            if (identifier === 'android.*mobile') {
+                return /android.*mobile/i.test(userAgent);
+            }
+            return userAgent.includes(identifier);
+        });
+        
+        // Проверяем размер экрана (планшеты обычно 768px-1024px)
+        const isTabletScreen = (
+            (minScreenSize >= 768 && maxScreenSize <= 1024) ||
+            (minScreenSize >= 600 && maxScreenSize >= 960)
+        );
+        
+        // Исключаем телефоны
+        const isMobile = /mobile|phone|android.*mobile/i.test(userAgent) && maxScreenSize < 768;
+        
+        return (isTabletUA || isTabletScreen) && !isMobile;
+    }
+    
+    // Функция для загрузки адаптивных CSS файлов
+    function loadResponsiveCSS() {
+        const cssFiles = [
+            'tablet-fixes.css',
+            'global-responsive-fixes.css', 
+            'fuel-trading-tablet-fixes.css',
+            'additional-components-responsive.css'
+        ];
+        
+        cssFiles.forEach((filename, index) => {
+            // Проверяем, не загружен ли уже этот файл
+            const existingLink = document.getElementById(`responsive-css-${index}`);
+            if (existingLink) {
+                return; // Файл уже загружен
             }
             
             const link = document.createElement('link');
-            link.id = cssFile.id;
             link.rel = 'stylesheet';
             link.type = 'text/css';
-            link.href = cssFile.href;
+            link.href = `./${filename}`;
+            link.id = `responsive-css-${index}`;
+            
+            // Добавляем обработчики событий
             link.onload = function() {
-                console.log(`${cssFile.description} loaded successfully`);
+                console.log(`✅ Responsive CSS loaded: ${filename}`);
             };
+            
             link.onerror = function() {
-                console.error(`Failed to load ${cssFile.description}`);
+                console.warn(`⚠️ Failed to load responsive CSS: ${filename}`);
             };
             
-            // Вставляем после основного CSS файла
-            const mainCSS = document.querySelector('link[href*="main.css"]');
-            if (mainCSS) {
-                mainCSS.parentNode.insertBefore(link, mainCSS.nextSibling);
-            } else {
-                document.head.appendChild(link);
-            }
+            document.head.appendChild(link);
         });
-    }
-    
-    // Функция для обработки изменения ориентации экрана
-    function handleOrientationChange() {
-        setTimeout(() => {
-            applyDeviceClasses();
-            
-            // Принудительное обновление стилей таблиц
-            const tables = document.querySelectorAll('.ant-table-wrapper');
-            tables.forEach(table => {
-                table.style.overflowX = 'auto';
-                table.style.webkitOverflowScrolling = 'touch';
-            });
-        }, 100);
     }
     
     // Функция для применения дополнительных исправлений
     function applyAdditionalFixes() {
-        // Добавляем класс для улучшенной прокрутки
+        // Добавляем класс smooth-scroll к body
         document.body.classList.add('smooth-scroll');
         
-        // Исправляем проблемы с прокруткой на iOS
+        // Применяем -webkit-overflow-scrolling для iOS устройств
         if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-            document.body.style.webkitOverflowScrolling = 'touch';
+            const style = document.createElement('style');
+            style.textContent = `
+                .ant-table-wrapper,
+                .tableWrapper {
+                    -webkit-overflow-scrolling: touch !important;
+                }
+            `;
+            document.head.appendChild(style);
         }
         
-        // Принудительное применение стилей к таблицам
+        // Принудительно применяем стили к таблицам после небольшой задержки
         setTimeout(() => {
             const tables = document.querySelectorAll('.ant-table-wrapper');
             tables.forEach(table => {
                 table.style.overflowX = 'auto';
-                table.style.webkitOverflowScrolling = 'touch';
+                const antTable = table.querySelector('.ant-table');
+                if (antTable) {
+                    antTable.style.tableLayout = 'fixed';
+                }
             });
-            
-            // Исправление для FuelTrading таблиц
-            const fuelTradingTables = document.querySelectorAll('.fuelTrading .responsiveTable, .responsiveTable');
-            fuelTradingTables.forEach(table => {
-                table.style.minWidth = '1200px';
-                table.style.tableLayout = 'fixed';
-            });
-        }, 500);
+        }, 1000);
+    }
+    
+    // Основная функция инициализации
+    function initializeDeviceDetection() {
+        const isHuawei = isHuaweiDevice();
+        const isTablet = isTabletDevice();
+        
+        console.log('🔍 Device Detection Results:', {
+            isHuawei,
+            isTablet,
+            userAgent: navigator.userAgent,
+            screenSize: `${window.screen.width}x${window.screen.height}`,
+            viewport: `${window.innerWidth}x${window.innerHeight}`
+        });
+        
+        // Добавляем CSS классы к body и html
+        if (isHuawei) {
+            document.documentElement.classList.add('huawei-device');
+            document.body.classList.add('huawei-device');
+            console.log('📱 Huawei device detected - applying special styles');
+        }
+        
+        if (isTablet) {
+            document.documentElement.classList.add('tablet-device');
+            document.body.classList.add('tablet-device');
+            console.log('📱 Tablet device detected - applying tablet styles');
+        }
+        
+        // Загружаем адаптивные CSS файлы
+        loadResponsiveCSS();
+        
+        // Применяем дополнительные исправления
+        applyAdditionalFixes();
+        
+        // Добавляем обработчики изменения ориентации и размера
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('📱 Screen orientation/size changed, reapplying fixes...');
+                applyAdditionalFixes();
+            }, 300);
+        }
+        
+        window.addEventListener('orientationchange', handleResize);
+        window.addEventListener('resize', handleResize);
+        
+        // Дополнительная проверка через 2 секунды для надежности
+        setTimeout(() => {
+            applyAdditionalFixes();
+        }, 2000);
     }
     
     // Инициализация при загрузке DOM
-    function init() {
-        loadResponsiveCSS();
-        applyDeviceClasses();
-        applyAdditionalFixes();
-        
-        // Добавляем обработчики событий
-        window.addEventListener('orientationchange', handleOrientationChange);
-        window.addEventListener('resize', handleOrientationChange);
-        
-        // Дополнительная проверка через 1 секунду для более надежного обнаружения
-        setTimeout(() => {
-            applyDeviceClasses();
-            applyAdditionalFixes();
-        }, 1000);
-        
-        // Еще одна проверка через 3 секунды для случаев медленной загрузки
-        setTimeout(() => {
-            applyAdditionalFixes();
-        }, 3000);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeDeviceDetection);
+    } else {
+        initializeDeviceDetection();
     }
     
-    // Запускаем инициализацию
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    // Экспорт функций для глобального использования
+    window.DeviceDetection = {
+        isHuaweiDevice,
+        isTabletDevice,
+        loadResponsiveCSS,
+        applyAdditionalFixes
+    };
+    
 })(); 

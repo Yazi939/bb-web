@@ -1,0 +1,459 @@
+/* ===== ДОПОЛНИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ АДАПТИВНОСТИ ДЛЯ ВСЕХ ОСТАЛЬНЫХ КОМПОНЕНТОВ ===== */
+
+/* ===== CALCULATOR COMPONENT ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .calculator {
+    padding: 16px !important;
+  }
+  
+  .calculator .ant-card {
+    margin-bottom: 16px !important;
+  }
+  
+  .calculator .ant-form-item {
+    margin-bottom: 16px !important;
+  }
+  
+  .calculator .ant-input-number {
+    width: 100% !important;
+  }
+  
+  .calculator .ant-btn {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+}
+
+/* ===== EXPENSE CALENDAR COMPONENT ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .expenseCalendar {
+    padding: 16px !important;
+  }
+  
+  .expenseCalendar .ant-calendar {
+    width: 100% !important;
+  }
+  
+  .expenseCalendar .ant-picker {
+    width: 100% !important;
+  }
+  
+  .expenseCalendar .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 -16px !important;
+    padding: 0 16px !important;
+  }
+  
+  .expenseCalendar .responsiveTable {
+    min-width: 800px !important;
+    table-layout: fixed !important;
+  }
+  
+  .expenseCalendar .responsiveTable .ant-table-cell {
+    padding: 14px 10px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+}
+
+/* ===== LOGIN COMPONENT ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .login {
+    padding: 24px 16px !important;
+  }
+  
+  .loginForm {
+    max-width: 400px !important;
+    margin: 0 auto !important;
+  }
+  
+  .loginForm .ant-form-item {
+    margin-bottom: 20px !important;
+  }
+  
+  .loginForm .ant-input {
+    height: 40px !important;
+    font-size: 16px !important;
+  }
+  
+  .loginForm .ant-btn {
+    height: 44px !important;
+    font-size: 16px !important;
+    width: 100% !important;
+  }
+}
+
+/* ===== LAYOUT COMPONENTS ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .mainLayout .ant-layout-sider {
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
+  }
+  
+  .mainLayout .ant-layout-content {
+    padding: 16px !important;
+    margin-left: 200px !important;
+  }
+  
+  .sidebar .ant-menu-item {
+    padding: 0 16px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+  }
+  
+  .sidebar .ant-menu-item-icon {
+    font-size: 16px !important;
+    margin-right: 8px !important;
+  }
+  
+  .logo {
+    padding: 16px !important;
+    text-align: center !important;
+  }
+  
+  .logo img {
+    max-height: 32px !important;
+    width: auto !important;
+  }
+}
+
+/* ===== PRELOADER COMPONENT ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .preloader {
+    padding: 24px !important;
+  }
+  
+  .preloader .ant-spin {
+    font-size: 18px !important;
+  }
+  
+  .preloader .ant-spin-text {
+    font-size: 14px !important;
+    margin-top: 12px !important;
+  }
+}
+
+/* ===== ОБЩИЕ УЛУЧШЕНИЯ ДЛЯ ВСЕХ КОМПОНЕНТОВ ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  /* Улучшения для всех таблиц */
+  .ant-table {
+    font-size: 14px !important;
+  }
+  
+  .ant-table-thead > tr > th {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 12px 8px !important;
+    white-space: nowrap !important;
+  }
+  
+  .ant-table-tbody > tr > td {
+    padding: 12px 8px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Улучшения для форм */
+  .ant-form-horizontal .ant-form-item-label {
+    text-align: left !important;
+    padding-right: 8px !important;
+  }
+  
+  .ant-form-vertical .ant-form-item-label {
+    padding-bottom: 4px !important;
+  }
+  
+  /* Улучшения для кнопок */
+  .ant-btn-group .ant-btn {
+    margin-right: 8px !important;
+  }
+  
+  .ant-btn-group .ant-btn:last-child {
+    margin-right: 0 !important;
+  }
+  
+  /* Улучшения для селектов */
+  .ant-select-dropdown {
+    max-height: 200px !important;
+  }
+  
+  .ant-select-item {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Улучшения для дат */
+  .ant-picker-dropdown {
+    font-size: 14px !important;
+  }
+  
+  .ant-picker-cell {
+    padding: 4px !important;
+  }
+  
+  /* Улучшения для уведомлений */
+  .ant-notification-notice {
+    margin-bottom: 8px !important;
+    padding: 16px !important;
+  }
+  
+  .ant-notification-notice-message {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+  
+  .ant-notification-notice-description {
+    font-size: 13px !important;
+    margin-top: 4px !important;
+  }
+  
+  /* Улучшения для модальных окон */
+  .ant-modal-header {
+    padding: 16px 20px !important;
+  }
+  
+  .ant-modal-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+  }
+  
+  .ant-modal-footer {
+    padding: 12px 20px 16px !important;
+  }
+  
+  .ant-modal-footer .ant-btn {
+    margin-left: 8px !important;
+  }
+  
+  /* Улучшения для дропдаунов */
+  .ant-dropdown-menu {
+    padding: 4px 0 !important;
+  }
+  
+  .ant-dropdown-menu-item {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  /* Улучшения для тултипов */
+  .ant-tooltip-inner {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+  
+  /* Улучшения для прогресс-баров */
+  .ant-progress-text {
+    font-size: 13px !important;
+  }
+  
+  /* Улучшения для переключателей */
+  .ant-switch {
+    margin: 2px 4px !important;
+  }
+  
+  /* Улучшения для чекбоксов и радио */
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper {
+    font-size: 14px !important;
+    margin-right: 12px !important;
+  }
+  
+  /* Улучшения для слайдеров */
+  .ant-slider {
+    margin: 14px 6px 10px !important;
+  }
+  
+  /* Улучшения для рейтингов */
+  .ant-rate {
+    font-size: 18px !important;
+  }
+  
+  /* Улучшения для загрузок */
+  .ant-upload {
+    width: 100% !important;
+  }
+  
+  .ant-upload-btn {
+    width: 100% !important;
+    height: 40px !important;
+  }
+  
+  /* Улучшения для временных линий */
+  .ant-timeline-item-content {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Улучшения для коллапсов */
+  .ant-collapse-header {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .ant-collapse-content-box {
+    padding: 16px !important;
+  }
+  
+  /* Улучшения для шагов */
+  .ant-steps-item-title {
+    font-size: 14px !important;
+  }
+  
+  .ant-steps-item-description {
+    font-size: 13px !important;
+  }
+  
+  /* Улучшения для якорей */
+  .ant-anchor-link-title {
+    font-size: 14px !important;
+  }
+  
+  /* Улучшения для хлебных крошек */
+  .ant-breadcrumb {
+    font-size: 14px !important;
+  }
+  
+  .ant-breadcrumb-separator {
+    margin: 0 6px !important;
+  }
+  
+  /* Улучшения для пагинации */
+  .ant-pagination-item {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 30px !important;
+    font-size: 14px !important;
+  }
+  
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 32px !important;
+    height: 32px !important;
+    line-height: 30px !important;
+  }
+}
+
+/* ===== МОБИЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ДОПОЛНИТЕЛЬНЫХ КОМПОНЕНТОВ ===== */
+@media (max-width: 767px) {
+  .calculator,
+  .expenseCalendar,
+  .login {
+    padding: 12px !important;
+  }
+  
+  .loginForm {
+    max-width: 100% !important;
+  }
+  
+  .mainLayout .ant-layout-sider {
+    position: fixed !important;
+    z-index: 100 !important;
+    height: 100vh !important;
+    left: -200px !important;
+    transition: left 0.3s !important;
+  }
+  
+  .mainLayout .ant-layout-sider.collapsed {
+    left: 0 !important;
+  }
+  
+  .mainLayout .ant-layout-content {
+    margin-left: 0 !important;
+    padding: 8px !important;
+  }
+  
+  .sidebar .ant-menu-item {
+    height: 48px !important;
+    line-height: 48px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Мобильные модальные окна */
+  .ant-modal {
+    max-width: calc(100vw - 16px) !important;
+    margin: 8px auto !important;
+  }
+  
+  .ant-modal-body {
+    padding: 16px !important;
+  }
+  
+  /* Мобильные дропдауны */
+  .ant-dropdown {
+    max-width: calc(100vw - 32px) !important;
+  }
+  
+  /* Мобильные селекты */
+  .ant-select-dropdown {
+    max-height: 50vh !important;
+  }
+  
+  /* Мобильные даты */
+  .ant-picker-dropdown {
+    max-width: calc(100vw - 16px) !important;
+  }
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ HUAWEI УСТРОЙСТВ ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  .huawei-device .ant-table-cell {
+    padding: 16px 12px !important;
+    line-height: 1.6 !important;
+  }
+  
+  .huawei-device .ant-form-item {
+    margin-bottom: 20px !important;
+  }
+  
+  .huawei-device .ant-btn {
+    height: 40px !important;
+    padding: 0 16px !important;
+  }
+  
+  .huawei-device .ant-input,
+  .huawei-device .ant-select-selector {
+    height: 42px !important;
+    padding: 8px 12px !important;
+  }
+}
+
+/* ===== ПРИНУДИТЕЛЬНЫЕ ИСПРАВЛЕНИЯ ДЛЯ ПРОБЛЕМНЫХ СЛУЧАЕВ ===== */
+@media (max-width: 991px) and (min-width: 768px) {
+  /* Принудительное исправление переполнения */
+  .ant-table-wrapper,
+  .ant-table-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Принудительное исправление ширины таблиц */
+  .ant-table {
+    min-width: 100% !important;
+  }
+  
+  /* Принудительное исправление высоты строк */
+  .ant-table-tbody > tr {
+    height: auto !important;
+  }
+  
+  /* Принудительное исправление выравнивания */
+  .ant-table-cell {
+    vertical-align: top !important;
+  }
+  
+  /* Принудительное исправление границ */
+  .ant-table-bordered .ant-table-cell {
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  /* Принудительное исправление заголовков */
+  .ant-table-thead > tr > th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1 !important;
+    background: #fafafa !important;
+  }
+} 

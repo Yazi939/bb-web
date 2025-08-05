@@ -1,33 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="./icon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self' https://bunker-boats.ru;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
-        style-src 'self' 'unsafe-inline';
-        img-src 'self' data: https:;
-        font-src 'self' data:;
-        connect-src 'self' https://bunker-boats.ru https://bunker-boats.ru/api wss://bunker-boats.ru ws://localhost:* http://localhost:* ws://89.169.170.164:* http://89.169.170.164:*;
-        worker-src 'self' blob:;
-    " />
-    <title>Bunker Boats</title>
-    <script type="module" crossorigin src="./main.js"></script>
-    <link rel="modulepreload" crossorigin href="./react-vendor.js">
-    <link rel="modulepreload" crossorigin href="./antd-vendor.js">
-    <link rel="modulepreload" crossorigin href="./utils-vendor.js">
-    <link rel="stylesheet" crossorigin href="./main.css">
-    <!-- Responsive fixes for tablets and mobile devices -->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bunker Boats - Управление топливом</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="manifest" href="./manifest-web.json">
+    <meta name="theme-color" content="#1890ff">
+    <meta name="description" content="Bunker Boats - профессиональная система управления топливными операциями">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="./main.css">
     <link rel="stylesheet" href="./tablet-fixes.css">
     <link rel="stylesheet" href="./global-responsive-fixes.css">
     <link rel="stylesheet" href="./fuel-trading-tablet-fixes.css">
-    <!-- Device detection and tablet responsiveness fixes -->
+    <link rel="stylesheet" href="./additional-components-responsive.css">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Bunker Boats">
+    <link rel="apple-touch-icon" href="./icon-192x192.png">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Bunker Boats">
+    <meta property="og:description" content="Профессиональная система управления топливными операциями">
+    <meta property="og:image" content="./icon-512x512.png">
+    <meta property="og:type" content="website">
+    
+    <!-- Device Detection and Responsive CSS Loading -->
     <script src="./device-detection.js"></script>
-  </head>
-  <body>
+</head>
+<body>
     <div id="root"></div>
-
-  </body>
+    
+    <!-- Main Application Scripts -->
+    <script src="./react-vendor.js"></script>
+    <script src="./antd-vendor.js"></script>
+    <script src="./utils-vendor.js"></script>
+    <script src="./main.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
 </html> 
