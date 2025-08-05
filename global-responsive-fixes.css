@@ -336,50 +336,96 @@
     border-radius: 8px !important;
     width: 100% !important;
     max-width: 100% !important;
+    /* Принудительно ограничиваем ширину */
+    box-sizing: border-box !important;
   }
   
   .ant-table {
-    min-width: 600px !important; /* Минимальная ширина для мобильных */
+    min-width: 500px !important; /* Уменьшено для мобильных */
     table-layout: fixed !important;
+    width: 500px !important; /* Фиксированная ширина */
   }
   
   .ant-table-cell {
-    padding: 10px 6px !important;
-    font-size: 12px !important;
-    line-height: 1.3 !important;
+    padding: 8px 4px !important; /* Еще меньше padding */
+    font-size: 11px !important; /* Меньше шрифт */
+    line-height: 1.2 !important;
     vertical-align: top !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
     border-right: 1px solid #f0f0f0 !important;
+    max-width: 80px !important; /* Ограничиваем ширину ячеек */
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   
   .ant-table-thead > tr > th {
-    padding: 10px 6px !important;
-    font-size: 12px !important;
+    padding: 8px 4px !important;
+    font-size: 10px !important; /* Очень маленький шрифт для заголовков */
     font-weight: 600 !important;
     white-space: nowrap !important;
     background: #fafafa !important;
     position: sticky !important;
     top: 0 !important;
     z-index: 2 !important;
+    max-width: 80px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   
   .ant-tag {
-    font-size: 10px !important;
-    padding: 1px 4px !important;
+    font-size: 9px !important;
+    padding: 1px 3px !important;
     margin: 1px !important;
+    max-width: 60px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
   
   .ant-btn {
-    min-width: 28px !important;
-    height: 28px !important;
-    padding: 0 6px !important;
-    font-size: 11px !important;
+    min-width: 24px !important;
+    height: 24px !important;
+    padding: 0 4px !important;
+    font-size: 10px !important;
+    margin: 1px !important;
   }
+  
+  /* Специальные стили для FuelTrading таблицы на мобильных */
+  .fuelTrading .responsiveTable,
+  .responsiveTable {
+    min-width: 500px !important;
+    width: 500px !important;
+    table-layout: fixed !important;
+  }
+  
+  .fuelTrading .tableWrapper,
+  .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Фиксированные ширины колонок для мобильных */
+  .ant-table-cell:nth-child(1) { width: 70px !important; max-width: 70px !important; }
+  .ant-table-cell:nth-child(2) { width: 80px !important; max-width: 80px !important; }
+  .ant-table-cell:nth-child(3) { width: 60px !important; max-width: 60px !important; }
+  .ant-table-cell:nth-child(4) { width: 60px !important; max-width: 60px !important; }
+  .ant-table-cell:nth-child(5) { width: 70px !important; max-width: 70px !important; }
+  .ant-table-cell:nth-child(6) { width: 80px !important; max-width: 80px !important; }
+  .ant-table-cell:nth-child(7) { width: 50px !important; max-width: 50px !important; }
+  .ant-table-cell:nth-child(8) { width: 50px !important; max-width: 50px !important; }
+  .ant-table-cell:nth-child(9) { width: 60px !important; max-width: 60px !important; }
+  .ant-table-cell:nth-child(10) { width: 70px !important; max-width: 70px !important; }
+  .ant-table-cell:last-child { width: 60px !important; max-width: 60px !important; }
   
   /* Улучшенная прокрутка для мобильных */
   .ant-table-wrapper::-webkit-scrollbar {
-    height: 4px !important;
+    height: 3px !important;
   }
   
   .ant-table-wrapper::-webkit-scrollbar-track {
