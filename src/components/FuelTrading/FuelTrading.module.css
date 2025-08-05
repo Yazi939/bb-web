@@ -469,13 +469,44 @@
     min-width: 0;
   }
   
-  /* Переключение на карточки вместо таблицы */
-  .tableCard .ant-table-wrapper {
-    display: none;
+  /* ИСПРАВЛЕНО: Показываем таблицу с горизонтальной прокруткой вместо скрытия */
+  .tableWrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    margin: 0 calc(-1 * var(--spacing-sm)) !important;
+    padding: 0 var(--spacing-sm) !important;
+    border-radius: 8px !important;
   }
   
+  .responsiveTable {
+    min-width: 800px !important; /* Минимальная ширина для мобильных */
+    table-layout: fixed !important;
+  }
+  
+  .responsiveTable .ant-table-cell {
+    padding: 12px 8px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    vertical-align: top !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    border-right: 1px solid #f0f0f0 !important;
+  }
+  
+  .responsiveTable .ant-table-thead > tr > th {
+    padding: 12px 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    background: #fafafa !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+  }
+  
+  /* Скрываем мобильные карточки, так как используем таблицу */
   .mobileCards {
-    display: block;
+    display: none;
   }
   
   /* Метрики в одну колонку */
@@ -498,7 +529,7 @@
     grid-template-columns: 1fr;
   }
   
-  /* Улучшенные мобильные карточки */
+  /* Улучшенные мобильные карточки (на случай если понадобятся) */
   .mobileCard {
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
@@ -527,6 +558,25 @@
   .exportActions .ant-btn {
     width: 100%;
     justify-content: center;
+  }
+  
+  /* Улучшения прокрутки для мобильных */
+  .tableWrapper::-webkit-scrollbar {
+    height: 6px !important;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 3px !important;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1 !important;
+    border-radius: 3px !important;
+  }
+  
+  .tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8 !important;
   }
 }
 
